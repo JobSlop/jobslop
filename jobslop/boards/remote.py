@@ -4,7 +4,7 @@ import re
 import urllib.parse
 
 from jobslop import net
-from jobslop.boards.base import as_list, job
+from jobslop.boards.base import Board, as_list, job
 from jobslop.geo.countries import country_info
 from jobslop.search.matching import STOPWORDS
 from jobslop.text import money, to_date
@@ -89,3 +89,12 @@ def src_arbeitnow(q, o):
                            to_date(j.get("created_at")), "", ", ".join(as_list(j.get("job_types"))),
                            as_list(j.get("tags")), j.get("description"), remote=bool(j.get("remote"))))
     return out
+
+
+BOARDS = [
+    Board("Himalayas", src_himalayas, "Remote jobs board", group="remote"),
+    Board("Jobicy", src_jobicy, "Remote jobs board", group="remote"),
+    Board("Remotive", src_remotive, "Remote jobs board", group="remote"),
+    Board("RemoteOK", src_remoteok, "Remote jobs board", group="remote"),
+    Board("Arbeitnow", src_arbeitnow, "Remote & European jobs board", group="remote"),
+]

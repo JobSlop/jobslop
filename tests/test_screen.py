@@ -19,7 +19,6 @@ from test_extension import find_chrome
 from test_linkedin_link import LI_PAGE
 
 from jobslop import net, runtime, settings
-from jobslop.boards import registry
 from jobslop.profile import linkedin_link
 from jobslop.profile import store as pstore
 from jobslop.server import handler
@@ -267,7 +266,7 @@ class ScreenTests:
         runtime.state["port"] = app.port
         fake = FakeBoards(BOARD_JOBS)
         try:
-            with mock.patch.dict(registry.SOURCES, fake.sources(), clear=True), no_internet(), \
+            with fake.installed(), no_internet(), \
                     mock.patch.object(net, "get_json", side_effect=OSError("offline")), \
                     mock.patch.object(handler, "open_in_chrome", return_value=True) as open_chrome, \
                     mock.patch.object(os, "startfile", create=True) as startfile, \

@@ -9,6 +9,7 @@ import urllib.request
 import webbrowser
 from http.server import ThreadingHTTPServer
 
+from jobslop import bootstrap
 from jobslop.config import APP_PORT, DATA_DIR, RES_DIR
 from jobslop.extension import install_extension, pairing_code
 from jobslop.runtime import state
@@ -25,6 +26,7 @@ def free_port():
 
 def main():
     after_update_cleanup()
+    bootstrap.setup()
     install_extension()
     pairing_code()
     arg_port = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--port=")), None)

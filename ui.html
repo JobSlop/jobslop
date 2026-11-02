@@ -946,11 +946,8 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-copy
   const ok=await copyText(b.dataset.copy);if(!ok)return toast("Couldn't copy — select the link manually");
   const old=b.innerHTML;b.innerHTML="✓";b.classList.add("done");setTimeout(()=>{b.innerHTML=old;b.classList.remove("done")},1400);toast("Link copied")});
 
-const BIG=["LinkedIn","Indeed","Glassdoor","ZipRecruiter"],LOCAL=["Reed","Adzuna","Jobs2Careers","USAJOBS","Jobindex","Jobbird"],
-  SPECIAL=["WorkWithIndies","ArtStation","ICAEW","ACCA"],REMOTE=["Himalayas","Jobicy","Remotive","RemoteOK","Arbeitnow"],
-  SOURCES=BIG.concat(LOCAL,SPECIAL,REMOTE);
-// boards that only cover one country
-const ONLY_IN={Reed:"GB",ZipRecruiter:"GB",Jobs2Careers:"US",USAJOBS:"US",Jobindex:"DK",Jobbird:"NL"};
+// the job boards come from the app (core + plugins): name, description, group, countries, needs_key, slow
+let BOARDS=[];
 const KEYS=["reed_key","adzuna_id","adzuna_key","apify_token","usajobs_key","usajobs_email"];
 const STAGES=["Saved","Applying","Applied","Interview","Offer","Rejected"];
 const APPLIED=["Applied","Interview","Offer","Rejected"];
@@ -1006,20 +1003,16 @@ $("#strip").onclick=()=>{setTab("progress");$("#v-progress").scrollIntoView({beh
 $("#strip").style.cursor="pointer";
 
 // ============================================================= keys & sources
-async function loadKeys(){keys=await get("/api/settings");KEYS.forEach(k=>$("#"+k).placeholder=keys[k]?"saved ("+keys[k]+") — paste to replace":"paste here");drawSources()}
+async function loadKeys(){keys=await get("/api/settings");KEYS.forEach(k=>$("#"+k).placeholder=keys[k]?"saved ("+keys[k]+") — paste to replace":"paste here");await loadBoards()}
+async function loadBoards(){BOARDS=await get("/api/boards");drawSources();
+  const f=$("#srcfilter"),was=f.value;
+  f.innerHTML='<option value="">All sources</option>'+BOARDS.map(b=>`<option>${esc(b.name)}</option>`).join("");f.value=was}
 function drawSources(){
-  const off=new Set((pref("off")||"").split(",").filter(Boolean)),cc=$("#country").value||"GB",c=countries.find(x=>x.code===cc)||{};
-  $("#srcs").innerHTML=SOURCES.map(s=>{
-    const na=(ONLY_IN[s]&&ONLY_IN[s]!==cc)||(s==="Adzuna"&&c.adzuna===false);
-    if(na)return"";                     // not for this country: hide it
-    const need=(s==="Reed"&&!keys.reed_key)||(s==="Adzuna"&&!(keys.adzuna_id&&keys.adzuna_key))||(s==="USAJOBS"&&!(keys.usajobs_key&&keys.usajobs_email));
-    const on=!off.has(s)&&!need;
-    const note=need?" · needs key":(s==="LinkedIn"&&!keys.apify_token?" · slow":"");
-    const tip={ArtStation:"Art, animation & games jobs worldwide",WorkWithIndies:"Indie games studio jobs worldwide",
-      ICAEW:"Chartered accountancy jobs (ICAEW)",ACCA:"Accounting & finance jobs (ACCA Careers)",ZipRecruiter:"ZipRecruiter UK",
-      Jobindex:"Denmark's biggest job board",Jobbird:"Dutch job board",Jobs2Careers:"Large US job search",USAJOBS:"US government jobs",
-      LinkedIn:"Public LinkedIn listings (no login)",Indeed:"Indeed, searched free with JobSpy",Glassdoor:"Glassdoor, searched free with JobSpy"}[s]||"Remote jobs board";
-    return `<label class="chip ${on?"on":"off"} ${need?"need":""}" title="${need?"Add a free key in ⚙ Settings":tip}"><input type="checkbox" class="sc" value="${s}" ${on?"checked":""} ${need?"disabled":""}><span class="dot"></span>${s}${note}</label>`}).join("");
+  const off=new Set((pref("off")||"").split(",").filter(Boolean)),cc=$("#country").value||"GB";
+  $("#srcs").innerHTML=BOARDS.map(b=>{
+    if(b.countries&&!b.countries.includes(cc))return"";     // not for this country: hide it
+    const need=b.needs_key,on=!off.has(b.name)&&!need,note=need?" · needs key":(b.slow?" · slow":"");
+    return `<label class="chip ${on?"on":"off"} ${need?"need":""}" title="${need?"Add a free key in ⚙ Settings":esc(b.description)}"><input type="checkbox" class="sc" value="${esc(b.name)}" ${on?"checked":""} ${need?"disabled":""}><span class="dot"></span>${esc(b.name)}${note}</label>`}).join("");
   $$(".sc").forEach(c=>c.onchange=()=>{c.closest(".chip").classList.toggle("on",c.checked);c.closest(".chip").classList.toggle("off",!c.checked);
     pref("off",$$(".sc").filter(x=>!x.checked&&!x.disabled).map(x=>x.value).join(","))});
 }
@@ -1029,7 +1022,6 @@ $("#savekeys").onclick=()=>withSpinner($("#savekeys"),"Saving…",async()=>{cons
   await post("/api/settings",b);
   matchTerms=await post("/api/match_terms",{terms:matchTerms.filter(t=>(t.name||"").trim())});drawTerms();
   await loadKeys();closeModals();render();toast("Settings saved")});
-$("#srcfilter").innerHTML+=SOURCES.map(s=>`<option>${s}</option>`).join("");
 
 // ============================================================= search form
 async function loadCountries(){countries=await get("/api/countries");

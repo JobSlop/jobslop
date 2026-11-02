@@ -12,7 +12,6 @@ from support import AppServer, FakeBoards, base_opts, fake_lookup, make_job, off
 
 from jobslop import runtime
 from jobslop.boards import base as board_base
-from jobslop.boards import registry
 from jobslop.geo import countries, osm, places
 from jobslop.profile import store as pstore
 from jobslop.search import contract, engine
@@ -24,7 +23,7 @@ class SearchTestCase:
 
     def run_search(self, boards, query="software developer", fresh=True, **opts):
         fake = FakeBoards(boards)
-        with mock.patch.dict(registry.SOURCES, fake.sources(), clear=True), \
+        with fake.installed(), \
                 mock.patch.object(places, "lookup_postcode", side_effect=fake_lookup), \
                 mock.patch.object(osm, "nominatim", side_effect=OSError("no internet in tests")):
             out = engine.search(query, list(boards), base_opts(**opts), fresh=fresh)
@@ -344,7 +343,7 @@ class ApiTests(SearchTestCase):
 
     def test_search_endpoint_with_an_address(self):
         fake = FakeBoards({"LinkedIn": [make_job("LinkedIn", "Software Developer")]})
-        with mock.patch.dict(registry.SOURCES, fake.sources(), clear=True), \
+        with fake.installed(), \
                 mock.patch.object(places, "lookup_postcode", side_effect=fake_lookup), \
                 mock.patch.object(osm, "nominatim", side_effect=OSError("offline")):
             r = self.get("/api/search?q=software+developer&where=12+Colmore+Row%2C+Birmingham+B3+2BJ"

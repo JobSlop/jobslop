@@ -26,21 +26,18 @@ for _var in ("APPDATA", "HOME", "XDG_DATA_HOME", "USERPROFILE"):
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from jobslop import (
-    config,  # noqa: E402
-    rates,  # noqa: E402
-    runtime,  # noqa: E402
-    settings,  # noqa: E402
-    tracker,  # noqa: E402
-)
+# the app is imported only now, after the data folder was pointed at TMP
+import dataclasses  # noqa: E402
+
+from jobslop import bootstrap, config, rates, runtime, settings, tracker  # noqa: E402
 from jobslop.boards import base as board_base  # noqa: E402
 from jobslop.boards import registry  # noqa: E402
-from jobslop.geo import (
-    osm,  # noqa: E402
-    places,  # noqa: E402
-)
+from jobslop.geo import osm, places  # noqa: E402
 from jobslop.profile import store as pstore  # noqa: E402
+from jobslop.search import cache as search_cache  # noqa: E402
 from jobslop.server import handler as app_handler  # noqa: E402
+
+bootstrap.setup()
 
 assert str(config.DATA_DIR).startswith(TMP), "tests must not use the real jobslop data folder"
 
@@ -80,7 +77,7 @@ def offline(fn):
 
 def reset_data():
     """Empty data folder: no profile, settings, saved jobs, cache or CV."""
-    for f in (registry.CACHE_FILE, settings.SETTINGS_FILE, tracker.SAVED_FILE, pstore.PROFILE_FILE, places.PLACES_FILE, rates.RATES_FILE):
+    for f in (search_cache.CACHE_FILE, settings.SETTINGS_FILE, tracker.SAVED_FILE, pstore.PROFILE_FILE, places.PLACES_FILE, rates.RATES_FILE):
         f.unlink(missing_ok=True)
     import shutil
     shutil.rmtree(pstore.CV_DIR, ignore_errors=True)
@@ -110,7 +107,8 @@ class FakeBoards:
         self.jobs_by_board = jobs_by_board
         self.calls = []
 
-    def sources(self):
+    def installed(self):
+        """While active, these are the only boards. Each keeps the real board's facts (countries, keys...)."""
         def make(name):
             def src(q, o):
                 self.calls.append((name, q, dict(o)))
@@ -119,7 +117,12 @@ class FakeBoards:
                     raise result
                 return [dict(j) for j in result]
             return src
-        return {name: make(name) for name in self.jobs_by_board}
+        fakes = {}
+        for name in self.jobs_by_board:
+            real = registry.BOARDS.get(name)
+            fakes[name] = (dataclasses.replace(real, search=make(name)) if real
+                           else board_base.Board(name, make(name)))
+        return mock.patch.object(registry.BOARDS, "_boards", fakes)
 
     def asked(self, name):
         return [c for c in self.calls if c[0] == name]

@@ -21,7 +21,7 @@ from jobslop.boards import country as country_boards
 from jobslop.boards import jobspy as jobspy_boards
 from jobslop.boards import keyed as keyed_boards
 from jobslop.boards import linkedin as linkedin_board
-from jobslop.boards import registry
+from jobslop.boards import registry, ziprecruiter
 from jobslop.boards import remote as remote_boards
 from jobslop.boards import special as special_boards
 from jobslop.geo import cities
@@ -276,12 +276,12 @@ class CountryBoardTests(BoardTestCase):
 
     def test_ziprecruiter_uk(self):
         with pytest.raises(board_base.NotHere):
-            country_boards.src_ziprecruiter_uk("x", base_opts(country="US"))
+            ziprecruiter.src_ziprecruiter_uk("x", base_opts(country="US"))
         card = ('<li class="job-listing"><a class="jobList-title" href="https://zip/1">Software Engineer</a>'
                 '<li><i class="fa-building"></i>Tech Ltd</li><li><i class="fa-map-marker-alt"></i>Birmingham</li>'
                 '<div class="jobList-description">Great job</div><div class="jobList-date">3 days ago</div>'
                 '<li><i class="fa-pound-sign"></i>£40,000</li>')
-        jobs = self.html_board(country_boards.src_ziprecruiter_uk, {"ziprecruiter.co.uk": card})
+        jobs = self.html_board(ziprecruiter.src_ziprecruiter_uk, {"ziprecruiter.co.uk": card})
         assert (jobs[0]["company"], jobs[0]["location"], jobs[0]["date"], jobs[0]["salary"]) == \
                          ("Tech Ltd", "Birmingham", days_ago(3), "£40,000")
 
@@ -376,7 +376,8 @@ class BigBoardTests(BoardTestCase):
         assert (kw["location"], kw["job_type"]) == ("Leeds, United Kingdom", "fulltime")
 
     def test_every_board_is_registered(self):
-        assert len(registry.SOURCES) == 19
-        for name, fn in registry.SOURCES.items():
-            assert callable(fn), name
+        assert len(registry.BOARDS) == 19
+        for board in registry.BOARDS:
+            assert callable(board.search), board.name
+            assert board.description, board.name
 

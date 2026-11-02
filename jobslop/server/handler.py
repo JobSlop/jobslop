@@ -14,7 +14,7 @@ from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 
 from jobslop import config
-from jobslop.boards.registry import SOURCES
+from jobslop.boards.registry import BOARDS
 from jobslop.config import FEEDBACK_EMAIL, RES_DIR
 from jobslop.extension import active_job, extension_payload, install_extension, open_in_chrome, pairing_code
 from jobslop.geo import osm
@@ -155,6 +155,9 @@ class Handler(BaseHTTPRequestHandler):
         elif u.path == "/api/countries":
             self.send(json.dumps([{"code": c, "name": v[0], "adzuna": bool(v[2]), "currency": v[5]}
                                   for c, v in sorted(COUNTRIES.items(), key=lambda kv: kv[1][0])]))
+        elif u.path == "/api/boards":
+            s = load_settings()
+            self.send(json.dumps([b.describe(s) for b in BOARDS]))
         elif u.path == "/api/rates":
             self.send(json.dumps(get_rates()))
         elif u.path == "/api/phone":
@@ -238,7 +241,7 @@ class Handler(BaseHTTPRequestHandler):
                     "jtype": p.get("jtype", "") if p.get("jtype") in ("fulltime", "parttime", "contract", "internship") else "",
                     "remote": p.get("remote", "") if p.get("remote") in ("remote", "hybrid", "onsite") else "",
                     "salary_min": num("salary_min", 0, 0, 10_000_000)}
-            srcs = p.get("sources", ",".join(SOURCES)).split(",")
+            srcs = p.get("sources", ",".join(BOARDS.names())).split(",")
             fresh = p.get("fresh", "0") == "1"
             any_job = p.get("any", "0") == "1"
             if not q.strip() and not any_job:

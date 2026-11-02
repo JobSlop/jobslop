@@ -4,8 +4,8 @@ import base64
 import urllib.parse
 
 from jobslop import net
-from jobslop.boards.base import NeedsKey, NotHere, job
-from jobslop.geo.countries import country_info, is_country_name
+from jobslop.boards.base import Board, NeedsKey, NotHere, job
+from jobslop.geo.countries import COUNTRIES, country_info, is_country_name
 from jobslop.settings import load_settings
 from jobslop.text import money, to_date
 
@@ -71,3 +71,12 @@ def src_adzuna(q, o):
         if len(res) < 50:
             break
     return out
+
+
+BOARDS = [
+    Board("Reed", src_reed, "Big UK job board (needs a free key)", group="country", countries={"GB"},
+          country_native=True, location_aware=True, needs=("reed_key",)),
+    Board("Adzuna", src_adzuna, "Job search in many countries (needs a free key)", group="country",
+          countries={c for c, v in COUNTRIES.items() if v[2]}, country_native=True, location_aware=True,
+          needs=("adzuna_id", "adzuna_key")),
+]

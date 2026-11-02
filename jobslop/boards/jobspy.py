@@ -6,7 +6,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-from jobslop.boards.base import NeedsKey, NotHere, as_list, job
+from jobslop.boards.base import Board, NeedsKey, NotHere, as_list, job
 from jobslop.config import DATA_DIR
 from jobslop.geo.countries import country_info, is_country_name
 from jobslop.geo.places import place
@@ -185,3 +185,11 @@ def src_ziprecruiter(q, o):
     if o["country"] not in ("US", "CA"):
         raise NotHere("US & Canada only")
     return jobspy_run("zip_recruiter", q, o)
+
+
+BOARDS = [
+    Board("Indeed", src_indeed, "Indeed, searched free with JobSpy", country_native=True, location_aware=True,
+          native_types=True, cache_seconds=3 * 3600),
+    Board("Glassdoor", src_glassdoor, "Glassdoor, searched free with JobSpy", country_native=True, location_aware=True,
+          native_types=True, cache_seconds=3 * 3600),
+]

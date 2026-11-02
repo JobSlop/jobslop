@@ -4,7 +4,7 @@ import re
 from concurrent.futures import ThreadPoolExecutor
 
 from jobslop.boards.base import NeedsKey, NotHere
-from jobslop.boards.registry import COUNTRY_NATIVE, KEYED_SOURCES, LOCATION_AWARE, SOURCES
+from jobslop.boards.registry import BOARDS
 from jobslop.geo.cities import REMOTE_RE, job_point, km_between
 from jobslop.geo.countries import COUNTRIES, country_info, local_ok_re
 from jobslop.geo.places import resolve_where
@@ -35,14 +35,14 @@ def search(query, sources, opts, fresh=False):
     queries = expanded
     # internships: boards without an "internship" filter get the word added to the search itself
     sent_as = {}
-    TYPE_NATIVE = {"LinkedIn", "Indeed", "Glassdoor"}
     tasks = []
     for q in queries:
         for name in sources:
-            if name not in SOURCES:
+            board = BOARDS.get(name)
+            if board is None:
                 continue
             sq = q
-            if opts.get("intern") and name not in TYPE_NATIVE and not INTERN_RE.search(q):
+            if opts.get("intern") and not board.native_types and not INTERN_RE.search(q):
                 sq = (q + " internship").strip()
             sent_as[(name, sq)] = q
             tasks.append((name, sq))
@@ -59,7 +59,7 @@ def search(query, sources, opts, fresh=False):
             return name, q, [], str(e) or "not available here", False
         except Exception as e:
             msg = str(e)[:140]
-            if ("401" in msg or "403" in msg) and name in KEYED_SOURCES:
+            if ("401" in msg or "403" in msg) and BOARDS.get(name).needs:
                 msg = "key rejected - check Settings"
             elif "401" in msg or "403" in msg or "429" in msg:
                 msg = "the site turned the search away - try again later"
@@ -86,12 +86,14 @@ def search(query, sources, opts, fresh=False):
     seen = {}
     for j in raw:
         q = j.pop("_q")
-        j["local_ok"] = j["source"] in COUNTRY_NATIVE or bool(local_re.search(j["location"]))
+        board = BOARDS.get(j["source"])
+        native = bool(board and board.country_native)
+        j["local_ok"] = native or bool(local_re.search(j["location"]))
         # how far away is it? (offline town list; exact coordinates when the board gives them)
         pt = job_point(j, opts["country"]) if center else None
         j["dist_km"] = round(km_between(center[1], center[2], pt[0], pt[1]), 1) if pt else None
         # a town was given: on-site jobs from the worldwide boards must be within the radius
-        if town and j["source"] not in LOCATION_AWARE and not REMOTE_RE.search(j["location"]):
+        if town and not (board and board.location_aware) and not REMOTE_RE.search(j["location"]):
             if j["dist_km"] is not None:
                 if j["dist_km"] > radius_km * 1.25:
                     continue
@@ -113,7 +115,7 @@ def search(query, sources, opts, fresh=False):
         key = (re.sub(r"\W+", "", j["title"].lower()), re.sub(r"\W+", "", j["company"].lower()))
         j["score"] = sc
         j["matched"] = q
-        j["cur_hint"] = country_info(opts["country"])[5] if j["source"] in COUNTRY_NATIVE else "USD"
+        j["cur_hint"] = country_info(opts["country"])[5] if native else "USD"
         if key not in seen or (seen[key]["score"], seen[key]["title_match"]) < (sc, j["title_match"]):
             seen[key] = j
 

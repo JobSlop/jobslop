@@ -6,7 +6,7 @@ import urllib.parse
 from datetime import datetime
 
 from jobslop import net
-from jobslop.boards.base import job
+from jobslop.boards.base import Board, job
 from jobslop.geo.cities import tail_place
 from jobslop.net import BROWSER_UA
 from jobslop.text import money, strip_html, to_date
@@ -102,3 +102,11 @@ def src_icaew(q, o):
 def src_acca(q, o):
     """ACCA Careers - accounting & finance jobs worldwide."""
     return madgex_feed("ACCA", "https://jobs.accaglobal.com", q, o)
+
+
+BOARDS = [
+    Board("WorkWithIndies", src_workwithindies, "Indie games studio jobs worldwide", group="specialist"),
+    Board("ArtStation", src_artstation, "Art, animation & games jobs worldwide", group="specialist"),
+    Board("ICAEW", src_icaew, "Chartered accountancy jobs (ICAEW)", group="specialist", country_native=True),
+    Board("ACCA", src_acca, "Accounting & finance jobs (ACCA Careers)", group="specialist", country_native=True),
+]

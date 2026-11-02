@@ -7,7 +7,6 @@ from unittest import mock
 from support import AppTestCase, b64, make_docx, make_pdf, make_zip
 
 from jobslop import config, extension, net, rates, runtime, settings
-from jobslop.boards import registry
 from jobslop.profile import cvparse
 from jobslop.profile import store as pstore
 from jobslop.search import engine, matching
@@ -147,7 +146,7 @@ class SettingsTests(AppTestCase):
         settings.update_settings(lambda s: s.update(match_terms=[{"name": "Games Programmer", "aliases": ["Gameplay Programmer"]}]))
         from support import FakeBoards, base_opts, make_job
         fake = FakeBoards({"LinkedIn": [make_job("LinkedIn", "Gameplay Programmer")]})
-        with mock.patch.dict(registry.SOURCES, fake.sources(), clear=True):
+        with fake.installed():
             out = engine.search("games programmer", ["LinkedIn"], base_opts(), fresh=True)
         assert {c[1] for c in fake.calls} == {"Games Programmer", "Gameplay Programmer"}
         assert len(out["results"]) == 1

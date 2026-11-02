@@ -7,7 +7,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from jobslop.boards.base import as_list, job
+from jobslop.boards.base import Board, as_list, job
 from jobslop.boards.jobspy import LI_COOLDOWN, LI_GAP, apify_run, li_lock, li_state
 from jobslop.geo.countries import is_country_name
 from jobslop.geo.places import place
@@ -88,3 +88,9 @@ def src_linkedin(q, o):
         if len(cards) < 10:
             break
     return out
+
+
+BOARDS = [
+    Board("LinkedIn", src_linkedin, "Public LinkedIn listings (no login)", country_native=True, location_aware=True,
+          native_types=True, slow_without="apify_token", cache_seconds=3600),
+]
