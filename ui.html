@@ -171,6 +171,22 @@ section.view.on{display:block}
 .tile .n{font-family:var(--display);font-size:46px;line-height:1}
 .tile .l{font-size:12px;color:var(--muted);letter-spacing:.05em;margin-top:8px}
 .tile .s{font-size:12px;color:var(--muted);margin-top:4px}
+.plugs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.plug{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--surface);display:flex;flex-direction:column;gap:6px}
+.plug.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.plug .ph{display:flex;align-items:flex-start;gap:10px;justify-content:space-between}
+.plug .pn{font-weight:700;font-size:14px}.plug .pv{font-size:11.5px;color:var(--muted)}
+.plug .pd{font-size:12.5px;color:var(--muted);line-height:1.4}
+.plug .pa{display:flex;flex-wrap:wrap;gap:4px}.plug .pa span{font-size:10.5px;padding:1px 7px;border-radius:999px;background:var(--surface2);color:var(--muted)}
+.plug .perr{font-size:12px;color:var(--warn)}
+.tag{font-size:10px;font-weight:700;letter-spacing:.04em;padding:1px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin-left:6px;vertical-align:1px}
+.sw{position:relative;width:38px;height:22px;flex:0 0 auto;cursor:pointer}
+.sw input{opacity:0;position:absolute;inset:0;margin:0;cursor:pointer}
+.sw span{position:absolute;inset:0;border-radius:999px;background:var(--line);transition:background .15s}
+.sw span::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw input:checked+span{background:var(--accent)}.sw input:checked+span::after{transform:translateX(16px)}
+.sw input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.sw input:disabled+span{opacity:.45}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px 22px}
 .panel h3{margin:0 0 4px;font-family:var(--display);font-weight:400;font-size:26px}
 .grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:12px;margin-top:12px}
@@ -641,6 +657,10 @@ button.busy{pointer-events:none;opacity:.8}
   <p class="muted" style="font-size:12.5px;margin:-4px 0 10px">Teach the app what a job can be called. Searching any of the names finds all of them, and “title only” means the word must be in the job <i>title</i> — so “communication” listed as a skill in an advert won't count as a communications job. Also used by “Match jobs to my CV”.</p>
   <div id="mterms"></div>
   <div style="display:flex;gap:8px;margin-top:8px"><button class="pill line sm" id="addterm">+ Add a job term</button></div>
+  <div class="psec">Plugins</div>
+  <p class="muted" style="font-size:12.5px;margin:-4px 0 10px">Extra job boards, fields and languages. Switch on what's useful to you — changes apply straight away.</p>
+  <div class="plugs" id="plugs"></div>
+  <div id="plugsettings"></div>
   <div class="pc-only">
   <div class="psec">Job board keys</div>
   <p class="muted" style="font-size:13px;margin:-4px 0 8px">All optional. Keys are stored only on this computer.</p>
@@ -1003,7 +1023,7 @@ $("#strip").onclick=()=>{setTab("progress");$("#v-progress").scrollIntoView({beh
 $("#strip").style.cursor="pointer";
 
 // ============================================================= keys & sources
-async function loadKeys(){keys=await get("/api/settings");KEYS.forEach(k=>$("#"+k).placeholder=keys[k]?"saved ("+keys[k]+") — paste to replace":"paste here");await loadBoards()}
+async function loadKeys(){keys=await get("/api/settings");KEYS.forEach(k=>$("#"+k)&&($("#"+k).placeholder=keys[k]?"saved ("+keys[k]+") — paste to replace":"paste here"));await loadBoards()}
 async function loadBoards(){BOARDS=await get("/api/boards");drawSources();
   const f=$("#srcfilter"),was=f.value;
   f.innerHTML='<option value="">All sources</option>'+BOARDS.map(b=>`<option>${esc(b.name)}</option>`).join("");f.value=was}
@@ -1016,9 +1036,40 @@ function drawSources(){
   $$(".sc").forEach(c=>c.onchange=()=>{c.closest(".chip").classList.toggle("on",c.checked);c.closest(".chip").classList.toggle("off",!c.checked);
     pref("off",$$(".sc").filter(x=>!x.checked&&!x.disabled).map(x=>x.value).join(","))});
 }
-$("#gear").onclick=()=>openModal("m-keys");
+$("#gear").onclick=()=>{openModal("m-keys");loadPlugins()};
+
+// ============================================================= plugins
+let plugins={plugins:[],profile_fields:[],settings:[]};
+const allKeys=()=>KEYS.concat(plugins.settings.map(s=>s.key));
+async function loadPlugins(){plugins=await get("/api/plugins");drawPlugins()}
+function drawPlugins(){
+  $("#plugs").innerHTML=plugins.plugins.map(p=>`<div class="plug ${p.enabled?"on":""}">
+    <div class="ph"><div><div class="pn">${esc(p.name)}${p.builtin?'<span class="tag">BUILT IN</span>':""}</div>
+      <div class="pv">v${esc(p.version)}${p.author?" · "+esc(p.author):""}</div></div>
+      <label class="sw" data-tip="${p.enabled?"Switch off":"Switch on"} ${esc(p.name)}"><input type="checkbox" class="plugsw" data-id="${esc(p.id)}" ${p.enabled?"checked":""} ${p.error&&!p.enabled&&!p.version?"disabled":""} aria-label="${esc(p.name)}"><span></span></label></div>
+    ${p.description?`<div class="pd">${esc(p.description)}</div>`:""}
+    ${p.adds.length?`<div class="pa">${p.adds.map(a=>`<span>${esc(a)}</span>`).join("")}</div>`:""}
+    ${p.error?`<div class="perr">⚠ ${esc(p.error)}</div>`:""}
+    ${p.homepage?`<span class="linkish" style="font-size:12px" data-href="${esc(p.homepage)}">Website ↗</span>`:""}</div>`).join("")
+    ||`<p class="muted" style="font-size:13px">No plugins yet.</p>`;
+  $$(".plugsw").forEach(c=>c.onchange=()=>togglePlugin(c.dataset.id,c.checked));
+  // boxes plugins add to Settings (API keys and the like), saved with "Save settings"
+  const bySec={};plugins.settings.forEach(s=>{const n=(plugins.plugins.find(p=>p.id===s.plugin)||{}).name||s.plugin;(bySec[n]=bySec[n]||[]).push(s)});
+  $("#plugsettings").innerHTML=Object.entries(bySec).map(([n,ss])=>`<div class="psec" style="margin-top:12px">${esc(n)}</div><div class="pgrid">${ss.map(s=>
+    `<label class="f">${esc(s.label)}<input type="${s.type==="secret"?"password":"text"}" id="${esc(s.key)}" autocomplete="off"></label>`).join("")}</div>
+    ${ss.filter(s=>s.help||s.link).map(s=>`<p class="muted" style="font-size:12.5px;margin:4px 0 10px">${esc(s.help)} ${s.link?`<span class="linkish" data-href="${esc(s.link)}">${esc(s.link.replace(/^https:\/\//,""))}</span>`:""}</p>`).join("")}`).join("");
+  plugins.settings.forEach(s=>{const el=$("#"+s.key);if(el)el.placeholder=keys[s.key]?"saved ("+keys[s.key]+") — paste to replace":"paste here"});
+}
+async function togglePlugin(id,on){
+  const p=plugins.plugins.find(x=>x.id===id)||{name:id};
+  plugins=await post("/api/plugins",{id,enabled:on});drawPlugins();
+  const now=plugins.plugins.find(x=>x.id===id)||{};
+  if(on&&now.error)return toast(`${p.name} couldn't start — see the message on its card`);
+  keys=await get("/api/settings");await loadBoards();render();
+  toast(`${p.name} ${on?"switched on":"switched off"}`);
+}
 // "Save settings" saves everything in the Settings window: keys and job match terms
-$("#savekeys").onclick=()=>withSpinner($("#savekeys"),"Saving…",async()=>{const b={};KEYS.forEach(k=>{const v=$("#"+k).value.trim();if(v)b[k]=v;$("#"+k).value=""});
+$("#savekeys").onclick=()=>withSpinner($("#savekeys"),"Saving…",async()=>{const b={};allKeys().forEach(k=>{const el=$("#"+k);if(!el)return;const v=el.value.trim();if(v)b[k]=v;el.value=""});
   await post("/api/settings",b);
   matchTerms=await post("/api/match_terms",{terms:matchTerms.filter(t=>(t.name||"").trim())});drawTerms();
   await loadKeys();closeModals();render();toast("Settings saved")});
@@ -1950,7 +2001,7 @@ setTimeout(hideSplash,6000);   // never leave the splash up if something is slow
     try{profile=(await get("/api/profile")).profile||{}}catch(e){}
     if(!pref("country")&&profile.country){const hit=countryFromText(profile.country);if(hit)$("#country").value=hit.code}
     setCurrency(pref("currency")||"orig",true);
-    drawWelcome();await Promise.all([loadKeys(),loadSaved(),loadExt(),loadTerms()]);drawStarted();
+    drawWelcome();await Promise.all([loadKeys(),loadSaved(),loadExt(),loadTerms(),loadPlugins()]);drawStarted();
     setInterval(loadExt,60000);
   }finally{hideSplash()}
   if(PHONE){["#extchip","#csv","#tcsv"].forEach(s=>{const e=$(s);if(e)e.classList.add("pc-only")})}

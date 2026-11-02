@@ -22,6 +22,7 @@ from jobslop.geo.cities import city_label, code_for_country_text, geocode_text, 
 from jobslop.geo.countries import COUNTRIES, country_info
 from jobslop.geo.osm import place_summary
 from jobslop.geo.places import resolve_where
+from jobslop.plugins.points import POINTS
 from jobslop.profile.cvparse import parse_cv
 from jobslop.profile.linkedin_import import linkedin_import
 from jobslop.profile.linkedin_link import li_link, linkedin_from_page, linkedin_link_status, linkedin_profile_url
@@ -30,8 +31,9 @@ from jobslop.rates import get_rates
 from jobslop.runtime import state
 from jobslop.search.engine import search
 from jobslop.search.matching import match_groups
+from jobslop.server import plugin_routes
 from jobslop.server.phone import PHONE_PORT, new_pin, phone_settings, phone_status, start_phone_server, stop_phone_server
-from jobslop.settings import load_settings, public_settings, save_settings, update_settings
+from jobslop.settings import KEY_NAMES, load_settings, public_settings, save_settings, update_settings
 from jobslop.studios import studios, studios_near
 from jobslop.system import copy_to_clipboard, export_csv, open_path
 from jobslop.tracker import APPLIED_STAGES, load_saved, lock, set_status, today, write_saved
@@ -128,6 +130,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.handle_ext("GET")
         if not self.app_ok():
             return self.send('{"error":"forbidden"}', code=403)
+        if plugin_routes.ROUTES.get(self, u.path, p):
+            return
         if u.path == "/api/linkedin/link":
             return self.send(json.dumps(linkedin_link_status()))
         if u.path == "/api/update":
@@ -250,7 +254,7 @@ class Handler(BaseHTTPRequestHandler):
         elif u.path == "/api/saved":
             self.send(json.dumps(load_saved()))
         elif u.path == "/api/settings":
-            self.send(json.dumps(public_settings()))
+            self.send(json.dumps(public_settings(setting_keys())))
         else:
             self.send('{"error":"not found"}', code=404)
 
@@ -266,6 +270,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.handle_ext("POST", body)
         if not self.app_ok():
             return self.send('{"error":"forbidden"}', code=403)
+        if plugin_routes.ROUTES.post(self, urllib.parse.urlparse(self.path).path, body):
+            return
         if self.path == "/api/profile":
             return self.send(json.dumps({"profile": save_profile(body.get("profile", {}))}))
         if self.path == "/api/prefs":
@@ -457,8 +463,8 @@ class Handler(BaseHTTPRequestHandler):
                 write_saved(items)
             self.send(json.dumps(items))
         elif self.path == "/api/settings":
-            save_settings(body)
-            self.send(json.dumps(public_settings()))
+            save_settings(body, setting_keys())
+            self.send(json.dumps(public_settings(setting_keys())))
         elif self.path == "/api/export":
             path = export_csv(body.get("rows", []), body.get("cols", []), body.get("name", "jobs"))
             self.send(json.dumps({"path": path}))
@@ -478,6 +484,11 @@ class Handler(BaseHTTPRequestHandler):
             self.send("{}")
         else:
             self.send('{"error":"not found"}', code=404)
+
+
+def setting_keys():
+    """Keys the Settings window may save: the app's own plus every enabled plugin's."""
+    return tuple(dict.fromkeys(KEY_NAMES + tuple(POINTS.setting_keys())))
 
 
 def load_page():

@@ -40,15 +40,17 @@ def update_settings(change):
         return s
 
 
-def save_settings(data):
+def save_settings(data, keys=KEY_NAMES):
+    """Store the given keys (API keys etc.) from what the Settings window sent."""
     def change(s):
-        for k in KEY_NAMES:
+        for k in keys:
             if k in data:
                 s[k] = (data[k] or "").strip()
     return update_settings(change)
 
 
-def public_settings():
+def public_settings(keys=KEY_NAMES):
+    """The keys for the screen: never the full value, just enough to recognise it."""
     s = load_settings()
     mask = lambda v: (v[:3] + "•" * 6 + v[-2:]) if v and len(v) > 6 else ("set" if v else "")
-    return {k: mask(s.get(k, "")) for k in KEY_NAMES}
+    return {k: mask(s.get(k, "")) for k in keys}

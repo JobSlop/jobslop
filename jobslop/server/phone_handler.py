@@ -30,6 +30,8 @@ class PhoneHandler(Handler):
 
     def _blocked(self):
         path = urllib.parse.urlparse(self.path).path
+        if self.command == "POST" and path == "/api/plugins":
+            return True                                # plugins are switched on and off on the computer only
         return path in PHONE_BLOCKED or path.startswith("/ext/") or path.startswith("/api/phone")
 
     def do_GET(self):
