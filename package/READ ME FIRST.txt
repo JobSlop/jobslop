@@ -1,0 +1,98 @@
+JOB FINDER  -  tester build
+==========================
+
+Thanks for testing! jobslop searches lots of job boards at once, matches jobs to
+your CV, tracks your applications, and (with its Chrome extension) fills in
+application forms for you.
+
+
+WHAT YOU NEED
+-------------
+- Windows 10 or 11 (64-bit) and an internet connection.
+- If the window opens but stays blank: install "Microsoft Edge WebView2 Runtime"
+  (free, from Microsoft's website). Windows 11 already has it.
+
+
+HOW TO START
+------------
+1. Unzip this folder first (right-click the zip > Extract All). Don't run it from
+   inside the zip.
+2. Double-click jobslop.exe.
+3. Windows may say "Windows protected your PC" because this is an unsigned test
+   build. Click "More info" > "Run anyway".
+   Your antivirus may also scan it for a few seconds the first time.
+4. A short welcome tour walks you through the basics. You can see it again any
+   time from Settings (the gear icon) > "Take the tour again".
+
+
+THE CHROME EXTENSION (optional - for filling in application forms)
+------------------------------------------------------------------
+1. In jobslop, open Profile > "Set up for me".
+   This opens Chrome's extensions page and the extension folder, and copies the
+   folder path for you.
+2. In Chrome, turn on "Developer mode" (top-right switch).
+3. Click "Load unpacked", paste the path (Ctrl+V) and confirm.
+4. That's it - it connects to jobslop by itself.
+Press "Easy apply" on any job: the job opens in Chrome and a "Fill application"
+button appears. It never submits anything - you always check and submit yourself.
+
+
+YOUR PROFILE FROM A CV OR LINKEDIN
+---------------------------------
+- Profile > "Fill from my CV" reads a PDF or Word CV (UK, US, Dutch, Danish...).
+- Profile > "Import from LinkedIn" takes your LinkedIn profile PDF (on LinkedIn:
+  your profile > Resources/More > Save to PDF) or LinkedIn's data export .zip.
+- If your profile already has details, you choose "Add to my profile" (keeps what
+  you have, fills the gaps, adds new jobs) or "Replace my profile".
+
+
+USE IT FROM YOUR PHONE (optional)
+---------------------------------
+1. In jobslop: Settings (gear icon) > "Phone access" > tick "Allow my phone to connect".
+2. If Windows asks about the firewall, tick "Private networks" and click Allow.
+3. Scan the QR code with your phone's camera (or type the address shown) and enter the
+   6-digit PIN. Your phone stays signed in after that.
+- Your phone must be on the same Wi-Fi, and your computer on with jobslop open.
+- From the phone you can search, save, track applications and edit your profile.
+  "Apply" opens the job on your phone (form-filling needs the computer + Chrome).
+- "New PIN" or "Sign out all phones" in Settings removes access at any time.
+
+
+YOUR DATA
+---------
+- Everything stays on your own computer, in:  %APPDATA%\JobFinder
+  (paste that into the File Explorer address bar to open it).
+- Nothing is sent to the person who gave you this app.
+- Job searches go directly from your computer to the job sites.
+
+
+EXTRA JOB BOARDS (optional, free)
+---------------------------------
+Settings (gear icon) lets you add free keys for Reed (UK), Adzuna (19 countries),
+USAJOBS (US government) and Apify (a backup for LinkedIn, Indeed and Glassdoor).
+Everything else works without any keys.
+
+
+TO REMOVE IT
+------------
+1. Delete jobslop.exe.
+2. Delete the folder %APPDATA%\JobFinder.
+3. In Chrome, go to chrome://extensions and remove "jobslop autofill" (or "jobslop Autofill") if you
+   added it.
+
+
+GOOD TO KNOW
+------------
+- LinkedIn is searched slowly on purpose; if LinkedIn asks to slow down, it pauses
+  for 15 minutes.
+- Job sites change sometimes - if one shows an error next to its name, the others
+  still work.
+- The map works offline ("Offline" switch); street maps need internet.
+
+
+FEEDBACK - PLEASE TELL ME
+-------------------------
+- Anything that didn't work, looked wrong, or was confusing (a screenshot helps).
+- Which country/town and job you searched for, and which job site had the problem.
+- Application forms the extension didn't fill well (the website address helps).
+- Anything you'd love it to do.

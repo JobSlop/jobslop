@@ -1,0 +1,10 @@
+# Packages Job Finder needs. In PyCharm: open this file and click "Install requirements",
+# or run:  python -m pip install -r requirements.txt
+pywebview
+python-jobspy
+pypdf
+pdfminer.six
+phonenumbers
+pypdfium2
+# for the tests
+pytest

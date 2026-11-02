@@ -1,0 +1,1969 @@
+<!doctype html>
+<html lang="en" data-theme="auto" data-palette="sand"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>jobslop</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231d1b18'/%3E%3Ctext x='29' y='46' text-anchor='middle' font-family='Bodoni MT,Didot,serif' font-size='38' fill='%23f4efe6'%3Ejs%3C/text%3E%3Cpath d='M51 9c0 0-6 8-6 12a6 6 0 0 0 12 0c0-4-6-12-6-12z' fill='%23b08a5f'/%3E%3C/svg%3E">
+<style>
+/* fonts ship with the app, so the look works offline too */
+@font-face{font-family:"Italiana";src:url(/static/Italiana-Regular.ttf) format("truetype");font-display:swap}
+@font-face{font-family:"Manrope";src:url(/static/Manrope.ttf) format("truetype");font-weight:200 800;font-display:swap}
+/* ---------- themes ---------- */
+:root{--display:"Italiana","Didot","Bodoni MT","Times New Roman",serif;--body:"Manrope","Segoe UI",system-ui,sans-serif;
+  --bg:#efebe3;--surface:#f8f6f1;--surface2:#ffffff;--text:#1d1b18;--muted:#6d675d;--line:#dcd6ca;--line2:#cfc8ba;
+  --good:#3f8a5a;--warn:#b0692b;--bad:#b04a3f;--shadow:0 1px 2px rgba(30,25,15,.05),0 8px 30px rgba(30,25,15,.06);
+  --hero1:#191714;--hero2:#2a2620;--herotext:#f4efe6;--accent:#9b7b55;--accent-soft:rgba(155,123,85,.14)}
+:root[data-palette="sage"]{--accent:#6b8a67;--accent-soft:rgba(107,138,103,.15)}
+:root[data-palette="ocean"]{--accent:#3d7096;--accent-soft:rgba(61,112,150,.14)}
+:root[data-palette="terracotta"]{--accent:#b4623d;--accent-soft:rgba(180,98,61,.14)}
+:root[data-palette="plum"]{--accent:#86608f;--accent-soft:rgba(134,96,143,.15)}
+:root[data-palette="graphite"]{--accent:#5d6166;--accent-soft:rgba(93,97,102,.15)}
+:root[data-theme="dark"]{--bg:#12110f;--surface:#1a1916;--surface2:#211f1b;--text:#ece7dc;--muted:#a39d91;--line:#2d2a25;--line2:#3a3630;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25);--hero1:#0c0b0a;--hero2:#1d1a16}
+@media (prefers-color-scheme:dark){:root[data-theme="auto"]{--bg:#12110f;--surface:#1a1916;--surface2:#211f1b;--text:#ece7dc;--muted:#a39d91;--line:#2d2a25;--line2:#3a3630;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25);--hero1:#0c0b0a;--hero2:#1d1a16}}
+:root[data-theme="dark"]{--accent-soft:color-mix(in srgb,var(--accent) 22%,transparent)}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}     /* hidden always wins, even over buttons' own display style */
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:400 15px/1.55 var(--body);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+.serif{font-family:var(--display);font-weight:400;letter-spacing:.01em}
+.kicker{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px}
+.kicker::before{content:"✦";font-size:11px;color:var(--accent)}
+.muted{color:var(--muted)}
+h2.title{font-family:var(--display);font-weight:400;font-size:clamp(34px,4.4vw,56px);line-height:1.02;margin:10px 0 18px;letter-spacing:.005em}
+
+/* ---------- buttons & inputs ---------- */
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+.pill{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:10px 20px;font-size:13.5px;font-weight:500;transition:.15s;white-space:nowrap;border:1px solid transparent}
+.pill.dark{background:var(--text);color:var(--bg)}
+.pill.dark:hover{opacity:.88}
+.pill.light{background:#fff;color:#1d1b18}
+.pill.light:hover{background:#f1ece2}
+.pill.line{border-color:var(--line2);color:var(--text)}
+.pill.line:hover{border-color:var(--text)}
+.pill.ghostw{border-color:rgba(255,255,255,.45);color:#fff}
+.pill.ghostw:hover{background:rgba(255,255,255,.1)}
+.pill.accent{background:var(--accent);color:#fff}
+.pill.sm{padding:6px 13px;font-size:12.5px}
+.pill:disabled{opacity:.45;cursor:default}
+.iconbtn{width:34px;height:34px;border-radius:50%;display:inline-grid;place-items:center;border:1px solid var(--line2);color:var(--text)}
+.iconbtn:hover{border-color:var(--text)}
+input[type=text],input[type=email],input[type=tel],input[type=password],input[type=number],input[type=date],select,textarea{
+  font:inherit;color:var(--text);background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;outline:none;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:70px;line-height:1.5}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);letter-spacing:.02em}
+.check{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
+.check input{accent-color:var(--accent);width:15px;height:15px}
+
+/* ---------- hero ---------- */
+.hero{position:relative;color:var(--herotext);background:
+   radial-gradient(900px 420px at 78% 10%,color-mix(in srgb,var(--accent) 38%,transparent),transparent 70%),
+   radial-gradient(700px 400px at 10% 90%,color-mix(in srgb,var(--accent) 20%,transparent),transparent 70%),
+   linear-gradient(160deg,var(--hero2),var(--hero1));
+  padding-bottom:84px;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background:
+   repeating-linear-gradient(90deg,rgba(255,255,255,.045) 0 1px,transparent 1px 196px);pointer-events:none}
+.hero::after{content:"";position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);width:min(560px,80vw);height:64px;
+  background:var(--bg);border-radius:50% 50% 0 0/100% 100% 0 0}
+nav.top{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+.brand{font-weight:600;letter-spacing:.06em;font-size:15px}
+.brand b{font-weight:300}
+.navlinks{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.navlinks button.tab{font-size:13px;padding:7px 13px;border-radius:999px;color:rgba(244,239,230,.75)}
+.navlinks button.tab:hover{color:#fff}
+.navlinks button.tab{position:relative;transition:background .2s,color .2s}
+.navlinks button.tab.on{color:var(--hero1,#1d1b18);background:#f4efe6;font-weight:600;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.navlinks button.tab.on::after{content:"";position:absolute;left:50%;bottom:-7px;width:6px;height:6px;border-radius:50%;background:var(--accent);transform:translateX(-50%)}
+/* slim header on every tab except Search */
+.hero{transition:padding .25s ease}
+.hero.compact{padding-bottom:14px}
+.hero.compact .heroinner,.hero.compact::after{display:none}
+.hero.compact nav.top{padding:14px 0}
+.navlinks .iconbtn{border-color:rgba(255,255,255,.3);color:#fff}
+.heroinner{position:relative;z-index:2;text-align:center;padding:38px 0 0}
+.hero .kicker{justify-content:center;color:rgba(244,239,230,.7)}
+.hero h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,4.8vw,66px);line-height:1.02;margin:10px 0 8px;letter-spacing:.005em}
+.heroinner{padding-top:20px!important}
+.sortby{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);white-space:nowrap}
+.sortby select{padding:7px 10px;border-radius:999px;font-size:13px}
+.meta .dur{color:var(--accent);font-weight:600}
+.implist{margin:10px 0 14px;padding-left:18px;font-size:13.5px;line-height:1.6}
+.implist li{margin:4px 0}
+.hero .sub{color:rgba(244,239,230,.75);font-size:13px;letter-spacing:.06em}
+.hero .cheer{max-width:620px;margin:14px auto 0;font-size:16px;color:rgba(244,239,230,.88);font-weight:300}
+.searchbox{margin:34px auto 0;max-width:980px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(10px);
+  border-radius:22px;padding:14px;display:grid;grid-template-columns:2fr 1.35fr 1fr .7fr;gap:10px;text-align:left}
+.searchbox input,.searchbox select{background:rgba(255,255,255,.92);color:#1d1b18;border:0;border-radius:12px;padding:12px 14px}
+.searchbox select option{color:#1d1b18}
+.sfield{position:relative}
+.sfield .inbtn{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:12px;padding:6px 10px;border-radius:999px;background:#ece6da;color:#3a342b}
+.sfield .inbtn:hover{background:#e0d8c8}
+.sfield .inbtn.on{background:var(--accent);color:#fff}
+.searchbox:has(#wherehint:not([hidden])) .sourcechips{margin-top:18px}
+.wherehint{position:absolute;left:16px;right:16px;top:calc(100% + 4px);font-size:11.5px;color:rgba(255,255,255,.78);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.searchacts{grid-column:1/-1;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:4px}
+.sourcechips{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;font-size:12px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.22);color:rgba(244,239,230,.85);cursor:pointer;user-select:none}
+.chip input{display:none}
+.chip.on{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.4);color:#fff}
+.chip.off{opacity:.55}
+.chip .dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.5}
+.chip.on .dot{background:var(--accent);opacity:1}
+.chip.need{border-style:dashed}
+
+/* ---------- stats strip ---------- */
+.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:8px auto 0;max-width:980px;text-align:center}
+.strip>div{padding:6px 10px;border-left:1px solid var(--line)}
+.strip>div:first-child{border-left:0}
+.strip .n{font-family:var(--display);font-size:clamp(34px,4vw,50px);line-height:1}
+.strip .l{font-size:12px;color:var(--muted);margin-top:6px;letter-spacing:.04em}
+
+/* ---------- sections ---------- */
+section.view{padding:46px 0 70px;display:none}
+section.view.on{display:block}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:6px}
+.filters select,.filters input{width:auto;padding:8px 11px;font-size:13px;border-radius:999px;background:var(--surface)}
+.filters input.grow{flex:1;min-width:170px}
+.statusline{font-size:12.5px;color:var(--muted);margin:10px 0 4px;min-height:18px}
+.statusline .warn{color:var(--warn)}
+
+/* job rows - numbered list like the reference */
+.jobs{list-style:none;margin:0;padding:0}
+.jobrow{display:grid;grid-template-columns:54px 1fr auto;gap:6px 18px;padding:20px 4px;border-bottom:1px solid var(--line);align-items:start;transition:background .15s}
+.jobrow:hover{background:color-mix(in srgb,var(--surface) 70%,transparent)}
+.jobrow .num{font-size:12px;color:var(--muted);padding-top:9px;letter-spacing:.06em}
+.jobrow h3{margin:0;font-family:var(--display);font-weight:400;font-size:25px;line-height:1.15;cursor:pointer}
+.jobrow h3:hover{color:var(--accent)}
+.meta{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13px;color:var(--muted);margin-top:6px}
+.meta b{color:var(--text);font-weight:600}
+.sal{color:var(--good);font-weight:600}
+.tag{display:inline-block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:2px 9px;border-radius:999px;border:1px solid var(--line2);color:var(--muted)}
+.match{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;padding-top:4px}
+.jobrow details{grid-column:2/-1;font-size:13.5px;color:var(--muted)}
+.jobrow summary{cursor:pointer;font-size:12px;letter-spacing:.08em;text-transform:uppercase;width:max-content}
+.empty{text-align:center;color:var(--muted);padding:60px 0;font-size:15px}
+.empty .serif{font-size:30px;color:var(--text);display:block;margin-bottom:6px}
+
+/* ---------- tracker board ---------- */
+.board{display:grid;grid-template-columns:repeat(6,minmax(200px,1fr));gap:12px;overflow-x:auto;padding-bottom:10px}
+.col{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px;min-height:240px;transition:.15s}
+.col.over{border-color:var(--accent);background:var(--accent-soft)}
+.col h4{margin:2px 4px 10px;font-weight:600;font-size:12px;letter-spacing:.12em;text-transform:uppercase;display:flex;justify-content:space-between;color:var(--muted)}
+.card{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:9px;cursor:grab;box-shadow:var(--shadow)}
+.card:active{cursor:grabbing}
+.card .t{font-family:var(--display);font-size:19px;line-height:1.15}
+.card .c{font-size:12.5px;color:var(--muted);margin-top:3px}
+.card .d{font-size:11.5px;color:var(--muted);margin-top:6px;display:flex;gap:8px;flex-wrap:wrap}
+.card .due{color:var(--warn);font-weight:600}
+.card .cacts{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.card .cacts button{font-size:11.5px;padding:3px 9px;border-radius:999px;border:1px solid var(--line2)}
+.card .cacts button:hover{border-color:var(--text)}
+
+/* ---------- progress ---------- */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px 20px}
+.tile .n{font-family:var(--display);font-size:46px;line-height:1}
+.tile .l{font-size:12px;color:var(--muted);letter-spacing:.05em;margin-top:8px}
+.tile .s{font-size:12px;color:var(--muted);margin-top:4px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px 22px}
+.panel h3{margin:0 0 4px;font-family:var(--display);font-weight:400;font-size:26px}
+.grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:12px;margin-top:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+.bars{display:flex;align-items:flex-end;gap:4px;height:160px;margin-top:14px;border-bottom:1px solid var(--line)}
+.bars div{flex:1;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px;opacity:.85;position:relative}
+.bars div.zero{background:var(--line2);opacity:.6}
+.bars div:hover{opacity:1}
+.barlabels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px}
+.funnel .row{display:grid;grid-template-columns:90px 1fr 40px;gap:10px;align-items:center;margin:9px 0;font-size:13px}
+.funnel .bar{height:10px;border-radius:99px;background:var(--line)}
+.funnel .bar i{display:block;height:100%;border-radius:99px;background:var(--accent)}
+.list2 .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.ring{width:120px;height:120px}
+.goalbox{display:flex;gap:18px;align-items:center}
+
+/* ---------- profile ---------- */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px 16px}
+.pgrid .wide{grid-column:1/-1}
+.psec{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:22px 0 10px}
+.cards{display:grid;gap:12px}
+.jobcard{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--surface2)}
+.jobhead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.jobhead .serif{font-size:21px}
+.drop{border:1.5px dashed var(--line2);border-radius:16px;padding:26px;text-align:center;transition:.15s}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.linkish{color:var(--accent);text-decoration:underline;cursor:pointer}
+code{background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:12.5px;word-break:break-all}
+.code{font-family:Consolas,monospace;font-size:17px;letter-spacing:3px;color:var(--accent)}
+.steps{line-height:2;padding-left:20px;margin:8px 0}
+
+/* ---------- modal, popover, toast ---------- */
+.modal{position:fixed;inset:0;background:rgba(10,9,8,.5);display:none;place-items:center;z-index:50;padding:16px}
+.modal.open{display:grid}
+.modal .box{background:var(--surface);color:var(--text);border-radius:20px;padding:24px;width:min(560px,100%);max-height:88vh;overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+.modal .box.wide{width:min(880px,100%);padding:28px 32px}
+.modal h3{font-family:var(--display);font-weight:400;font-size:30px;margin:0 0 6px}
+.modal .row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px}
+.pop{position:absolute;right:0;top:44px;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:16px;padding:16px;width:270px;box-shadow:0 20px 60px rgba(0,0,0,.25);display:none;z-index:20}
+.pop.open{display:block}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line2);border-radius:999px;padding:3px;gap:3px;margin:8px 0 14px}
+.seg button{border-radius:999px;padding:6px 0;font-size:12.5px;color:var(--muted)}
+.seg button.on{background:var(--text);color:var(--bg)}
+.swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:8px}
+.swatches button{width:30px;height:30px;border-radius:50%;border:2px solid transparent;outline:1px solid var(--line2)}
+.swatches button.on{border-color:var(--surface);outline:2px solid var(--text)}
+/* ---------- interaction polish: hover, press, focus, tooltips ---------- */
+button,[data-href],[data-copy],.chip,.studiorow{cursor:pointer}
+.pill,.iconbtn,.navchip,.chip,.tab,.card,.tile,.jobrow,.cacts button{transition:background .15s,border-color .15s,color .15s,transform .12s,box-shadow .2s,opacity .15s}
+.pill:active,.iconbtn:active,.navchip:active,.chip:active,.cacts button:active{transform:scale(.96)}
+.pill.line:hover{background:var(--surface)}
+.pill.accent:hover{filter:brightness(1.08);box-shadow:0 4px 14px color-mix(in srgb,var(--accent) 35%,transparent)}
+.pill.dark:hover{box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.pill.light:hover{box-shadow:0 4px 18px rgba(0,0,0,.25)}
+.iconbtn:hover{background:var(--surface)}
+.navlinks .iconbtn:hover{background:rgba(255,255,255,.12)}
+.chip:hover{border-color:rgba(255,255,255,.55);color:#fff}
+.jobrow{position:relative;border-radius:12px}
+.jobrow:hover{background:var(--surface);box-shadow:inset 3px 0 0 var(--accent)}
+.jobrow:hover h3{color:var(--accent)}
+.jobrow .acts .pill.line,.jobrow .acts .iconbtn{opacity:.8}
+.jobrow:hover .acts .pill.line,.jobrow:hover .acts .iconbtn{opacity:1}
+.jobrow .acts .pill.on{border-color:var(--accent);color:var(--accent);opacity:1}   /* Saved / Applied: click again to undo */
+.jobrow .acts .pill.on:hover{background:var(--surface);text-decoration:line-through}
+.copylink.done,.cacts .copylink.done{color:var(--good)!important;border-color:var(--good)!important}
+.card:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(30,25,15,.12);border-color:var(--line2)}
+.tile:hover{transform:translateY(-2px);border-color:var(--accent)}
+.strip>div{transition:background .15s;border-radius:12px}
+.strip>div:hover{background:var(--surface)}
+.navlinks button.tab:not(.on):hover{background:rgba(255,255,255,.08)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+/* hover / keyboard-focus labels: one floating label above everything, kept inside the window */
+#tip{position:fixed;top:0;left:0;z-index:1000;width:max-content;max-width:min(300px,calc(100vw - 12px));background:var(--text);color:var(--bg);font:500 12px/1.4 var(--body);
+  letter-spacing:0;text-transform:none;padding:7px 11px;border-radius:9px;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.28);
+  opacity:0;transform:translateY(3px);transition:opacity .12s,transform .12s;white-space:normal;overflow-wrap:anywhere}
+#tip.on{opacity:1;transform:none}
+/* logo = home */
+a.logo{text-decoration:none;color:inherit;border-radius:12px;padding:2px 6px 2px 2px;margin-left:-2px;transition:background .15s}
+a.logo:hover{background:rgba(255,255,255,.08)}
+a.logo:hover svg{transform:rotate(-6deg)}
+a.logo svg{transition:transform .2s}
+.iconbtn:disabled{opacity:.35;cursor:default}
+.iconbtn:disabled:hover{background:none;border-color:rgba(255,255,255,.3)}
+/* getting-started checklist */
+.getstarted{margin:0 0 22px;padding:16px 18px}
+.gshead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.gshead b{font-size:14px}
+.gsbar{height:6px;border-radius:99px;background:var(--line);margin:10px 0 8px;overflow:hidden}
+.gsbar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .4s}
+.gslist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.gslist li{display:flex;align-items:center;gap:9px;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);font-size:13.5px;cursor:pointer;transition:border-color .15s}
+.gslist li:hover{border-color:var(--accent)}
+.gslist li .ck{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line2);display:grid;place-items:center;font-size:11px;flex:0 0 auto}
+.gslist li.done{color:var(--muted);cursor:default}
+.gslist li.done .ck{background:var(--good);border-color:var(--good);color:#fff}
+.gslist li.done span:last-child{text-decoration:line-through}
+.pager{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:18px 4px 0;font-size:13px}
+.pagebtns{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.pagebtns .pill{min-width:36px;justify-content:center}
+.pagebtns .pill.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+/* update available: a green download icon in the top bar (fills up while downloading, pulses when ready) */
+.navlinks .updicon{color:#4cc67f;border-color:rgba(76,198,127,.6);background:rgba(76,198,127,.12);font-weight:700}
+.navlinks .updicon:hover{background:rgba(76,198,127,.24)}
+.navlinks .updicon.dl{background:conic-gradient(rgba(76,198,127,.55) calc(var(--p,0)*1%),rgba(76,198,127,.1) 0)}
+.navlinks .updicon.ready{background:#4cc67f;color:#0f1a12;border-color:#4cc67f;animation:updpulse 1.6s ease-in-out infinite}
+@keyframes updpulse{0%,100%{box-shadow:0 0 0 0 rgba(76,198,127,.55)}50%{box-shadow:0 0 0 7px rgba(76,198,127,0)}}
+.updpop{width:300px}
+.updpop h4{margin:4px 0 2px;font-family:var(--display);font-weight:400;font-size:24px}
+.updpop .acts2{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.updprog{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:6px}
+.updprog i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.emptyacts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.boardempty{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+/* offer: thank you + email */
+.offerhead{font-size:42px;line-height:1;margin-bottom:6px}
+#offermail,#fbmail{font:13px/1.5 Consolas,monospace;min-height:190px}
+.kbd{display:inline-block;font:600 11.5px/1 var(--body);padding:3px 7px;border:1px solid var(--line2);border-bottom-width:2px;border-radius:6px;background:var(--surface2);color:var(--text)}
+.shortcuts{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13px;align-items:center}
+.lirow{display:flex;gap:8px;margin-top:6px}
+.lirow input{flex:1}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+/* ---------- loading feedback ---------- */
+#loadbar{position:fixed;top:0;left:0;right:0;height:3px;z-index:80;overflow:hidden;opacity:0;transition:opacity .2s;pointer-events:none}
+#loadbar.on{opacity:1}
+#loadbar::before{content:"";position:absolute;top:0;bottom:0;width:40%;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:slide 1.1s ease-in-out infinite}
+@keyframes slide{0%{left:-40%}100%{left:100%}}
+#splash{position:fixed;inset:0;z-index:90;display:grid;place-items:center;background:linear-gradient(160deg,var(--hero2),var(--hero1));transition:opacity .45s,visibility .45s}
+#splash.gone{opacity:0;visibility:hidden}
+#splash .mark{width:92px;height:92px;animation:pulse 1.4s ease-in-out infinite}
+#splash .word{color:#f4efe6;font-family:var(--display);font-size:22px;letter-spacing:.08em;margin-top:14px;text-align:center;opacity:.8}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.94);opacity:.75}}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:rot .7s linear infinite;vertical-align:-2px}
+@keyframes rot{to{transform:rotate(360deg)}}
+.skel{display:grid;grid-template-columns:54px 1fr 220px;gap:18px;padding:22px 4px;border-bottom:1px solid var(--line)}
+.skel i{display:block;height:12px;border-radius:6px;background:linear-gradient(90deg,var(--line) 0%,var(--surface2) 50%,var(--line) 100%);background-size:200% 100%;animation:shimmer 1.2s linear infinite}
+.skel .big{height:22px;width:55%;margin-bottom:10px}.skel .sm{width:80%}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.srcstat{display:inline-flex;align-items:center;gap:5px;margin-right:14px}
+.srcstat.done{color:var(--text)}
+.srcstat .spin{width:10px;height:10px;border-width:1.5px;color:var(--accent)}
+.fadein{animation:fade .35s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+button.busy{pointer-events:none;opacity:.8}
+/* bin button on tracker cards */
+.card{position:relative}
+.card .bin{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:13px;color:var(--muted);opacity:0;transition:.15s;border:1px solid transparent}
+.card:hover .bin{opacity:1}
+.card .bin:hover{color:var(--bad);border-color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,transparent)}
+.card .t{padding-right:26px}
+.card.removing{animation:out .25s ease forwards}
+@keyframes out{to{opacity:0;transform:scale(.95)}}
+#toast button{margin-left:12px;color:var(--accent);font-weight:700;pointer-events:auto;text-decoration:underline}
+#toast.show{pointer-events:auto}
+/* nav extras */
+.logo{display:flex;align-items:center;gap:10px}
+.logo svg{width:30px;height:30px}
+.navsel{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:6px 10px;font-size:12.5px;width:auto}
+.navsel option{color:#1d1b18}
+/* phone access */
+.phonebox{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-top:12px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--surface2)}
+.phoneqr{background:#fff;border-radius:12px;padding:8px;line-height:0}
+.phoneqr svg{width:150px;height:150px}
+.phone .pc-only{display:none!important}
+.phone .jobrow .acts .pill.line[data-href]{display:none}   /* on a phone the title and "Apply" already open the job */
+/* ---------- phone layout ---------- */
+@media (max-width:640px){
+  .wrap{padding:0 14px}
+  nav.top{padding:14px 0;gap:8px}
+  .brand{display:none}
+  .navlinks{flex-wrap:nowrap;overflow-x:auto;max-width:calc(100vw - 70px);scrollbar-width:none;padding-bottom:2px}
+  .navlinks::-webkit-scrollbar{display:none}
+  .navlinks .navchip,.navlinks .navsel{display:none}
+  .navlinks button.tab{padding:7px 10px;flex:0 0 auto}
+  .navlinks .iconbtn{flex:0 0 auto}
+  .heroinner{padding-top:10px}
+  .hero{padding-bottom:70px}
+  .hero h1{font-size:32px}
+  .hero .cheer{font-size:14px}
+  .searchbox{grid-template-columns:1fr;padding:10px;border-radius:18px;margin-top:20px}
+  .sourcechips{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;padding-bottom:4px;scrollbar-width:none}
+  .chip{flex:0 0 auto}
+  .strip>div{padding:6px 4px}
+  .strip .n{font-size:32px}
+  h2.title{font-size:34px}
+  .filters select,.filters input{flex:1 1 45%;min-width:0}
+  .jobrow{padding:16px 2px}
+  .jobrow h3{font-size:21px}
+  .acts .pill.sm{padding:7px 12px}
+  .modal{padding:8px}
+  .modal .box{padding:18px;border-radius:18px;max-height:94vh}
+  .modal .box.ob{padding:0}
+  #map{height:300px!important}
+  .termrow{grid-template-columns:1fr 1fr}
+  .termrow input[data-ta]{grid-column:1/-1}
+  .tiles{grid-template-columns:1fr 1fr}
+  .tile .n{font-size:36px}
+}
+/* onboarding */
+.modal .box.ob{padding:0;width:min(620px,100%);overflow:hidden}
+.obhero{display:flex;align-items:center;gap:12px;padding:18px 24px;color:#f4efe6;
+  background:radial-gradient(320px 160px at 90% 0%,color-mix(in srgb,var(--accent) 45%,transparent),transparent 70%),linear-gradient(160deg,var(--hero2),var(--hero1))}
+.oblogo{width:38px;height:38px}
+.obstep{padding:20px 24px 6px;animation:fade .3s ease both}
+.obstep h3{font-size:34px;margin:0 0 8px}
+.obstep p{line-height:1.6}
+.oblist{padding-left:0;list-style:none;margin:12px 0;display:grid;gap:9px}
+.oblist li{padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);font-size:14px;transition:border-color .15s,transform .15s}
+.oblist li:hover{border-color:var(--accent);transform:translateX(3px)}
+.obfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 24px 20px;border-top:1px solid var(--line);margin-top:12px}
+.obdots{display:flex;gap:6px}
+.obdots i{width:8px;height:8px;border-radius:50%;background:var(--line2);transition:.2s;cursor:pointer}
+.obdots i.on{background:var(--accent);width:22px;border-radius:99px}
+/* map */
+#map{background:#bcd3e3}
+:root[data-theme="dark"] #map{background:#1f3447}
+@media (prefers-color-scheme:dark){:root[data-theme="auto"] #map{background:#1f3447}}
+/* street map keeps its real colours in dark mode (just a touch dimmer) so places stay easy to read */
+#map.darktiles .leaflet-tile-pane{filter:brightness(.92) saturate(.95)}
+.leaflet-container{font-family:var(--body)}
+.townlabel{background:transparent;border:0;box-shadow:none;color:var(--text);font-size:11.5px;font-weight:600;padding:0;text-shadow:0 0 3px var(--surface),0 0 3px var(--surface)}
+.townlabel:before{display:none}
+.mappin{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--accent);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);transition:transform .15s}
+.mappin:hover{transform:rotate(-45deg) scale(1.15)}
+.studiodot{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:var(--surface2);border:1.5px solid var(--accent);font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:transform .15s}
+.studiodot:hover{transform:scale(1.25)}
+.studiodot.indie{background:var(--accent);color:#fff;border-color:#fff;font-weight:700}
+.indietag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:1px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.studiolist{margin-top:12px;max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:14px}
+.studiohead{padding:9px 12px;border-bottom:1px solid var(--line);font-size:13px;position:sticky;top:0;background:var(--surface)}
+.studiorow{display:flex;justify-content:space-between;gap:10px;padding:8px 12px;font-size:13px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .15s}
+.studiorow:hover{background:var(--accent-soft)}
+.navchip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:6px 12px;font-size:12.5px;font-family:Consolas,monospace;letter-spacing:.06em}
+.navchip:hover{background:rgba(255,255,255,.16)}
+.extdot{width:7px;height:7px;border-radius:50%;background:#a39d91}
+.extdot.on{background:#4cc67f;box-shadow:0 0 0 3px rgba(76,198,127,.25)}
+.termrow{display:grid;grid-template-columns:1fr 1.6fr auto auto;gap:8px;align-items:center;margin-bottom:8px}
+.termrow input[type=text]{padding:8px 10px;font-size:13px}
+.dist{color:var(--accent);font-weight:600}
+.conv{font-size:10.5px;color:var(--muted);font-weight:400;margin-left:3px}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:11px 18px;border-radius:999px;font-size:13.5px;opacity:0;transition:.25s;pointer-events:none;z-index:60;max-width:90vw}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (max-width:900px){
+  .searchbox{grid-template-columns:1fr 1fr}.strip,.tiles{grid-template-columns:repeat(2,1fr)}
+  .strip>div:nth-child(3){border-left:0}.grid2,.grid3{grid-template-columns:1fr}
+  .jobrow{grid-template-columns:1fr}.jobrow .num{display:none}.acts{justify-content:flex-start}.jobrow details{grid-column:1}
+}
+@media (max-width:560px){.wrap{padding:0 16px}.searchbox{grid-template-columns:1fr}}
+</style></head>
+<body>
+<div id="loadbar"></div>
+<div id="splash"><div>
+  <svg viewBox="0 0 64 64" class="mark"><rect width="64" height="64" rx="16" fill="#f4efe6"/><text x="29" y="46" text-anchor="middle" font-family="Italiana,'Bodoni MT',Didot,serif" font-size="38" fill="#1d1b18">js</text><path d="M51 9c0 0-6 8-6 12a6 6 0 0 0 12 0c0-4-6-12-6-12z" fill="#b08a5f"/></svg>
+  <div class="word">jobslop</div>
+</div></div>
+
+<!-- ======================= HERO ======================= -->
+<header class="hero">
+  <div class="wrap">
+    <nav class="top">
+      <a class="logo" id="home" href="#" aria-label="jobslop — go to Search" data-tip="Back to Search"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#f4efe6"/><text x="29" y="46" text-anchor="middle" font-family="Italiana,'Bodoni MT',Didot,serif" font-size="38" fill="#1d1b18">js</text><path d="M51 9c0 0-6 8-6 12a6 6 0 0 0 12 0c0-4-6-12-6-12z" fill="#b08a5f"/></svg><span class="brand">job<b>slop</b></span></a>
+      <div class="navlinks" style="position:relative">
+        <button class="tab on" data-tab="search">Search</button>
+        <button class="tab" data-tab="tracker">Tracker</button>
+        <button class="tab" data-tab="progress">Progress</button>
+        <button class="tab" data-tab="profile">Profile</button>
+        <button class="navchip" id="extchip" data-tip="Chrome extension code — click to copy"><span class="extdot" id="extdot"></span>🧩 <span id="extchipcode">····-····</span> <span style="opacity:.7">⧉</span></button>
+        <select class="navsel cursel" id="currency" title="Show salaries in this currency"></select>
+        <button class="iconbtn updicon" id="updicon" aria-label="Update available" aria-haspopup="true" hidden>⬇</button>
+        <div class="pop updpop" id="updpop" role="dialog" aria-label="jobslop update"></div>
+        <button class="iconbtn" id="undobtn" data-tip="Nothing to undo yet" aria-label="Undo" disabled>↶</button>
+        <button class="iconbtn" id="reloadbtn" data-tip="Reload (Ctrl+R)" aria-label="Reload">↻</button>
+        <button class="iconbtn" id="gear" data-tip="Settings" aria-label="Settings">⚙</button>
+        <button class="iconbtn" id="themebtn" data-tip="Light, dark and colours" aria-label="Light, dark and colours">◐</button>
+        <div class="pop" id="themepop">
+          <div class="kicker">Appearance</div>
+          <div class="seg" id="modeseg"><button data-mode="light">Light</button><button data-mode="auto">Auto</button><button data-mode="dark">Dark</button></div>
+          <div class="kicker">Colour scheme</div>
+          <div class="swatches" id="swatches"></div>
+        </div>
+      </div>
+    </nav>
+    <div class="heroinner">
+      <div class="kicker">Your next move starts here</div>
+      <h1 id="hello">Find Your<br>Next Role</h1>
+      <div class="sub" id="herosub"></div>
+      <p class="cheer" id="cheer"></p>
+      <form class="searchbox" id="f" autocomplete="off">
+        <div class="sfield"><input type="text" id="q" placeholder="What job? e.g. data analyst — commas for several"><button type="button" class="inbtn" id="anybtn" title="Search every job in the area">Any job</button></div>
+        <div class="sfield"><input type="text" id="where" placeholder="Where? Town, postcode or address" title="A town, postcode or full address — or leave empty for the whole country" style="padding-right:138px"><div class="wherehint" id="wherehint" hidden></div><button type="button" class="inbtn" id="mapbtn" title="Pick or view the location and radius on a map" style="right:72px">🗺 Map</button><button type="button" class="inbtn" id="locbtn" title="Use the location from your profile">📍 Mine</button></div>
+        <select id="country" title="Country"></select>
+        <select id="miles" title="Distance"><option value="5">+5 mi</option><option value="10">+10 mi</option><option value="15" selected>+15 mi</option><option value="25">+25 mi</option><option value="50">+50 mi</option><option value="100">+100 mi</option></select>
+        <div class="sourcechips" id="srcs"></div>
+        <div class="searchacts">
+          <button class="pill light" id="go" type="submit">Search jobs</button>
+          <button class="pill ghostw" id="matchbtn" type="button" title="Search using your work history and rank by how well jobs fit your CV">✦ Match jobs to my CV</button>
+          <button class="pill ghostw" id="internbtn" type="button" title="Internships, placements, graduate schemes and traineeships — for what you typed, or any field">🎓 Internships</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</header>
+<div class="wrap">
+  <div class="strip" id="strip">
+    <div><div class="n" id="st_today">0</div><div class="l">Applied today</div></div>
+    <div><div class="n" id="st_month">0</div><div class="l">Applied this month</div></div>
+    <div><div class="n" id="st_total">0</div><div class="l">Applications in total</div></div>
+    <div><div class="n" id="st_streak">0</div><div class="l">Day streak</div></div>
+  </div>
+</div>
+
+<main class="wrap">
+<!-- ======================= SEARCH ======================= -->
+<section class="view on" id="v-search">
+  <div class="panel getstarted" id="getstarted" hidden>
+    <div class="gshead"><div><div class="kicker">Getting started</div><b id="gscount"></b></div>
+      <button class="iconbtn" id="gsclose" data-tip="Hide this list (it's also in ⚙ Settings)" aria-label="Hide getting started">✕</button></div>
+    <div class="gsbar"><i id="gsbar"></i></div>
+    <ul class="gslist" id="gslist"></ul>
+  </div>
+  <div class="head">
+    <div><div class="kicker">Opportunities</div><h2 class="title" id="restitle">Search Results</h2></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <label class="sortby" data-tip="Change the order of the results">Sort by
+        <select id="sort">
+          <option value="score">Best keyword match</option><option value="cv">Best CV match</option>
+          <option value="date">Newest first</option><option value="old">Oldest first</option>
+          <option value="salary">Highest salary</option><option value="salary_lo">Lowest salary</option>
+          <option value="dist">Nearest first</option>
+          <option value="dur_short">Shortest contract first</option><option value="dur_long">Longest / permanent first</option>
+          <option value="company">Company A–Z</option><option value="title">Job title A–Z</option>
+        </select></label>
+      <label class="sortby">Show <select id="perpage" aria-label="Results per page"><option value="25">25</option><option value="50">50</option><option value="100">100</option><option value="0">All</option></select> per page</label>
+      <button class="pill line sm" id="csv">Export CSV</button></div>
+  </div>
+  <div class="filters">
+    <select id="posted" title="Posted within"><option value="0">Any date</option><option value="1">Last 24 hours</option><option value="3">Last 3 days</option><option value="7">Last week</option><option value="14">Last 2 weeks</option><option value="30">Last month</option></select>
+    <select id="jtype" title="Job type"><option value="">Any type</option><option value="fulltime">Full-time</option><option value="parttime">Part-time</option><option value="contract">Contract / temp</option><option value="internship">Internship</option></select>
+    <select id="remote" title="Work mode"><option value="">On-site, hybrid or remote</option><option value="remote">Remote only</option><option value="hybrid">Hybrid</option><option value="onsite">On-site only</option></select>
+    <input type="number" id="salmin" placeholder="Min salary / year" min="0" step="1000" style="width:150px" title="Jobs without a salary listed are kept unless you tick 'Has salary'">
+    <label class="check"><input type="checkbox" id="hassal"> Has salary</label>
+    <label class="check" title="Remote jobs must accept people from your country"><input type="checkbox" id="local" checked> Workable from my country</label>
+    <label class="check"><input type="checkbox" id="strict"> Title must match</label>
+    <label class="check" title="Search the sites again instead of reusing recent results"><input type="checkbox" id="fresh"> Fresh results</label>
+  </div>
+  <div class="filters" style="border-top:0">
+    <input type="text" class="grow" id="filter" placeholder="Filter results: company, place, word…">
+    <input type="text" id="exclude" placeholder="Hide titles with: senior, lead" style="width:220px">
+    <select id="durfilter" title="Contract length"><option value="">Any length</option><option value="perm">Permanent only</option><option value="contract">Contracts only</option><option value="short">Up to 6 months</option><option value="mid">6–12 months</option><option value="long">Over 12 months</option></select>
+    <select id="srcfilter"><option value="">All sources</option></select>
+  </div>
+  <div class="statusline" id="status"></div>
+  <ul class="jobs" id="list"><li class="empty"><span class="serif">Begin your search</span>Type a job above, try “Any job”, or let your CV do the work.</li></ul>
+  <nav class="pager" id="pager" aria-label="Result pages" hidden></nav>
+</section>
+
+<!-- ======================= TRACKER ======================= -->
+<section class="view" id="v-tracker">
+  <div class="head">
+    <div><div class="kicker">Application tracker</div><h2 class="title">Your Applications</h2></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input type="text" id="tfilter" placeholder="Find…" style="width:200px;border-radius:999px">
+      <label class="sortby">Sort by <select id="tsort"><option value="added">Recently added</option><option value="applied">Applied date</option><option value="follow">Follow-up date</option><option value="salary">Highest salary</option><option value="company">Company A–Z</option><option value="title">Job title A–Z</option></select></label>
+      <button class="pill dark sm" id="addapp">+ Add application</button>
+      <button class="pill line sm" id="tcsv">Export CSV</button>
+    </div>
+  </div>
+  <p class="muted" style="margin:0 0 16px;font-size:13.5px">Drag cards between columns, or use the buttons on each card. Dates are recorded automatically for your stats.</p>
+  <div class="panel boardempty" id="boardempty" hidden><div><b>Nothing tracked yet.</b> <span class="muted" style="font-size:13.5px">Press ☆ Save or ✓ Mark applied on any search result and it lands here — or add one you applied to elsewhere.</span></div><button class="pill dark sm" id="gosearch">Find jobs</button></div>
+  <div class="board" id="board"></div>
+</section>
+
+<!-- ======================= PROGRESS ======================= -->
+<section class="view" id="v-progress">
+  <div class="head"><div><div class="kicker">Your progress</div><h2 class="title">Momentum</h2></div></div>
+  <div class="tiles" id="tiles"></div>
+  <div class="grid2">
+    <div class="panel"><h3>Applications per day</h3><div class="muted" style="font-size:13px">Last 30 days</div><div class="bars" id="bars"></div><div class="barlabels" id="barlabels"></div></div>
+    <div class="panel"><h3>Weekly goal</h3><div class="goalbox" style="margin-top:10px"><svg class="ring" viewBox="0 0 120 120" id="ring"></svg>
+      <div><div class="muted" style="font-size:13px">Applications this week</div><div class="serif" style="font-size:40px" id="goaltext">0 / 10</div>
+      <label class="f" style="margin-top:8px">Goal per week<input type="number" id="goal" min="1" max="200" value="10" style="width:110px"></label></div></div></div>
+  </div>
+  <div class="grid3">
+    <div class="panel funnel"><h3>Pipeline</h3><div id="funnel"></div></div>
+    <div class="panel list2"><h3>Top companies</h3><div id="topco"></div></div>
+    <div class="panel list2"><h3>Follow-ups due</h3><div id="followups"></div></div>
+  </div>
+</section>
+
+<!-- ======================= PROFILE ======================= -->
+<section class="view" id="v-profile">
+  <div class="head">
+    <div><div class="kicker">Your profile</div><h2 class="title">About You</h2></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="pill dark sm" id="fromcv">📄 Fill from my CV</button>
+      <button class="pill line sm" id="fromli" data-tip="Your LinkedIn profile PDF (More → Save to PDF) or LinkedIn data export (.zip)">in Import from LinkedIn</button>
+      <input type="file" id="lifile" accept=".pdf,.zip,.csv" hidden>
+      <button class="pill line sm" id="clearprof">Clear profile</button>
+    </div>
+  </div>
+  <p class="muted" style="margin:0 0 6px;font-size:13.5px">Used by the Chrome extension to fill applications, and to match jobs to you. Everything stays on this computer and saves automatically. <span id="psaved"></span></p>
+  <p id="fromcvmsg" style="font-size:13.5px;color:var(--accent);margin:4px 0 0"></p>
+  <div id="pfields"></div>
+
+  <div class="psec">Work history</div>
+  <div class="cards" id="jobs"></div>
+  <button class="pill line sm" id="addjob" style="margin-top:10px">+ Add a job</button>
+
+  <div class="psec">CV</div>
+  <div class="drop" id="drop">
+    <div class="serif" style="font-size:24px">Drop your CV here</div>
+    <div class="muted" style="font-size:13px;margin-top:4px">or <label class="linkish">choose a file<input type="file" id="cvfile" accept=".pdf,.docx,.doc,.rtf,.txt" hidden></label> · PDF or Word, up to 10 MB · dropping a CV also fills your profile</div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;margin-top:10px"><span id="cvinfo" class="muted" style="font-size:13.5px"></span><button class="pill line sm" id="cvremove" hidden>Remove CV</button></div>
+
+  <div class="psec">Cover letter template</div>
+  <p class="muted" style="font-size:13px;margin:-4px 0 8px">These are replaced automatically: {company} {title} {first_name} {full_name}</p>
+  <textarea id="cover_letter_template" class="pf" rows="9" placeholder="Dear Hiring Manager,&#10;&#10;I'm excited to apply for the {title} role at {company}…&#10;&#10;Kind regards,&#10;{full_name}"></textarea>
+
+  <div class="psec pc-only">Chrome extension — one-time setup</div>
+  <div class="panel pc-only">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <div id="extstatus" class="muted" style="font-size:13.5px"></div>
+      <button class="pill dark sm" id="extsetup">⚡ Set up for me</button>
+    </div>
+    <ol class="steps">
+      <li>Click <b>⚡ Set up for me</b> — it opens Chrome's extensions page and the extension folder, and copies the folder path for you</li>
+      <li>In Chrome, turn on <b>Developer mode</b> (top-right switch)</li>
+      <li>Click <b>Load unpacked</b>, paste the path (Ctrl+V) or pick: <code id="extfolder"></code> <button class="pill line sm" id="openext">Open folder</button></li>
+      <li>That's it — the extension connects by itself. (If it ever asks, the code is <b id="extcode" class="code"></b> <button class="pill line sm" id="copycode">⧉ Copy</button>)</li>
+    </ol>
+    <p class="muted" style="font-size:12.5px;margin:0 0 8px">Chrome doesn't allow programs to install extensions silently, so these two clicks in Chrome are needed once.</p>
+    <p class="muted" style="font-size:13px;margin:0">Then press <b>⚡ Easy apply</b> on any job: it opens in Chrome and a <b>Fill application</b> button appears. It never submits — you always check and submit yourself.</p>
+  </div>
+</section>
+</main>
+
+<!-- ======================= MODALS ======================= -->
+<div class="modal" id="m-keys"><div class="box wide">
+  <h3>Settings</h3>
+  <div class="psec" style="margin-top:8px">Preferences</div>
+  <div class="pgrid">
+    <label class="f">Show salaries in<select class="cursel" id="setcurrency"></select></label>
+    <label class="f">Distances in<select id="setunit"><option value="mi">Miles</option><option value="km">Kilometres</option></select></label>
+  </div>
+  <p class="muted" style="font-size:12.5px;margin:6px 0 0" id="ratesnote"></p>
+  <div class="pc-only">
+    <div class="psec">📱 Phone access</div>
+    <p class="muted" style="font-size:12.5px;margin:-4px 0 10px">Use jobslop from your phone on the same Wi-Fi while it runs on this computer. Protected by a PIN, and only reachable on your home network.</p>
+    <label class="check"><input type="checkbox" id="phoneon"> Allow my phone to connect</label>
+    <div id="phonebox" class="phonebox" hidden>
+      <div id="phoneqr" class="phoneqr" data-tip="Scan with your phone's camera"></div>
+      <div style="flex:1;min-width:200px">
+        <div class="muted" style="font-size:12.5px">On your phone, scan the code or open:</div>
+        <div class="code" id="phoneurl" style="font-size:15px;letter-spacing:1px;margin:2px 0 10px"></div>
+        <div class="muted" style="font-size:12.5px">PIN</div>
+        <div class="code" id="phonepin" style="font-size:28px;letter-spacing:6px"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+          <button class="pill line sm" id="phonenewpin" data-tip="Make a new PIN (signs all phones out)">New PIN</button>
+          <button class="pill line sm" id="phonesignout">Sign out all phones</button>
+        </div>
+        <p class="muted" style="font-size:12px;margin:10px 0 0" id="phonenote"></p>
+      </div>
+    </div>
+  </div>
+  <div class="psec">Job match terms</div>
+  <p class="muted" style="font-size:12.5px;margin:-4px 0 10px">Teach the app what a job can be called. Searching any of the names finds all of them, and “title only” means the word must be in the job <i>title</i> — so “communication” listed as a skill in an advert won't count as a communications job. Also used by “Match jobs to my CV”.</p>
+  <div id="mterms"></div>
+  <div style="display:flex;gap:8px;margin-top:8px"><button class="pill line sm" id="addterm">+ Add a job term</button></div>
+  <div class="pc-only">
+  <div class="psec">Job board keys</div>
+  <p class="muted" style="font-size:13px;margin:-4px 0 8px">All optional. Keys are stored only on this computer.</p>
+  <div class="psec" style="margin-top:12px">Reed (UK), Adzuna (19 countries) & USAJOBS — adds more local jobs</div>
+  <label class="f">Reed API key<input type="password" id="reed_key"></label>
+  <p class="muted" style="font-size:12.5px;margin:4px 0 10px">Free: <span class="linkish" data-href="https://www.reed.co.uk/developers/jobseeker">reed.co.uk/developers/jobseeker</span></p>
+  <div class="pgrid"><label class="f">Adzuna App ID<input type="text" id="adzuna_id"></label><label class="f">Adzuna App Key<input type="password" id="adzuna_key"></label></div>
+  <p class="muted" style="font-size:12.5px;margin:4px 0 10px">Free: <span class="linkish" data-href="https://developer.adzuna.com/signup">developer.adzuna.com/signup</span></p>
+  <div class="pgrid"><label class="f">USAJOBS API key<input type="password" id="usajobs_key"></label><label class="f">Email you registered with<input type="text" id="usajobs_email"></label></div>
+  <p class="muted" style="font-size:12.5px;margin:4px 0 10px">US government jobs. Free: <span class="linkish" data-href="https://developer.usajobs.gov/apirequest/">developer.usajobs.gov/apirequest</span></p>
+  <div class="psec">Backup for LinkedIn, Indeed & Glassdoor</div>
+  <p class="muted" style="font-size:12.5px;margin:0 0 8px">Indeed and Glassdoor are searched free from this computer. If a site refuses, Apify takes over (free plan: $5 credit a month, each search capped at $0.25).</p>
+  <label class="f">Apify API token<input type="password" id="apify_token"></label>
+  <p class="muted" style="font-size:12.5px;margin:4px 0 0">Free: <span class="linkish" data-href="https://console.apify.com/sign-up">console.apify.com/sign-up</span> → Settings → API &amp; Integrations</p>
+  </div>
+  <div class="pc-only">
+    <div class="psec">Updates</div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span id="updinfo" class="muted" style="font-size:13px;flex:1;min-width:200px"></span><button class="pill line sm" id="updcheck">Check for updates</button></div>
+    <label class="check" style="margin-top:8px"><input type="checkbox" id="updoff"> Don't receive any updates</label>
+    <p class="muted" style="font-size:12px;margin:4px 0 0 22px">When ticked, jobslop never checks for new versions. Otherwise it asks GitHub twice a day — nothing about you is sent, and nothing is installed unless you press Update.</p>
+  </div>
+  <div class="psec">Help &amp; feedback</div>
+  <div class="shortcuts">
+    <span><span class="kbd">Ctrl</span> <span class="kbd">Z</span></span><span>Undo your last change (saving, applying, moving or removing a job, profile imports)</span>
+    <span><span class="kbd">/</span></span><span>Jump to the search box</span>
+    <span><span class="kbd">Ctrl</span> <span class="kbd">R</span></span><span>Reload the app</span>
+    <span><span class="kbd">Esc</span></span><span>Close a window or pop-up</span>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="pill line sm" id="feedback">✉ Send feedback</button><button class="pill line sm" id="gsshow">Show the getting-started list</button></div>
+  <div class="row"><button class="pill line" id="retour" style="margin-right:auto" data-tip="Show the welcome tour again">↺ Take the tour again</button><button class="pill line" data-close>Close</button><button class="pill dark" id="savekeys">Save settings</button></div>
+</div></div>
+
+<div class="modal" id="m-clear"><div class="box">
+  <h3>Clear your profile?</h3>
+  <p class="muted">This removes your details, work history and cover letter so you can start fresh — for example with a new CV. Your saved jobs and tracker are kept.</p>
+  <div class="row"><button class="pill line" data-close>Cancel</button><button class="pill line" id="clear1">Clear details, keep CV</button><button class="pill dark" id="clear2">Clear details and CV</button></div>
+</div></div>
+
+<div class="modal" id="m-import"><div class="box">
+  <h3 id="imptitle">Import from LinkedIn</h3>
+  <p class="muted" id="impsub" style="font-size:13.5px"></p>
+  <ul class="implist" id="implist"></ul>
+  <div class="row"><button class="pill line" data-close>Cancel</button>
+    <button class="pill line" id="impreplace" data-tip="Use these details instead of what's in your profile now">Replace my profile</button>
+    <button class="pill dark" id="impadd" data-tip="Keep what you have, fill the empty fields and add new jobs">Add to my profile</button></div>
+</div></div>
+
+<div class="modal" id="m-lihelp"><div class="box">
+  <h3>Import from LinkedIn</h3>
+  <p class="muted" style="font-size:13.5px;margin-bottom:4px"><b style="color:var(--text)">Paste your profile link.</b> jobslop opens it in Chrome, where the extension reads your profile — you need to be signed in to LinkedIn there.</p>
+  <div class="lirow"><input type="text" id="liurl" placeholder="linkedin.com/in/your-name" autocomplete="off"><button class="pill dark" id="ligo">Import</button></div>
+  <p id="listatus" class="muted" style="font-size:13px;min-height:18px;margin:8px 0 0"></p>
+  <div class="psec" style="margin-top:14px">Or use a file</div>
+  <ol class="oblist" style="counter-reset:none">
+    <li><b>Profile PDF (quickest):</b> on LinkedIn open your profile → <b>Resources</b> (or <b>More</b>) → <b>Save to PDF</b>.</li>
+    <li><b>Data export (most complete):</b> LinkedIn → <b>Settings → Data privacy → Get a copy of your data</b> → pick Profile, Positions, Education, Skills. LinkedIn emails you a .zip — use that.</li>
+  </ol>
+  <div class="row"><button class="pill line" data-close>Close</button><button class="pill line" id="lipick">Choose a file…</button></div>
+</div></div>
+
+<div class="modal" id="m-add"><div class="box">
+  <h3 id="addtitle">Add an application</h3>
+  <p class="muted" style="font-size:13.5px" id="addsub">For jobs you applied to outside jobslop.</p>
+  <div class="pgrid" style="margin-top:10px">
+    <label class="f">Job title<input type="text" id="a_title"></label>
+    <label class="f">Company<input type="text" id="a_company"></label>
+    <label class="f">Location<input type="text" id="a_location"></label>
+    <label class="f">Salary<input type="text" id="a_salary"></label>
+    <label class="f">Status<select id="a_status"></select></label>
+    <label class="f">Date applied<input type="date" id="a_applied"></label>
+    <label class="f">Follow up on<input type="date" id="a_follow"></label>
+    <label class="f wide">Link (optional)<input type="text" id="a_url" placeholder="https://"></label>
+    <label class="f wide">Notes<textarea id="a_notes" rows="3"></textarea></label>
+  </div>
+  <div class="row"><button class="pill line" id="a_delete" hidden style="margin-right:auto">Remove</button><button class="pill line" data-close>Cancel</button><button class="pill dark" id="a_save">Save</button></div>
+</div></div>
+
+<div class="modal" id="m-map"><div class="box" style="width:min(820px,100%)">
+  <h3>Search area</h3>
+  <p class="muted" style="font-size:13.5px;margin:0 0 10px">Click the map (or drag the pin) to choose a place, then set how far you'll travel. Town search is built into the app, and the <b>Offline</b> map works with no internet at all.</p>
+  <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
+    <input type="text" id="mapq" placeholder="Search a town or city…" style="flex:1;min-width:180px"><button class="pill dark sm" id="mapfind">Find</button>
+    <div class="seg" id="mapseg" style="margin:0;width:200px" data-tip="Street map needs internet (free OpenStreetMap). Offline map is built in."><button data-style="street">Street</button><button data-style="offline">Offline</button></div>
+    <label class="check" data-tip="Show game studios from Game Dev Map and Wikipedia's indie developer list"><input type="checkbox" id="mapstudios"> 🎮 Game studios</label>
+    <select id="studiokind" title="Which studios to show" style="padding:5px 8px;border-radius:999px;font-size:12.5px;width:auto!important;flex:0 0 auto"><option value="all">All studios</option><option value="indie">Indie studios only</option></select>
+  </div>
+  <div id="map" style="height:400px;border-radius:14px;border:1px solid var(--line);overflow:hidden;background:var(--surface2);display:grid;place-items:center"><span class="muted"><span class="spin"></span> Loading map…</span></div>
+  <div style="display:flex;align-items:center;gap:14px;margin-top:12px;flex-wrap:wrap">
+    <div style="flex:1;min-width:200px"><div class="serif" style="font-size:22px" id="maplabel">—</div></div>
+    <label class="f" style="flex:1;min-width:220px">Radius: <b id="mapradlabel" style="color:var(--text)"></b><input type="range" id="maprad" min="1" max="100" value="15" style="accent-color:var(--accent)"></label>
+  </div>
+  <div id="studiolist" class="studiolist" hidden></div>
+  <div class="row"><button class="pill line" data-close>Cancel</button><button class="pill dark" id="mapuse">Use this area</button></div>
+</div></div>
+
+<div class="modal" id="m-offer"><div class="box">
+  <div class="offerhead">🥂</div>
+  <h3>Congratulations!</h3>
+  <p style="margin-top:0">You got an offer for <b id="offerjob"></b>. Thank you for using jobslop — that's brilliant news.</p>
+  <p class="muted" style="font-size:13px">Would you share how you got there? It helps make jobslop better for the next person. The email is anonymous — it doesn't mention the job, the company or anything about you, just a few numbers. It opens in your own email app, addressed to <b>jobslop@proton.me</b>, so you can read and change every word before you press send. jobslop itself never sends anything.</p>
+  <textarea id="offermail" rows="12" aria-label="Email text"></textarea>
+  <div class="row"><button class="pill line" data-close>Not now</button><button class="pill line" id="offercopy">⧉ Copy text</button><button class="pill dark" id="offersend">✉ Open in my email</button></div>
+</div></div>
+
+<div class="modal" id="m-whatsnew"><div class="box">
+  <h3 id="wntitle">What's new</h3>
+  <div id="wnnotes" class="muted" style="font-size:14px;white-space:pre-wrap;line-height:1.6;max-height:50vh;overflow:auto"></div>
+  <div class="row"><button class="pill line" data-close>Close</button><button class="pill dark" id="wnupdate">Update now</button></div>
+</div></div>
+
+<div class="modal" id="m-feedback"><div class="box">
+  <h3>Send feedback</h3>
+  <p class="muted" style="font-size:13px">Ideas, bugs, a job you landed — anything helps. This opens an email to <b>jobslop@proton.me</b> in your email app, so you can check it before sending. Thank you for using jobslop!</p>
+  <textarea id="fbmail" rows="10" aria-label="Email text"></textarea>
+  <div class="row"><button class="pill line" data-close>Cancel</button><button class="pill line" id="fbcopy">⧉ Copy text</button><button class="pill dark" id="fbsend">✉ Open in my email</button></div>
+</div></div>
+
+<!-- ======================= ONBOARDING (first run) ======================= -->
+<div class="modal" id="m-onboard"><div class="box ob">
+  <div class="obhero"><svg viewBox="0 0 64 64" class="oblogo"><rect width="64" height="64" rx="16" fill="#f4efe6"/><text x="29" y="46" text-anchor="middle" font-family="Italiana,'Bodoni MT',Didot,serif" font-size="38" fill="#1d1b18">js</text><path d="M51 9c0 0-6 8-6 12a6 6 0 0 0 12 0c0-4-6-12-6-12z" fill="#b08a5f"/></svg>
+    <div class="kicker" style="color:rgba(244,239,230,.7)" id="obkick">Welcome</div></div>
+
+  <section class="obstep" data-step="0">
+    <h3>Welcome to jobslop</h3>
+    <p>One place to search dozens of job boards, match jobs to your CV, track every application, and fill in application forms for you.</p>
+    <ul class="oblist"><li>🔎 <b>Search</b> LinkedIn, Indeed, Glassdoor and many more at once</li><li>✦ <b>Match</b> jobs to your CV and see how well each fits</li><li>📋 <b>Track</b> applications and your progress</li><li>⚡ <b>Easy apply</b> with the Chrome extension filling forms for you</li></ul>
+    <p class="muted" style="font-size:12.5px">Takes about a minute, and you can skip any step. Everything stays on this computer — and anything you do can be undone with <span class="kbd">Ctrl</span> <span class="kbd">Z</span>.</p>
+  </section>
+
+  <section class="obstep" data-step="1" hidden>
+    <h3>Start with your CV</h3>
+    <p>Drop your CV here and jobslop fills in your profile — name, contact details, work history, skills and more. You can check and edit it later in <b>Profile</b>.</p>
+    <div class="drop" id="obdrop"><div class="serif" style="font-size:22px">Drop your CV here</div>
+      <div class="muted" style="font-size:13px;margin-top:4px">or <label class="linkish">choose a file<input type="file" id="obcv" accept=".pdf,.docx,.doc,.rtf,.txt" hidden></label> · PDF or Word</div></div>
+    <div class="muted" style="font-size:12.5px;margin-top:12px">No CV to hand? Paste your LinkedIn profile link instead (opens in Chrome; needs the extension):</div>
+    <div class="lirow"><input type="text" id="obliurl" placeholder="linkedin.com/in/your-name" autocomplete="off"><button class="pill line sm" id="obligo">Import</button></div>
+    <p id="obcvmsg" style="font-size:13.5px;color:var(--accent);min-height:20px;margin:10px 0 0"></p>
+  </section>
+
+  <section class="obstep" data-step="2" hidden>
+    <h3>Where are you looking?</h3>
+    <p>Pick your country and town. You can change these any time with <b>📍 Mine</b> or the <b>🗺 Map</b> next to the search box.</p>
+    <div class="pgrid">
+      <label class="f">Country<select id="obcountry"></select></label>
+      <label class="f">Town or city<input type="text" id="obtown" placeholder="e.g. Birmingham"></label>
+      <label class="f">Show salaries in<select class="cursel" id="obcurrency"></select></label>
+      <label class="f">Distances in<select id="obunit"><option value="mi">Miles</option><option value="km">Kilometres</option></select></label>
+    </div>
+  </section>
+
+  <section class="obstep" data-step="3" hidden>
+    <h3>Searching</h3>
+    <ul class="oblist">
+      <li><b>Type a job</b> — use commas for several, e.g. <i>chef, kitchen porter</i></li>
+      <li><b>Any job</b> — no keyword, shows everything near you</li>
+      <li><b>✦ Match jobs to my CV</b> — searches your job titles and ranks results by fit</li>
+      <li><b>Filters</b> — date posted, full/part-time, remote, minimum salary, nearest first</li>
+      <li><b>Job boards</b> — tick or untick the chips under the search box; extra boards can be added with free keys in <b>⚙ Settings</b></li>
+    </ul>
+  </section>
+
+  <section class="obstep" data-step="4" hidden>
+    <h3>Apply & keep track</h3>
+    <ul class="oblist">
+      <li><b>☆ Save</b> or <b>✓ Mark applied</b> on any job — it goes on your <b>Tracker</b> board</li>
+      <li><b>Progress</b> shows applications today, this month, your streak and interview rate</li>
+      <li>Changed your mind? <b>↶ Undo</b> (top right, or <span class="kbd">Ctrl</span> <span class="kbd">Z</span>) puts back your last change</li>
+      <li><b>⚡ Easy apply</b> opens the job in Chrome where the extension fills the form with your profile and CV. It never submits — you always check and submit yourself.</li>
+    </ul>
+    <div class="panel" style="padding:14px 16px;margin-top:6px"><b>Set up the Chrome extension</b> <span class="muted" style="font-size:13px">(optional, two clicks in Chrome)</span>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button class="pill dark sm" id="obext">⚡ Set it up now</button><span class="muted" style="font-size:12.5px;align-self:center" id="obextnote">or later from <b>Profile</b></span></div></div>
+  </section>
+
+  <div class="obfoot">
+    <button class="pill line sm" id="obskip">Skip tour</button>
+    <div class="obdots" id="obdots"></div>
+    <div style="display:flex;gap:8px"><button class="pill line sm" id="obback">Back</button><button class="pill dark sm" id="obnext">Next</button></div>
+  </div>
+</div></div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// ============================================================= basics
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){}};
+// every request lights up the loading bar at the top while it's running
+let pending=0;const busy=d=>{pending=Math.max(0,pending+d);document.getElementById("loadbar").classList.toggle("on",pending>0)};
+const post=(u,b)=>{busy(1);return fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}).then(r=>r.json()).finally(()=>busy(-1))};
+const get=u=>{busy(1);return fetch(u).then(r=>r.json()).finally(()=>busy(-1))};
+// buttons show a spinner while their job runs
+async function withSpinner(btn,label,fn){const old=btn.innerHTML;btn.classList.add("busy");btn.innerHTML=`<span class="spin"></span> ${label}`;
+  try{return await fn()}finally{btn.classList.remove("busy");btn.innerHTML=old}}
+// On a phone (phone access), links open on the phone itself; on the computer they open in your browser
+const PHONE=!!window.JF_PHONE;
+if(PHONE)document.documentElement.classList.add("phone");
+const openUrl=u=>PHONE?window.open(u,"_blank","noopener"):post("/api/open",{url:u});
+const todayStr=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const dayStr=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+function toast(t,action){const el=$("#toast");el.innerHTML=esc(t)+(action?`<button>${esc(action.label)}</button>`:"");
+  if(action)el.querySelector("button").onclick=()=>{el.classList.remove("show");action.fn()};
+  el.classList.add("show");clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("show"),action?7000:3800)}
+// Ctrl+R / F5 reloads the app (the app window doesn't do this by itself)
+function reloadApp(){$("#splash").classList.remove("gone");setTimeout(()=>location.reload(),180)}
+document.addEventListener("keydown",e=>{if(((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="r")||e.key==="F5"){e.preventDefault();reloadApp()}});
+// windows open on top of whatever is already open, focus moves into them, and goes back where it was on close
+let modalZ=50,lastFocus=null;
+function openModal(id){const m=$("#"+id);if(!m.classList.contains("open"))lastFocus=document.activeElement;
+  m.style.zIndex=++modalZ;m.classList.add("open");hideTip();
+  setTimeout(()=>{const f=m.querySelector("[autofocus],input:not([type=hidden]):not([disabled]),textarea,select,.box button.dark");if(f&&!PHONE)f.focus()},60)}
+function closeModals(){const wasOpen=$$(".modal.open").length;$$(".modal").forEach(m=>m.classList.remove("open"));
+  if(wasOpen&&lastFocus&&document.contains(lastFocus)){try{lastFocus.focus({preventScroll:true})}catch(e){}}lastFocus=null}
+$$(".modal .box").forEach((b,i)=>{b.setAttribute("role","dialog");b.setAttribute("aria-modal","true");const h=b.querySelector("h3");if(h){h.id=h.id||"mt"+i;b.setAttribute("aria-labelledby",h.id)}});
+$$("[data-close]").forEach(b=>b.onclick=closeModals);
+$$(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m&&m.id!=="m-onboard")closeModals()}));
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){hideTip();if($("#m-onboard").classList.contains("open"))finishOnboarding();closeModals();$("#themepop").classList.remove("open");$("#updpop").classList.remove("open")}});
+// keyboard: Ctrl+Z undoes your last change (typing in a box keeps its own undo), "/" jumps to the search box
+const typing=e=>e.target.closest&&e.target.closest("input,textarea,select,[contenteditable]");
+document.addEventListener("keydown",e=>{
+  if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key.toLowerCase()==="z"&&!typing(e)){e.preventDefault();undoLast()}
+  else if(e.key==="/"&&!typing(e)&&!e.ctrlKey&&!e.metaKey&&!$$(".modal.open").length){e.preventDefault();setTab("search");$("#q").disabled?$("#where").focus():$("#q").focus()}});
+
+// ============================================================= tooltips: one label above everything, never cut off
+const tipEl=document.createElement("div");tipEl.id="tip";tipEl.setAttribute("role","tooltip");document.body.appendChild(tipEl);
+let tipFor=null,tipHover=null,tipTimer=null;
+const tipOf=el=>{if(el.hasAttribute("title")){el.dataset.tip=el.getAttribute("title");el.removeAttribute("title")}return el.dataset.tip};
+function showTip(el){const t=tipOf(el);if(!t||!document.contains(el))return;tipFor=el;tipEl.textContent=t;tipEl.classList.add("on");
+  const r=el.getBoundingClientRect(),w=tipEl.offsetWidth,h=tipEl.offsetHeight,gap=8;
+  let top=r.bottom+gap;if(top+h>innerHeight-6)top=r.top-h-gap;
+  const left=Math.max(6,Math.min(innerWidth-w-6,r.left+r.width/2-w/2));
+  tipEl.style.top=Math.max(6,top)+"px";tipEl.style.left=left+"px";el.setAttribute("aria-describedby","tip")}
+function hideTip(){clearTimeout(tipTimer);tipEl.classList.remove("on");if(tipFor)tipFor.removeAttribute("aria-describedby");tipFor=null}
+document.addEventListener("mouseover",e=>{const el=e.target.closest&&e.target.closest("[data-tip],[title]");if(el===tipHover)return;
+  tipHover=el;hideTip();if(!el||PHONE||matchMedia("(hover:none)").matches)return;tipOf(el);tipTimer=setTimeout(()=>showTip(el),300)});
+document.addEventListener("focusin",e=>{const el=e.target.closest&&e.target.closest("[data-tip],[title]");if(el&&e.target.matches(":focus-visible")){hideTip();showTip(el)}});
+document.addEventListener("focusout",()=>{if(!tipHover)hideTip()});
+document.addEventListener("mousedown",hideTip);window.addEventListener("scroll",hideTip,true);window.addEventListener("blur",hideTip);
+
+// hover labels for controls that aren't self-explanatory (tick boxes get theirs on the whole label)
+const TIPS={
+  '.tab[data-tab="search"]':"Find jobs on dozens of job boards at once",
+  '.tab[data-tab="tracker"]':"Every job you've saved or applied to, by stage",
+  '.tab[data-tab="progress"]':"Your applications, streak, interview rate and weekly goal",
+  '.tab[data-tab="profile"]':"Your details, CV and work history — used to fill in applications",
+  "#q":"Job titles or skills — separate several with commas",
+  "#go":"Search the ticked job boards (Enter works too)",
+  "#perpage":"How many results to show on each page",
+  "#csv":"Save the results you can see as a spreadsheet",
+  "#hassal":"Hide jobs that don't list a salary",
+  "#strict":"Only show jobs whose title contains what you searched for",
+  "#filter":"Narrow the results — matches title, company, place and description",
+  "#exclude":"Hide jobs whose title contains any of these words (comma separated)",
+  "#srcfilter":"Only show jobs from one job board",
+  "#tfilter":"Find a job on your tracker by title, company, place or notes",
+  "#tsort":"Change the order of the cards in each column",
+  "#addapp":"Track a job you applied to somewhere else",
+  "#tcsv":"Save your whole tracker as a spreadsheet",
+  "#goal":"How many applications you aim for each week (Monday to Sunday)",
+  "#fromcv":"Read your CV and fill in your details and work history — you choose what to keep",
+  "#clearprof":"Start again with an empty profile (you can undo this)",
+  "#addjob":"Add a job to your work history by hand",
+  "#cvremove":"Delete the CV saved in jobslop (the file on your computer isn't touched)",
+  "#extsetup":"Opens Chrome's extensions page and the extension folder, and copies the path for you",
+  "#openext":"Show the extension folder in File Explorer",
+  "#copycode":"Copy the code, in case the extension asks for it",
+  "#addterm":"Teach jobslop another name for a job, e.g. PR = communications",
+  "#phoneon":"Use jobslop from your phone on the same Wi-Fi, protected by a PIN",
+  "#phonesignout":"Signs out every phone that's connected",
+  "#setcurrency":"Convert every salary to one currency so they're easy to compare",
+  "#setunit":"Show distances in miles or kilometres",
+  "#updcheck":"Ask GitHub now if there's a newer jobslop",
+  "#feedback":"Write to jobslop@proton.me from your own email app",
+  "#gsshow":"Bring back the getting-started list on the Search page",
+  "#savekeys":"Save your job board keys and preferences",
+  "#mapuse":"Search around this place with this radius",
+  "#maprad":"How far from the pin you're willing to travel",
+  "#liurl":"The address of your LinkedIn profile, e.g. linkedin.com/in/your-name",
+  "#obliurl":"The address of your LinkedIn profile, e.g. linkedin.com/in/your-name",
+};
+Object.entries(TIPS).forEach(([sel,tip])=>$$(sel).forEach(el=>{
+  const target=el.type==="checkbox"?(el.closest("label")||el):el;
+  if(!target.dataset.tip&&!target.title)target.dataset.tip=tip}));
+$$("#strip > div").forEach(d=>d.dataset.tip="Open your progress");
+
+// ============================================================= undo (↶ button or Ctrl+Z)
+const undoStack=[];
+function remember(label,fn){undoStack.push({label,fn});if(undoStack.length>30)undoStack.shift();drawUndo()}
+function drawUndo(){const b=$("#undobtn"),top=undoStack[undoStack.length-1];b.disabled=!top;
+  b.dataset.tip=top?`Undo ${top.label} (Ctrl+Z)`:"Nothing to undo yet";if(tipFor===b)showTip(b)}
+async function undoLast(){const a=undoStack.pop();drawUndo();if(!a)return toast("Nothing to undo");
+  try{await a.fn();toast("Undone: "+a.label)}catch(e){toast("Couldn't undo that")}}
+const UNDO={label:"Undo",fn:()=>undoLast()};
+// any tracker change: the whole tracker is remembered first, so Undo puts it back exactly
+async function trackerChange(label,fn){const before=JSON.parse(JSON.stringify(saved));const r=await fn();
+  remember(label,async()=>{saved=await post("/api/saved",{action:"set_all",items:before});refreshTracked()});return r}
+// profile changes (imports, removing a job, clearing): the profile is remembered first
+function profileChange(label){const before=JSON.parse(JSON.stringify(profile));
+  remember(label,async()=>{profile=before;await post("/api/profile",{profile});$$(".pf").forEach(el=>el.value=profile[el.id]||"");drawJobs();drawWelcome();drawStarted()})}
+document.addEventListener("click",e=>{const a=e.target.closest("[data-href]");if(a){e.preventDefault();openUrl(a.dataset.href)}});
+// copy-link buttons (any element with data-copy): copies, flashes a ✓, confirms with a toast
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-copy]");if(!b)return;e.preventDefault();e.stopPropagation();
+  const ok=await copyText(b.dataset.copy);if(!ok)return toast("Couldn't copy — select the link manually");
+  const old=b.innerHTML;b.innerHTML="✓";b.classList.add("done");setTimeout(()=>{b.innerHTML=old;b.classList.remove("done")},1400);toast("Link copied")});
+
+const BIG=["LinkedIn","Indeed","Glassdoor","ZipRecruiter"],LOCAL=["Reed","Adzuna","Jobs2Careers","USAJOBS","Jobindex","Jobbird"],
+  SPECIAL=["WorkWithIndies","ArtStation","ICAEW","ACCA"],REMOTE=["Himalayas","Jobicy","Remotive","RemoteOK","Arbeitnow"],
+  SOURCES=BIG.concat(LOCAL,SPECIAL,REMOTE);
+// boards that only cover one country
+const ONLY_IN={Reed:"GB",ZipRecruiter:"GB",Jobs2Careers:"US",USAJOBS:"US",Jobindex:"DK",Jobbird:"NL"};
+const KEYS=["reed_key","adzuna_id","adzuna_key","apify_token","usajobs_key","usajobs_email"];
+const STAGES=["Saved","Applying","Applied","Interview","Offer","Rejected"];
+const APPLIED=["Applied","Interview","Offer","Rejected"];
+let results=[],saved=[],profile={},keys={},countries=[],tab="search",anyMode=false,cvMode=false,searching=false;
+
+// ============================================================= theme
+const PALETTES={sand:"#9b7b55",sage:"#6b8a67",ocean:"#3d7096",terracotta:"#b4623d",plum:"#86608f",graphite:"#5d6166"};
+function applyTheme(){const m=pref("mode")||"auto",p=pref("palette")||"sand";
+  document.documentElement.dataset.theme=m;document.documentElement.dataset.palette=p;
+  $$("#modeseg button").forEach(b=>b.classList.toggle("on",b.dataset.mode===m));
+  $$("#swatches button").forEach(b=>b.classList.toggle("on",b.dataset.p===p));
+  drawRing();}
+$("#swatches").innerHTML=Object.entries(PALETTES).map(([k,c])=>`<button data-p="${k}" title="${k[0].toUpperCase()+k.slice(1)}" style="background:${c}"></button>`).join("");
+// appearance is also saved with the app's settings, so it survives restarts
+const savePref=(k,v)=>{pref(k,v);post("/api/prefs",{[k]:v}).catch(()=>{})};
+$$("#swatches button").forEach(b=>b.onclick=()=>{savePref("palette",b.dataset.p);applyTheme()});
+$$("#modeseg button").forEach(b=>b.onclick=()=>{savePref("mode",b.dataset.mode);applyTheme()});
+$("#reloadbtn").onclick=reloadApp;
+$("#undobtn").onclick=()=>undoLast();
+$("#home").onclick=e=>{e.preventDefault();setTab("search");window.scrollTo({top:0,behavior:"smooth"});setTimeout(()=>{if(!$("#q").disabled)$("#q").focus({preventScroll:true})},250)};
+$("#themebtn").onclick=e=>{e.stopPropagation();$("#themepop").classList.toggle("open")};
+document.addEventListener("click",e=>{if(!e.target.closest("#themepop")&&e.target.id!=="themebtn")$("#themepop").classList.remove("open")});
+
+// ============================================================= welcome
+const CHEERS=["Every application is a step closer — today could be the day.","Your next chapter is out there. Let's go find it.",
+ "Small steps every day add up to big moves.","You bring something no one else can. Show them.","Consistency beats luck. You've got this.",
+ "The right role is looking for someone exactly like you.","One great application beats ten rushed ones — take your time.",
+ "Rejections are redirections. Keep going.","Fresh day, fresh listings, fresh chances.","You're closer than you think.",
+ "Back at it — that's what winners do.","Make today count: one more application, one more door.",
+ "Your skills are in demand. Let's put them in front of the right people.","Progress, not perfection.",
+ "Good things come to those who apply.","Keep showing up — momentum is building.","Bet on yourself today.",
+ "The best time to apply was yesterday. The next best time is now."];
+function drawWelcome(){
+  const name=(profile.first_name||"").trim();
+  $("#hello").innerHTML=name?`Welcome back, ${esc(name)}`:"Find Your Next Role";
+  const where=[profile.city,(countries.find(c=>c.code===$("#country").value)||{}).name].filter(Boolean).join(" · ");
+  $("#herosub").textContent=[where,new Date().toLocaleDateString(undefined,{day:"numeric",month:"long",year:"numeric"})].filter(Boolean).join("  ·  ");
+  $("#cheer").textContent=CHEERS[Math.floor(Math.random()*CHEERS.length)];
+}
+
+// ============================================================= tabs
+const TAB_NAMES={search:"Search",tracker:"Tracker",progress:"Progress",profile:"Profile"};
+function setTab(t){const changed=tab!==t;tab=t;$$(".navlinks .tab").forEach(b=>{b.classList.toggle("on",b.dataset.tab===t);b.setAttribute("aria-current",b.dataset.tab===t?"page":"false")});
+  $$("section.view").forEach(s=>s.classList.toggle("on",s.id==="v-"+t));
+  // only Search needs the big header; other tabs get a slim bar so the page starts right away
+  document.querySelector(".hero").classList.toggle("compact",t!=="search");
+  $("#strip").style.display=t==="search"||t==="progress"?"":"none";
+  document.title=`${TAB_NAMES[t]} · jobslop`;
+  if(changed&&t!=="search")window.scrollTo({top:0,behavior:"instant"});
+  if(t==="profile")loadProfile();if(t==="tracker")drawBoard();if(t==="progress")drawProgress();if(t==="search"){render();drawStarted()}}
+$$(".navlinks .tab").forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+$("#strip").onclick=()=>{setTab("progress");$("#v-progress").scrollIntoView({behavior:"smooth"})};
+$("#strip").style.cursor="pointer";
+
+// ============================================================= keys & sources
+async function loadKeys(){keys=await get("/api/settings");KEYS.forEach(k=>$("#"+k).placeholder=keys[k]?"saved ("+keys[k]+") — paste to replace":"paste here");drawSources()}
+function drawSources(){
+  const off=new Set((pref("off")||"").split(",").filter(Boolean)),cc=$("#country").value||"GB",c=countries.find(x=>x.code===cc)||{};
+  $("#srcs").innerHTML=SOURCES.map(s=>{
+    const na=(ONLY_IN[s]&&ONLY_IN[s]!==cc)||(s==="Adzuna"&&c.adzuna===false);
+    if(na)return"";                     // not for this country: hide it
+    const need=(s==="Reed"&&!keys.reed_key)||(s==="Adzuna"&&!(keys.adzuna_id&&keys.adzuna_key))||(s==="USAJOBS"&&!(keys.usajobs_key&&keys.usajobs_email));
+    const on=!off.has(s)&&!need;
+    const note=need?" · needs key":(s==="LinkedIn"&&!keys.apify_token?" · slow":"");
+    const tip={ArtStation:"Art, animation & games jobs worldwide",WorkWithIndies:"Indie games studio jobs worldwide",
+      ICAEW:"Chartered accountancy jobs (ICAEW)",ACCA:"Accounting & finance jobs (ACCA Careers)",ZipRecruiter:"ZipRecruiter UK",
+      Jobindex:"Denmark's biggest job board",Jobbird:"Dutch job board",Jobs2Careers:"Large US job search",USAJOBS:"US government jobs",
+      LinkedIn:"Public LinkedIn listings (no login)",Indeed:"Indeed, searched free with JobSpy",Glassdoor:"Glassdoor, searched free with JobSpy"}[s]||"Remote jobs board";
+    return `<label class="chip ${on?"on":"off"} ${need?"need":""}" title="${need?"Add a free key in ⚙ Settings":tip}"><input type="checkbox" class="sc" value="${s}" ${on?"checked":""} ${need?"disabled":""}><span class="dot"></span>${s}${note}</label>`}).join("");
+  $$(".sc").forEach(c=>c.onchange=()=>{c.closest(".chip").classList.toggle("on",c.checked);c.closest(".chip").classList.toggle("off",!c.checked);
+    pref("off",$$(".sc").filter(x=>!x.checked&&!x.disabled).map(x=>x.value).join(","))});
+}
+$("#gear").onclick=()=>openModal("m-keys");
+// "Save settings" saves everything in the Settings window: keys and job match terms
+$("#savekeys").onclick=()=>withSpinner($("#savekeys"),"Saving…",async()=>{const b={};KEYS.forEach(k=>{const v=$("#"+k).value.trim();if(v)b[k]=v;$("#"+k).value=""});
+  await post("/api/settings",b);
+  matchTerms=await post("/api/match_terms",{terms:matchTerms.filter(t=>(t.name||"").trim())});drawTerms();
+  await loadKeys();closeModals();render();toast("Settings saved")});
+$("#srcfilter").innerHTML+=SOURCES.map(s=>`<option>${s}</option>`).join("");
+
+// ============================================================= search form
+async function loadCountries(){countries=await get("/api/countries");
+  $("#country").innerHTML=countries.map(c=>`<option value="${c.code}">${esc(c.name)}</option>`).join("");
+  $("#country").value=pref("country")||"GB";}
+$("#country").onchange=()=>{setCountry($("#country").value)};
+$("#anybtn").onclick=()=>{anyMode=!anyMode;$("#anybtn").classList.toggle("on",anyMode);
+  $("#q").disabled=anyMode;$("#q").placeholder=anyMode?"Any job — showing everything nearby":"What job? e.g. data analyst — commas for several"};
+// ---- country helpers
+const COUNTRY_ALIAS={uk:"GB","u.k.":"GB",britain:"GB","great britain":"GB",england:"GB",scotland:"GB",wales:"GB","northern ireland":"GB",
+  usa:"US",us:"US","u.s.":"US",america:"US","united states of america":"US",deutschland:"DE",holland:"NL","the netherlands":"NL",uae:"AE"};
+function countryFromText(t){const s=(t||"").trim().toLowerCase();if(!s)return null;
+  return countries.find(c=>c.name.toLowerCase()===s||c.code.toLowerCase()===s||COUNTRY_ALIAS[s]===c.code)||null}
+function setCountry(code){if(!countries.some(c=>c.code===code))return false;$("#country").value=code;pref("country",code);drawSources();drawWelcome();setCurrency(currency,true);return true}
+
+// ---- "Where?" takes a town, postcode or full address; the app works out the town, postcode and country
+let whereLoc=null;
+async function readWhere(){
+  const w=$("#where").value.trim();
+  if(!w){whereLoc=null;showWhere();return null}
+  try{whereLoc=await get("/api/place?"+new URLSearchParams({q:w,country:$("#country").value}))}catch(e){whereLoc=null}
+  showWhere();return whereLoc}
+function showWhere(){
+  const h=$("#wherehint"),w=$("#where").value.trim().toLowerCase(),l=whereLoc;
+  if(!w||!l||!l.town){h.hidden=true;return}
+  h.textContent=l.found?`📍 Searching around ${l.label}`:`📍 “${l.town}” isn't in the offline town list — boards will be asked for it as typed`;
+  h.hidden=l.found&&l.town.toLowerCase()===w&&!l.postcode}          // plain town: nothing to explain
+function followWhereCountry(l){
+  if(l&&l.explicit_country&&l.country_code&&l.country_code!==$("#country").value){
+    if(setCountry(l.country_code))toast(`Country switched to ${$("#country").selectedOptions[0].text} to match “${$("#where").value.trim()}”`)}}
+$("#where").addEventListener("change",async()=>followWhereCountry(await readWhere()));
+$("#where").addEventListener("input",()=>{$("#wherehint").hidden=true});
+
+// ---- 📍 Mine: the whole profile address (street, town, postcode, country) -> town + postcode + country
+$("#locbtn").onclick=()=>withSpinner($("#locbtn"),"",async()=>{
+  profile=(await get("/api/profile")).profile||{};
+  const addr=[profile.address1,profile.address2,profile.city,profile.county,profile.postcode].map(x=>(x||"").trim()).filter(Boolean);
+  if(!addr.length&&!profile.country){toast("Add your address or town in Profile first");setTab("profile");return}
+  let hit=countryFromText(profile.country);
+  const l=addr.length?await get("/api/place?"+new URLSearchParams({q:[...addr,profile.country].filter(Boolean).join(", "),country:hit?hit.code:$("#country").value})):null;
+  if(l&&l.found){
+    $("#where").value=[l.town,l.postcode].filter(Boolean).join(", ");
+    hit=countries.find(c=>c.code===l.country_code)||hit;
+  }else{
+    $("#where").value=profile.city||"";
+    if(!hit&&profile.city){const g=await get("/api/geocode?q="+encodeURIComponent([profile.city,profile.country].filter(Boolean).join(", ")));
+      if(!g.error)hit=countries.find(c=>c.code===g.country_code)||null}
+  }
+  if(hit)setCountry(hit.code);
+  await readWhere();
+  toast(`Location set to ${l&&l.found?l.label:[profile.city,hit?hit.name:profile.country].filter(Boolean).join(", ")}`)});
+
+// ---- distance units
+const UNIT_OPTS={mi:[5,10,15,25,50,100],km:[5,10,25,40,80,150]};
+const unit=()=>pref("unit")||"mi";
+const toMiles=(n,u)=>u==="km"?n/1.609:n, fromMiles=(m,u)=>u==="km"?m*1.609:m;
+function drawMiles(keepMiles){const u=unit(),cur=keepMiles||+$("#miles").value||15;
+  let best=UNIT_OPTS[u][0];UNIT_OPTS[u].forEach(v=>{if(Math.abs(toMiles(v,u)-cur)<Math.abs(toMiles(best,u)-cur))best=v});
+  $("#miles").innerHTML=UNIT_OPTS[u].map(v=>`<option value="${Math.max(1,Math.round(toMiles(v,u)))}" ${v===best?"selected":""}>+${v} ${u}</option>`).join("");
+  $("#setunit").value=u;}
+$("#setunit").onchange=()=>{savePref("unit",$("#setunit").value);drawMiles();render();toast(`Distances now in ${unit()==="km"?"kilometres":"miles"}`)};
+
+// ---- map picker (Leaflet + OpenStreetMap, loaded the first time it's opened)
+let map=null,mapPin=null,mapCircle=null,mapPlace=null;
+function loadLeaflet(){return new Promise((ok,fail)=>{if(window.L)return ok();
+  const css=document.createElement("link");css.rel="stylesheet";css.href="/static/leaflet.css";document.head.appendChild(css);
+  const js=document.createElement("script");js.src="/static/leaflet.js";js.onload=ok;js.onerror=()=>fail(new Error("Couldn't load the map"));document.head.appendChild(js)})}
+const isDark=()=>document.documentElement.dataset.theme==="dark"||(document.documentElement.dataset.theme==="auto"&&matchMedia("(prefers-color-scheme: dark)").matches);
+function drawMapRadius(){const u=unit(),v=+$("#maprad").value;$("#mapradlabel").textContent=`${v} ${u}`;
+  if(mapCircle)mapCircle.setRadius(toMiles(v,u)*1609.34)}
+function setMapPlace(p,fly){mapPlace=p;$("#maplabel").textContent=p.label||`${p.lat.toFixed(3)}, ${p.lon.toFixed(3)}`;
+  const ll=[p.lat,p.lon];mapPin.setLatLng(ll);mapCircle.setLatLng(ll);if(fly)map.fitBounds(mapCircle.getBounds(),{padding:[30,30]})}
+async function pickAt(lat,lon){$("#maplabel").innerHTML='<span class="spin"></span>';
+  const r=await get(`/api/reverse?lat=${lat}&lon=${lon}`);setMapPlace(r.error?{lat,lon,label:"",town:"",country_code:""}:{...r,lat,lon},false);
+  if(r.error)toast(r.error);drawStudios()}
+// Two map styles: the free OpenStreetMap street map (online), and a built-in offline map
+// (country outlines + 70,000 towns that ship with the app). The offline map is always underneath,
+// so the map still works with no internet; it switches over by itself if street tiles can't load.
+let mapStyle=pref("mapstyle")||"street",worldLayer=null,townLayer=null,studioLayer=null,tileErrors=0,tileLoads=0;
+const accentColor=()=>getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
+async function addOfflineBase(){
+  if(worldLayer)return;
+  const world=await get("/static/world.json");
+  // the offline outlines sit in their own layer BELOW the street map, so street tiles are never covered
+  if(!map.getPane("offlineBase")){map.createPane("offlineBase");map.getPane("offlineBase").style.zIndex=150}
+  worldLayer=L.geoJSON(world,{pane:"offlineBase",interactive:false,style:()=>({color:isDark()?"#8a8170":"#a69c8a",weight:1,fillColor:isDark()?"#3d3a33":"#f6f2ea",fillOpacity:1})}).addTo(map);
+  townLayer=L.layerGroup().addTo(map);
+  map.on("moveend",drawTowns);
+}
+async function drawTowns(){
+  if(!townLayer)return;
+  if(mapStyle!=="offline"){townLayer.clearLayers();return}
+  const b=map.getBounds(),z=map.getZoom(),limit=z<5?12:z<7?30:z<9?60:120;
+  const towns=await get(`/api/towns?s=${b.getSouth()}&w=${b.getWest()}&n=${b.getNorth()}&e=${b.getEast()}&limit=${limit}`);
+  townLayer.clearLayers();
+  towns.forEach((t,i)=>{const m=L.circleMarker([t.lat,t.lon],{radius:i<8?3.5:2.5,color:isDark()?"#ece7dc":"#3a342b",weight:0,fillOpacity:.8,interactive:false}).addTo(townLayer);
+    if(i<(z<6?10:z<8?25:45))m.bindTooltip(t.n,{permanent:true,direction:"right",className:"townlabel",offset:[4,0]})});
+}
+function setMapStyle(style,quiet){
+  mapStyle=style;pref("mapstyle",style);$$("#mapseg button").forEach(b=>b.classList.toggle("on",b.dataset.style===style));
+  document.getElementById("map").classList.toggle("darktiles",isDark());
+  if(map._tiles){map.removeLayer(map._tiles);map._tiles=null}
+  if(style==="street"){
+    tileErrors=0;tileLoads=0;
+    map._tiles=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
+    map._tiles.on("tileload",()=>tileLoads++);
+    map._tiles.on("tileerror",()=>{tileErrors++;if(tileErrors>=4&&tileLoads===0&&mapStyle==="street"){setMapStyle("offline",true);toast("No internet for street maps — showing the built-in offline map")}});
+  }
+  drawTowns();
+  if(!quiet&&style==="offline")toast("Offline map: country outlines and 70,000 towns built into the app");
+}
+async function drawStudios(){
+  if(!studioLayer)studioLayer=L.layerGroup().addTo(map);
+  studioLayer.clearLayers();
+  if(!$("#mapstudios").checked||!mapPlace){$("#studiolist").innerHTML="";$("#studiolist").hidden=true;return}
+  const km=toMiles(+$("#maprad").value,unit())*1.609;
+  $("#studiolist").hidden=false;$("#studiolist").innerHTML='<div class="muted" style="padding:8px"><span class="spin"></span> Finding game studios…</div>';
+  const kind=$("#studiokind").value;
+  const r=await get(`/api/studios?lat=${mapPlace.lat}&lon=${mapPlace.lon}&km=${km}&kind=${kind}`);
+  const icon=L.divIcon({className:"",html:'<div class="studiodot">🎮</div>',iconSize:[22,22],iconAnchor:[11,11]});
+  const indieIcon=L.divIcon({className:"",html:'<div class="studiodot indie">✦</div>',iconSize:[22,22],iconAnchor:[11,11]});
+  r.studios.forEach(s=>L.marker([s.lat+(Math.random()-.5)*.01,s.lon+(Math.random()-.5)*.01],{icon:s.indie?indieIcon:icon}).addTo(studioLayer)
+    .bindPopup(`<b>${esc(s.name)}</b>${s.indie?' <span class="indietag">Indie</span>':""}<br>${esc(s.type)} · ${esc(s.city)}<br><a href="#" data-href="${esc(s.url)}">${s.source==="Wikipedia"?"Read about them ↗":"Visit website ↗"}</a>`));
+  const indieN=r.studios.filter(s=>s.indie).length;
+  $("#studiolist").innerHTML=`<div class="studiohead"><b>${r.studios.length} ${kind==="indie"?"indie ":""}game studio${r.studios.length===1?"":"s"}</b> within ${$("#maprad").value} ${unit()}${kind==="all"&&indieN?` <span class="indietag">${indieN} indie</span>`:""} <span class="muted">· Game Dev Map + Wikipedia</span></div>`+
+    (r.studios.length?r.studios.slice(0,120).map(s=>`<div class="studiorow" data-href="${esc(s.url)}" title="Open ${esc(s.name)}"><span><b>${esc(s.name)}</b>${s.indie?' <span class="indietag">Indie</span>':""} <span class="muted">${esc(s.type)}</span></span><span class="muted">${esc(s.city)} · ${fmtDist(s.dist_km).replace(" away","")}</span></div>`).join("")
+      :`<div class="muted" style="padding:8px">No ${kind==="indie"?"indie ":""}studios listed in this area — try a bigger radius${kind==="indie"?" or All studios":""}.</div>`);
+}
+$("#mapbtn").onclick=async()=>{
+  openModal("m-map");const u=unit();$("#maprad").max=u==="km"?160:100;$("#maprad").value=Math.round(fromMiles(+$("#miles").value||15,u));drawMapRadius();
+  try{await loadLeaflet()}catch(e){$("#map").innerHTML=`<span class="muted">${esc(e.message)}</span>`;return}
+  const cname=(countries.find(c=>c.code===$("#country").value)||{}).name||"";
+  const q=[$("#where").value.trim(),cname].filter(Boolean).join(", ")||cname;
+  const start=await get("/api/geocode?q="+encodeURIComponent(q));
+  const p=start.error?{lat:52.5,lon:-1.9,label:"",town:"",country_code:""}:start;
+  if(!map){$("#map").innerHTML="";$("#map").style.display="block";
+    map=L.map("map",{zoomControl:true,worldCopyJump:true}).setView([p.lat,p.lon],9);
+    const pinIcon=L.divIcon({className:"",html:'<div class="mappin"></div>',iconSize:[22,22],iconAnchor:[11,22]});
+    mapPin=L.marker([p.lat,p.lon],{draggable:true,icon:pinIcon}).addTo(map);
+    mapCircle=L.circle([p.lat,p.lon],{radius:1000,color:accentColor(),weight:2,fillOpacity:.12}).addTo(map);
+    map.on("click",e=>pickAt(e.latlng.lat,e.latlng.lng));
+    mapPin.on("dragend",()=>{const ll=mapPin.getLatLng();pickAt(ll.lat,ll.lng)});
+    await addOfflineBase();}
+  mapCircle.setStyle({color:accentColor()});
+  setMapStyle(mapStyle,true);
+  setTimeout(()=>{map.invalidateSize();drawMapRadius();setMapPlace(p,true);drawStudios()},120);
+};
+$$("#mapseg button").forEach(b=>b.onclick=()=>setMapStyle(b.dataset.style));
+$("#mapstudios").onchange=()=>{pref("mapstudios",$("#mapstudios").checked?"1":"");drawStudios()};
+$("#mapstudios").checked=pref("mapstudios")==="1";
+$("#studiokind").value=pref("studiokind")||"all";
+$("#studiokind").onchange=()=>{pref("studiokind",$("#studiokind").value);if(!$("#mapstudios").checked){$("#mapstudios").checked=true;pref("mapstudios","1")}drawStudios()};
+$("#maprad").addEventListener("input",()=>{drawMapRadius()});
+$("#maprad").addEventListener("change",()=>{if(mapCircle)map.fitBounds(mapCircle.getBounds(),{padding:[30,30]});drawStudios()});
+$("#mapfind").onclick=()=>withSpinner($("#mapfind"),"",async()=>{const q=$("#mapq").value.trim();if(!q)return;
+  const r=await get("/api/geocode?q="+encodeURIComponent(q));if(r.error)return toast(r.error);setMapPlace(r,true);drawStudios()});
+$("#mapq").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("#mapfind").click()}});
+$("#mapuse").onclick=()=>{
+  if(!mapPlace)return closeModals();
+  $("#where").value=mapPlace.town||$("#where").value;
+  if(mapPlace.country_code&&!setCountry(mapPlace.country_code))toast(`${mapPlace.country} isn't in the country list — keeping ${$("#country").selectedOptions[0].text}`);
+  const u=unit(),miles=Math.max(1,Math.round(toMiles(+$("#maprad").value,u)));
+  if(![...$("#miles").options].some(o=>+o.value===miles))$("#miles").insertAdjacentHTML("beforeend",`<option value="${miles}">+${$("#maprad").value} ${u}</option>`);
+  $("#miles").value=String(miles);closeModals();
+  toast(`Searching around ${mapPlace.label||"the chosen spot"} (+${$("#maprad").value} ${u})`)};
+["q","where","miles","exclude"].forEach(id=>{const v=pref("f_"+id);if(v!==null&&v!==undefined)$("#"+id).value=v});
+["posted","jtype","remote","salmin","sort"].forEach(id=>{const v=pref("f_"+id);if(v)$("#"+id).value=v});
+setTimeout(()=>{if($("#where").value.trim())readWhere()},400);
+
+let internMode=false;                                   // set by the 🎓 Internships button for one search
+$("#f").onsubmit=e=>{e.preventDefault();cvMode=false;internMode=false;runSearch()};
+$("#matchbtn").onclick=async()=>{
+  profile=(await get("/api/profile")).profile||{};
+  const titles=cvTitles();
+  if(!titles.length&&!(profile.skills||"").trim()){toast("Add your work history or CV in Profile first");setTab("profile");return}
+  if(anyMode)$("#anybtn").click();
+  $("#q").value=titles.length?titles.join(", "):(profile.skills||"").split(",").slice(0,2).join(",");
+  if(!$("#where").value&&profile.city)$("#locbtn").click();
+  cvMode=true;$("#sort").value="cv";runSearch();
+};
+
+async function runSearch(){
+  const q=$("#q").value.trim();if(!q&&!anyMode){toast("Type a job, or switch on “Any job”");return}
+  ["q","where","miles","exclude"].forEach(id=>pref("f_"+id,$("#"+id).value));
+  ["posted","jtype","remote","salmin","sort"].forEach(id=>pref("f_"+id,$("#"+id).value));
+  const srcs=$$(".sc:checked").map(c=>c.value);if(!srcs.length){toast("Pick at least one source");return}
+  if(!profile.first_name&&!profile.skills){try{profile=(await get("/api/profile")).profile||{}}catch(e){}}
+  followWhereCountry(await readWhere());
+  setTab("search");$("#v-search").scrollIntoView({behavior:"smooth"});
+  searching=true;$("#go").classList.add("busy");$("#go").innerHTML='<span class="spin"></span> Searching…';
+  $("#matchbtn").disabled=true;results=[];page=1;render();
+  $("#restitle").textContent=cvMode?"Matched to Your CV":anyMode?"Every Job Nearby":"Search Results";
+  const st={};srcs.forEach(s=>st[s]=null);
+  const drawStatus=()=>{const left=srcs.filter(s=>st[s]===null).length;
+    $("#status").innerHTML=srcs.map(s=>st[s]===null?`<span class="srcstat"><span class="spin"></span>${s}</span>`:`<span class="srcstat done">${s}: ${st[s]}</span>`).join("")+
+      (left?`<span class="muted"> — waiting for ${left} site${left>1?"s":""}…</span>`:`<span class="muted"> — done, ${results.length} jobs</span>`)};drawStatus();
+  // only "what" and "where" go to the job boards; the filters below the results just hide jobs (see visible())
+  const base={q,where:$("#where").value.trim(),miles:$("#miles").value,country:$("#country").value,
+    fresh:$("#fresh").checked?1:0,any:anyMode?1:0,intern:internMode?1:0};
+  const keyOf=j=>(j.title+"|"+j.company).toLowerCase().replace(/[^a-z0-9|]/g,"");
+  await Promise.all(srcs.map(async s=>{
+    try{const r=await get("/api/search?"+new URLSearchParams({...base,sources:s}));const v=r.status[s]||{found:0};
+      const have=new Map(results.map(j=>[keyOf(j),j]));r.results.forEach(j=>{const k=keyOf(j),o=have.get(k);if(!o||o.score<j.score)have.set(k,j)});
+      results=[...have.values()];
+      st[s]=v.error&&!v.found?`<span class="warn">${esc(v.error)}</span>`:`${v.found}${v.cached?" (saved)":""}`;
+    }catch(err){st[s]=`<span class="warn">failed</span>`}
+    drawStatus();render();}));
+  searching=false;$("#fresh").checked=false;$("#go").classList.remove("busy");$("#go").textContent="Search jobs";$("#matchbtn").disabled=false;
+  drawStatus();render();toast(results.length?`Found ${results.length} jobs`:"No jobs found — try a wider area or fewer filters");
+  pref("searches_"+todayStr(),String(+(pref("searches_"+todayStr())||0)+1));savePref("searched","1");drawStarted();
+}
+
+// ============================================================= CV matching
+const STOP=new Set("a an the and or of for in to with at on by senior junior lead principal head intern internship contract trainee graduate associate assistant i ii iii".split(" "));
+const words=s=>(s||"").toLowerCase().split(/[^a-z0-9+#.]+/).filter(w=>w&&w.length>1&&!STOP.has(w));
+function cvTitles(){
+  const ts=(profile.jobs||[]).map(j=>j.title).concat(profile.current_title||[]).filter(Boolean);
+  const seen=new Set(),out=[];
+  for(const t of ts){const core=words(t).join(" ");if(core&&!seen.has(core)){seen.add(core);out.push(t.replace(/\b(intern|internship|contract|trainee)\b/ig,"").replace(/\s+/g," ").trim())}}
+  return out.slice(0,3);
+}
+function cvTerms(){
+  const skills=(profile.skills||"").split(/[,;\n]/).map(s=>s.trim().toLowerCase()).filter(s=>s.length>1).slice(0,40);
+  const titles=cvTitles();
+  const tw=new Set(titles.flatMap(words)),phrases=titles.map(t=>words(t).join(" ")).filter(p=>p.includes(" "));   // single words like "programmer" are too vague
+  // your job match terms: a CV title that matches a term brings in all its other names
+  for(const g of matchTerms){const names=[g.name].concat(g.aliases||[]).filter(Boolean);
+    if(titles.some(t=>names.some(n=>t.toLowerCase().includes(n.toLowerCase()))))
+      names.forEach(n=>{const p=words(n).join(" ");if(p&&!phrases.includes(p))phrases.push(p);words(n).forEach(w=>tw.add(w))})}
+  return {skills,tw,phrases};
+}
+function matchPct(j,terms){
+  if(!terms||(!terms.skills.length&&!terms.tw.size))return null;
+  const jt=words(j.title),hay=(j.title+" "+(j.tags||[]).join(" ")+" "+j.desc).toLowerCase();
+  // your whole job title in theirs ("Software Engineer") counts far more than a shared word ("engineer")
+  const jtJoined=" "+jt.join(" ")+" ";
+  const phrase=terms.phrases.some(p=>jtJoined.includes(" "+p+" "));
+  const titleScore=phrase?1:(jt.length?0.7*jt.filter(w=>terms.tw.has(w)).length/jt.length:0);
+  const hits=terms.skills.filter(s=>{const re=new RegExp("(^|[^a-z0-9])"+s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"($|[^a-z0-9+#])");return re.test(hay)}).length;
+  const skillScore=terms.skills.length?Math.min(1,hits/Math.min(6,terms.skills.length)):0;
+  const w=j.desc?0.5:0.8;   // no description (LinkedIn) -> lean on the title
+  return Math.round(100*Math.min(1,w*Math.min(1,titleScore)+(1-w)*skillScore));
+}
+
+// ============================================================= currency
+const CUR_SYM={GBP:"£",USD:"$",EUR:"€",INR:"₹",JPY:"¥",AUD:"A$",CAD:"C$",NZD:"NZ$",SGD:"S$",HKD:"HK$",BRL:"R$",ZAR:"R ",CHF:"CHF ",SEK:"kr ",NOK:"kr ",DKK:"kr ",
+  PLN:"zł ",MXN:"MX$",AED:"AED ",SAR:"SAR ",CZK:"Kč ",HUF:"Ft ",RON:"lei ",TRY:"₺",ILS:"₪",MYR:"RM ",PHP:"₱",IDR:"Rp ",THB:"฿",KRW:"₩",UAH:"₴",EGP:"E£",NGN:"₦",QAR:"QAR ",VND:"₫",ARS:"AR$",CLP:"CLP$",COP:"COL$"};
+const CUR_LIST=["GBP","USD","EUR","CAD","AUD","NZD","CHF","SEK","NOK","DKK","PLN","INR","JPY","SGD","HKD","AED","ZAR","BRL","MXN"];
+const SYM_DETECT=[["NZ$","NZD"],["AU$","AUD"],["A$","AUD"],["CA$","CAD"],["C$","CAD"],["S$","SGD"],["HK$","HKD"],["R$","BRL"],["MX$","MXN"],["US$","USD"],["£","GBP"],["€","EUR"],["₹","INR"],["¥","JPY"],["$","USD"]];
+let rates={},ratesInfo="",currency="orig";
+async function loadRates(){try{const r=await get("/api/rates");rates=r.rates||{};ratesInfo=`rates from ${r.source}, ${r.updated}`}catch(e){}}
+function parseSalary(s,hint){
+  if(!s)return null;const t=String(s);let cur=null;
+  const code=t.match(/\b(GBP|USD|EUR|INR|AUD|CAD|CHF|SEK|NOK|DKK|PLN|ZAR|SGD|NZD|JPY|BRL|MXN|AED|HKD)\b/i);
+  if(code)cur=code[1].toUpperCase();else for(const [sy,c] of SYM_DETECT){if(t.includes(sy)){cur=c;break}}
+  cur=cur||hint||"GBP";
+  const c=t.replace(/(\d)[,  ](?=\d{3}(?!\d))/g,"$1").replace(/(\d)\.(?=\d{3}(?!\d))/g,"$1");   // 45,000 / 45.000 -> 45000
+  const nums=[...c.matchAll(/(\d+(?:\.\d+)?)\s*([km])?(?![a-z])/gi)].map(m=>parseFloat(m[1])*(m[2]?(m[2].toLowerCase()==="k"?1e3:1e6):1)).filter(n=>n>0&&n<1e9).slice(0,2);
+  if(!nums.length)return null;
+  const per=/hour|\bhr\b|\/h\b/i.test(t)?"hour":/\bday|daily/i.test(t)?"day":/week/i.test(t)?"week":/month|\/mo\b/i.test(t)?"month":"year";
+  return {cur,lo:Math.min(...nums),hi:Math.max(...nums),per};
+}
+const PER_YEAR={hour:1950,day:230,week:52,month:12,year:1};
+const convertAmt=(n,from,to)=>(from===to||!rates[from]||!rates[to])?n:n/rates[from]*rates[to];
+function workCur(){return currency!=="orig"?currency:((countries.find(c=>c.code===$("#country").value)||{}).currency||"GBP")}
+function annualOf(j){const p=parseSalary(j.salary,j.cur_hint);return p?convertAmt(p.hi,p.cur,workCur())*PER_YEAR[p.per]:0}
+function fmtMoney(n,cur){const s=CUR_SYM[cur]||(cur+" ");
+  return s+(n>=1e6?(n/1e6).toFixed(1).replace(/\.0$/,"")+"m":n>=1e4?Math.round(n/1e3)+"k":n>=1e3?(n/1e3).toFixed(1).replace(/\.0$/,"")+"k":n>=100?Math.round(n):n.toFixed(2).replace(/\.00$/,""))}
+function salaryHtml(j){
+  if(!j.salary)return"";
+  if(currency==="orig")return esc(j.salary);
+  const p=parseSalary(j.salary,j.cur_hint);if(!p||p.cur===currency)return esc(j.salary);
+  const lo=convertAmt(p.lo,p.cur,currency),hi=convertAmt(p.hi,p.cur,currency);
+  const txt=(Math.round(lo)===Math.round(hi)?fmtMoney(lo,currency):fmtMoney(lo,currency)+"–"+fmtMoney(hi,currency))+(p.per!=="year"?" / "+p.per:"");
+  return `<span title="Originally ${esc(j.salary)} · ${esc(ratesInfo)}">≈ ${esc(txt)}</span><span class="conv">from ${esc(p.cur)}</span>`;
+}
+function setCurrency(c,quiet){currency=c||"orig";savePref("currency",currency);$$(".cursel").forEach(s=>s.value=currency);
+  $("#salmin").placeholder=`Min salary / year (${(CUR_SYM[workCur()]||workCur()+" ").trim()})`;render();
+  if(!quiet)toast(currency==="orig"?"Showing salaries as listed":`Salaries shown in ${currency} — ${ratesInfo}`)}
+
+// ============================================================= results
+const TYPE_RE={fulltime:/full[\s-]?time|permanent/i,parttime:/part[\s-]?time/i,contract:/contract|freelance|temporary|\btemp\b|fixed[\s-]?term/i,
+  internship:/\bintern\b|internship|placement|graduate (scheme|programme|program)|trainee|\bstage\b|stagiair|praktik|werkstudent|apprentice|summer analyst|\bco-?op\b/i};
+function visible(list,isSaved){
+  const f=$("#filter").value.toLowerCase().trim(),src=$("#srcfilter").value;
+  const ex=$("#exclude").value.toLowerCase().split(",").map(s=>s.trim()).filter(Boolean);
+  const salmin=+$("#salmin").value||0,hassal=$("#hassal").checked,posted=+$("#posted").value,jt=$("#jtype").value,rm=$("#remote").value;
+  const cutoff=posted?dayStr(new Date(Date.now()-posted*864e5)):"";
+  const terms=cvTerms();
+  let out=list.filter(j=>{
+    const hay=[j.title,j.company,j.location,j.type,(j.tags||[]).join(" "),j.desc].join(" ").toLowerCase();
+    if(f&&!f.split(/\s+/).every(w=>hay.includes(w)))return false;
+    if(ex.some(w=>j.title.toLowerCase().includes(w)))return false;
+    if(src&&j.source!==src)return false;
+    if(isSaved)return true;
+    if($("#local").checked&&j.local_ok===false)return false;          // remote jobs that don't take people from your country
+    if($("#strict").checked&&j.title_match===false)return false;      // every search word must be in the title
+    const sal=annualOf(j);
+    if(hassal&&!sal)return false;
+    if(salmin&&sal&&sal<salmin)return false;
+    if(cutoff&&j.date&&j.date<cutoff)return false;
+    if(jt==="internship"){if(!TYPE_RE.internship.test(j.title+" "+(j.type||"")+" "+(j.duration||""))&&!/\binternship\b|\bplacement\b/i.test((j.desc||"").slice(0,600)))return false}
+    else if(jt){const known=Object.values(TYPE_RE).some(re=>re.test(j.type||""));if(known&&!TYPE_RE[jt].test(j.type||""))return false}
+    const df=$("#durfilter").value,dm=j.duration_m;
+    if(df==="perm"&&dm!==1000)return false;
+    if(df==="contract"&&!(dm&&dm<1000))return false;
+    if(df==="short"&&!(dm&&dm<=6))return false;
+    if(df==="mid"&&!(dm&&dm>6&&dm<=12))return false;
+    if(df==="long"&&!(dm&&dm>12&&dm<500))return false;
+    const isRemote=/remote/i.test(j.location+" "+j.type+" "+j.title)||j.remote;
+    if(rm==="remote"&&!isRemote)return false;
+    if(rm==="onsite"&&isRemote&&!/hybrid/i.test(hay))return false;
+    if(rm==="hybrid"&&!/hybrid/i.test(hay)&&isRemote)return false;
+    return true;
+  });
+  out.forEach(j=>j._m=matchPct(j,terms));
+  const s=$("#sort").value;
+  const newest=(a,b)=>(b.date||"").localeCompare(a.date||"");
+  const durKey=(j,long)=>j.duration_m==null?(long?-1:1e9):j.duration_m;   // jobs that don't say go last
+  if(s==="date")out.sort(newest);
+  else if(s==="old")out.sort((a,b)=>(a.date||"9999").localeCompare(b.date||"9999"));
+  else if(s==="salary_lo")out.sort((a,b)=>(annualOf(a)||1e12)-(annualOf(b)||1e12));
+  else if(s==="dur_short")out.sort((a,b)=>durKey(a,false)-durKey(b,false)||newest(a,b));
+  else if(s==="dur_long")out.sort((a,b)=>durKey(b,true)-durKey(a,true)||newest(a,b));
+  else if(s==="title")out.sort((a,b)=>a.title.localeCompare(b.title));
+  else if(s==="salary")out.sort((a,b)=>annualOf(b)-annualOf(a));
+  else if(s==="dist")out.sort((a,b)=>(a.dist_km??1e9)-(b.dist_km??1e9)||(b.date||"").localeCompare(a.date||""));
+  else if(s==="company")out.sort((a,b)=>a.company.localeCompare(b.company));
+  else if(s==="cv")out.sort((a,b)=>(b._m||0)-(a._m||0)||(b.date||"").localeCompare(a.date||""));
+  else out.sort((a,b)=>(b.score||0)-(a.score||0)||(b.date||"").localeCompare(a.date||""));
+  return out;
+}
+function fmtDist(km){const u=unit(),v=u==="km"?km:km/1.609;return v<1?`under 1 ${u} away`:`${v<10?v.toFixed(1):Math.round(v)} ${u} away`}
+function ago(d){if(!d)return"";const n=Math.round((Date.now()-new Date(d))/864e5);return n<=0?"today":n===1?"1 day ago":n+" days ago"}
+function tracked(url){return saved.find(s=>s.url===url)}
+// ---- results come in pages (25 / 50 / 100 / all), so the list never gets huge
+let page=1;
+const perPage=()=>+$("#perpage").value||0;           // 0 = all on one page
+function drawPager(total){
+  const size=perPage(),pages=size?Math.max(1,Math.ceil(total/size)):1,el=$("#pager");
+  el.hidden=pages<=1;if(el.hidden)return;
+  const nums=[];for(let p=1;p<=pages;p++)if(p===1||p===pages||Math.abs(p-page)<=1)nums.push(p);else if(nums[nums.length-1]!=="…")nums.push("…");
+  const from=(page-1)*size+1,to=Math.min(total,page*size);
+  el.innerHTML=`<span class="muted">Showing ${from}–${to} of ${total}</span><span class="pagebtns">
+    <button class="pill line sm" data-page="${page-1}" ${page>1?"":"disabled"} aria-label="Previous page">‹ Prev</button>
+    ${nums.map(p=>p==="…"?`<span class="muted">…</span>`:`<button class="pill line sm ${p===page?"on":""}" data-page="${p}" ${p===page?'aria-current="page"':""}>${p}</button>`).join("")}
+    <button class="pill line sm" data-page="${page+1}" ${page<pages?"":"disabled"} aria-label="Next page">Next ›</button></span>`;
+  $$("#pager [data-page]").forEach(b=>b.onclick=()=>{goPage(+b.dataset.page)});
+}
+function goPage(p){page=p;render();$("#restitle").scrollIntoView({behavior:"smooth",block:"start"})}
+function render(){
+  if(tab!=="search")return;
+  const all=visible(results,false),size=perPage();
+  const pages=size?Math.max(1,Math.ceil(all.length/size)):1;page=Math.max(1,Math.min(page,pages));
+  const start=size?(page-1)*size:0,items=size?all.slice(start,start+size):all;
+  drawPager(all.length);
+  if(!items.length&&searching){$("#list").innerHTML=Array.from({length:5},()=>`<li class="skel"><i style="width:24px"></i><div><i class="big"></i><i class="sm"></i></div><div><i></i></div></li>`).join("");return}
+  if(!items.length){$("#list").innerHTML=`<li class="empty"><span class="serif">${results.length?"Nothing matches those filters":"Begin your search"}</span>${results.length?"Try loosening a filter above.":"Type a job above, try “Any job”, or let your CV do the work."}
+    <div class="emptyacts">${results.length?`<button class="pill line sm" id="clearfilters">Clear the filters</button>`:`<button class="pill line sm" id="emptyany">Show any job near me</button>${(profile.jobs||[]).length?`<button class="pill dark sm" id="emptycv">✦ Match jobs to my CV</button>`:`<button class="pill line sm" id="emptyprof">Add my CV first</button>`}`}</div></li>`;
+    const on=(id,fn)=>{const b=document.getElementById(id);if(b)b.onclick=fn};
+    on("clearfilters",clearFilters);on("emptycv",()=>$("#matchbtn").click());on("emptyprof",()=>setTab("profile"));
+    on("emptyany",()=>{if(!anyMode)$("#anybtn").click();cvMode=false;internMode=false;runSearch()});return}
+  $("#list").innerHTML=items.map((j,i)=>{const t=tracked(j.url);return `<li class="jobrow">
+    <div class="num">${String(start+i+1).padStart(2,"0")}.</div>
+    <div><h3 data-href="${esc(j.url)}">${esc(j.title)}</h3>
+      <div class="meta"><b>${esc(j.company)}</b><span>${esc(j.location)}</span>${j.dist_km!=null?`<span class="dist" title="Distance from ${esc($("#where").value)}">📍 ${fmtDist(j.dist_km)}</span>`:""}${j.salary?`<span class="sal">${salaryHtml(j)}</span>`:""}${j.duration?`<span class="dur" title="How long the job lasts, from the advert">⏳ ${esc(j.duration)}</span>`:""}${j.type?`<span>${esc(j.type)}</span>`:""}<span>${esc(ago(j.date))}</span><span class="tag">${esc(j.source)}</span>${j._m!=null&&(j._m>=20||$("#sort").value==="cv")?`<span class="match" title="How well this fits your CV">${j._m}% match</span>`:""}${t?`<span class="tag" style="border-color:var(--accent);color:var(--accent)">${esc(t.status)}</span>`:""}</div></div>
+    <div class="acts">
+      ${t?`<button class="pill line sm on" data-unsave="${i}" title="On your tracker — click to remove it">★ Saved</button>`:`<button class="pill line sm" data-save="${i}" title="Add to your tracker">☆ Save</button>`}
+      ${t&&APPLIED.includes(t.status)?`<button class="pill line sm on" data-unapply="${i}" title="Click if you haven't applied after all — it goes back to Saved">✓ ${esc(t.status)}</button>`:`<button class="pill line sm" data-applied="${i}" title="Add to your tracker as applied">✓ Mark applied</button>`}
+      <button class="iconbtn copylink" data-copy="${esc(j.url)}" data-tip="Copy link">⧉</button>
+      <button class="pill line sm" data-href="${esc(j.url)}" data-tip="Open the advert in your browser">Open ↗</button>
+      <button class="pill accent sm" data-apply="${i}" data-tip="Open in Chrome and autofill with your profile">${PHONE?"Apply ↗":"⚡ Easy apply"}</button>
+    </div>
+    ${j.desc?`<details><summary>Preview</summary><p>${esc(j.desc)}…</p></details>`:""}
+  </li>`}).join("");
+  $$("[data-save]").forEach(b=>b.onclick=()=>track("save",items[b.dataset.save]));
+  $$("[data-applied]").forEach(b=>b.onclick=()=>track("applied",items[b.dataset.applied]));
+  $$("[data-unsave]").forEach(b=>b.onclick=()=>untrack(items[b.dataset.unsave]));
+  $$("[data-unapply]").forEach(b=>b.onclick=()=>unapply(items[b.dataset.unapply]));
+  $$("[data-apply]").forEach(b=>b.onclick=()=>easyApply(items[b.dataset.apply]));
+}
+["#filter","#exclude","#sort","#srcfilter","#salmin","#hassal","#posted","#jtype","#remote","#durfilter","#local","#strict"].forEach(s=>$(s).addEventListener("input",()=>{pref("f_exclude",$("#exclude").value);pref("f_sort",$("#sort").value);page=1;render()}));
+$("#perpage").value=pref("perpage")||"25";
+$("#perpage").addEventListener("change",()=>{pref("perpage",$("#perpage").value);page=1;render()});
+// "Clear the filters" (shown when filters hide every result)
+function clearFilters(){$("#posted").value="0";$("#jtype").value="";$("#remote").value="";$("#salmin").value="";$("#hassal").checked=false;
+  $("#strict").checked=false;$("#filter").value="";$("#exclude").value="";$("#durfilter").value="";$("#srcfilter").value="";
+  ["f_posted","f_jtype","f_remote","f_exclude"].forEach(k=>pref(k,""));render();toast("Filters cleared")}
+// 🎓 Internships: internship filter on, then search what's typed (or every field)
+// the 🎓 button searches for internships (internMode); the Job type filter itself only hides
+$("#internbtn").onclick=()=>{$("#jtype").value="internship";pref("f_jtype","internship");
+  if(!$("#q").value.trim()&&!anyMode)$("#anybtn").click();
+  cvMode=false;internMode=true;runSearch().finally(()=>{internMode=false});toast("Showing internships, placements and graduate schemes")};
+
+async function track(action,job){
+  const j={...job};delete j._m;
+  await trackerChange(action==="applied"?`marking “${job.title}” applied`:`saving “${job.title}”`,async()=>{saved=await post("/api/saved",{action,job:j})});
+  toast(action==="applied"?"Marked as applied — nice one! 🎉":"Saved to your tracker",UNDO);refreshTracked();
+}
+function refreshTracked(){render();drawStrip();if(tab==="tracker")drawBoard();drawStarted()}
+// "★ Saved" clicked again: off the tracker (with Undo, since it may hold notes or an application)
+async function untrack(job){
+  const old=tracked(job.url);if(!old)return;
+  await trackerChange(`removing “${old.title}”`,async()=>{saved=await post("/api/saved",{action:"remove",job:{url:old.url}})});refreshTracked();
+  toast(APPLIED.includes(old.status)?`Removed “${old.title}” from your tracker, application included`:`Removed “${old.title}” from saved jobs`,UNDO);
+}
+// "✓ Applied" clicked again: back to Saved
+async function unapply(job){
+  const old=tracked(job.url);if(!old)return;
+  await trackerChange(`un-applying “${old.title}”`,async()=>{saved=await post("/api/saved",{action:"unapply",job:{url:old.url}})});refreshTracked();
+  toast(`“${old.title}” is back to Saved`,UNDO);
+}
+async function easyApply(job){
+  if(PHONE){                                           // phone: open the advert here and track it as "Applying"
+    window.open(job.url,"_blank","noopener");
+    const j={...job,status:"Applying"};delete j._m;
+    await trackerChange(`Easy apply on “${job.title}”`,async()=>{saved=await post("/api/saved",{action:"save",job:j})});refreshTracked();
+    toast("Opened — it's on your Tracker as Applying");return;
+  }
+  if(!profile.email&&!profile.first_name)profile=(await get("/api/profile")).profile||{};
+  if(!profile.email&&!profile.first_name){toast("Fill in your Profile first");setTab("profile");return}
+  const j={...job};delete j._m;
+  const r=await trackerChange(`Easy apply on “${job.title}”`,async()=>{const r=await post("/api/apply",{job:j});if(r.saved)saved=r.saved;return r});refreshTracked();
+  toast(r.chrome?"Opened in Chrome — click ⚡ Fill application on the form":"Opened in your browser — use Chrome with the extension to autofill");
+}
+function csv(rows,cols,name){post("/api/export",{rows,cols,name}).then(r=>{toast("Saved to "+r.path);openUrl(r.path)})}
+$("#csv").onclick=()=>{const rows=visible(results,false);if(!rows.length)return toast("Nothing to export");csv(rows,["title","company","location","salary","type","date","source","url"],"jobs-search")};
+$("#tcsv").onclick=()=>{if(!saved.length)return toast("Nothing to export");csv(saved,["title","company","location","salary","status","saved_on","applied_on","follow_up","source","url","notes"],"applications")};
+
+// ============================================================= tracker board
+async function loadSaved(){saved=await get("/api/saved");drawStrip();if(tab==="tracker")drawBoard();render()}
+function drawBoard(){
+  const f=$("#tfilter").value.toLowerCase().trim(),today=todayStr();
+  const list=saved.filter(j=>!f||[j.title,j.company,j.location,j.notes].join(" ").toLowerCase().includes(f));
+  const ts=$("#tsort").value,by=(k,d)=>(a,b)=>(b[k]||d).localeCompare(a[k]||d);
+  if(ts==="added")list.sort((a,b)=>saved.indexOf(b)-saved.indexOf(a));
+  else if(ts==="applied")list.sort(by("applied_on",""));
+  else if(ts==="follow")list.sort((a,b)=>(a.follow_up||"9999").localeCompare(b.follow_up||"9999"));
+  else if(ts==="salary")list.sort((a,b)=>annualOf(b)-annualOf(a));
+  else if(ts==="company")list.sort((a,b)=>(a.company||"").localeCompare(b.company||""));
+  else if(ts==="title")list.sort((a,b)=>(a.title||"").localeCompare(b.title||""));
+  $("#boardempty").hidden=saved.length>0;
+  const cols=STAGES.concat(list.some(j=>j.status==="Not interested")?["Not interested"]:[]);
+  $("#board").style.gridTemplateColumns=`repeat(${cols.length},minmax(210px,1fr))`;
+  $("#board").innerHTML=cols.map(st=>{const cards=list.filter(j=>(j.status||"Saved")===st);
+    return `<div class="col" data-col="${st}"><h4>${st}<span>${cards.length}</span></h4>${cards.map(j=>{const idx=saved.indexOf(j),due=j.follow_up&&j.follow_up<=today&&!["Offer","Rejected"].includes(st);
+      return `<div class="card" draggable="true" data-i="${idx}">
+        <button class="bin" data-bin="${idx}" title="Remove from tracker">🗑</button>
+        <div class="t">${esc(j.title)}</div><div class="c">${esc(j.company)}${j.location?" · "+esc(j.location):""}</div>
+        <div class="d">${j.applied_on?`<span>Applied ${esc(j.applied_on)}</span>`:`<span>Saved ${esc(j.saved_on||"")}</span>`}${j.follow_up?`<span class="${due?"due":""}">${due?"Follow up due":"Follow up"} ${esc(j.follow_up)}</span>`:""}${j.notes?"<span>📝</span>":""}</div>
+        <div class="cacts">${nextBtns(st).map(n=>`<button data-move="${idx}" data-to="${n}" data-tip="${esc(MOVE_TIPS[n]||"Move to "+n)}">→ ${n}</button>`).join("")}${st==="Offer"?`<button data-share="${idx}" data-tip="Tell jobslop how you got it (anonymous)">🥂 Share</button>`:""}<button data-edit="${idx}" data-tip="Status, dates, salary, notes and a follow-up reminder">Edit</button>${String(j.url).startsWith("http")?`<button data-href="${esc(j.url)}" data-tip="Open the advert in your browser">Open</button><button data-copy="${esc(j.url)}" class="copylink" data-tip="Copy link">⧉</button>`:""}</div>
+      </div>`}).join("")||`<div class="muted" style="font-size:12.5px;padding:8px 4px">Drop cards here</div>`}</div>`}).join("");
+  $$(".card").forEach(c=>{c.ondragstart=e=>{e.dataTransfer.setData("text/plain",c.dataset.i);e.dataTransfer.effectAllowed="move"}});
+  $$(".col").forEach(col=>{col.ondragover=e=>{e.preventDefault();col.classList.add("over")};col.ondragleave=()=>col.classList.remove("over");
+    col.ondrop=e=>{e.preventDefault();col.classList.remove("over");const i=+e.dataTransfer.getData("text/plain");if(!isNaN(i)&&saved[i])moveTo(saved[i],col.dataset.col)}});
+  $$("[data-move]").forEach(b=>b.onclick=()=>moveTo(saved[+b.dataset.move],b.dataset.to));
+  $$("[data-edit]").forEach(b=>b.onclick=()=>editApp(saved[+b.dataset.edit]));
+  $$("[data-share]").forEach(b=>b.onclick=()=>celebrate(saved[+b.dataset.share]));
+  $$("[data-bin]").forEach(b=>b.onclick=e=>{e.stopPropagation();binCard(+b.dataset.bin,b.closest(".card"))});
+}
+async function binCard(idx,el){
+  const j=saved[idx];if(!j)return;
+  if(el)el.classList.add("removing");
+  await new Promise(r=>setTimeout(r,220));
+  await trackerChange(`removing “${j.title}”`,async()=>{saved=await post("/api/saved",{action:"remove",job:{url:j.url}})});
+  refreshTracked();
+  toast(`Removed “${j.title}”`,UNDO);
+}
+const MOVE_TIPS={Applied:"Mark as applied — today's date counts towards your stats",Interview:"You've got an interview — move it on",
+  Offer:"You got an offer!",Rejected:"Didn't work out — keeps your stats honest",Saved:"Put it back with your saved jobs"};
+function nextBtns(st){return {Saved:["Applied"],Applying:["Applied"],Applied:["Interview","Rejected"],Interview:["Offer","Rejected"],Offer:[],Rejected:[],"Not interested":["Saved"]}[st]||[]}
+async function moveTo(j,st){if(!j||j.status===st)return;
+  await trackerChange(`moving “${j.title}” to ${st}`,async()=>{saved=await post("/api/saved",{action:"update",job:{url:j.url,status:st}})});
+  refreshTracked();if(st==="Applied")toast("Marked as applied — keep it up! 🎉",UNDO);else if(st==="Interview")toast("An interview! Brilliant 🎉",UNDO);
+  else if(st==="Offer")celebrate(saved.find(x=>x.url===j.url)||j);else toast(`Moved to ${st}`,UNDO)}
+$("#tfilter").addEventListener("input",drawBoard);
+$("#gosearch").onclick=()=>{setTab("search");setTimeout(()=>$("#q").focus(),200)};
+
+// ============================================================= an offer: thank you, and an email to tell jobslop about it
+const MAILTO=(subject,body)=>`mailto:jobslop@proton.me?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+const sendMail=(subject,body)=>PHONE?(location.href=MAILTO(subject,body)):post("/api/open",{url:MAILTO(subject,body)});
+let offerJob=null;
+// anonymous on purpose: no job, company, place, dates or anything else that could identify you - just a few counts
+function offerText(j){
+  const s=stats(),d=j.dates||{},applied=j.applied_on||d.Applied||"",offer=d.Offer||todayStr();
+  const days=applied?Math.max(0,Math.round((new Date(offer)-new Date(applied))/864e5)):"not sure";
+  const first=saved.map(appliedDate).filter(Boolean).sort()[0];
+  const weeks=first?Math.max(1,Math.round((new Date(offer)-new Date(first))/(7*864e5))):"not sure";
+  return ["Hi jobslop,","","Good news - I got an offer!","",
+    `Days from applying to the offer: ${days}`,`Weeks of job hunting with jobslop: ${weeks}`,`Used Easy apply for this one: ${d.Applying?"yes":"no"}`,
+    `Applications sent: ${s.total}   Interviews: ${s.interviews}   Offers: ${s.offers}`,"",
+    "What helped most (optional):","","","Anything jobslop could do better (optional):","","","Thanks!"].join("\n")}
+function celebrate(j){if(!j)return;offerJob=j;$("#offerjob").textContent=[j.title,j.company].filter(Boolean).join(" at ");
+  $("#offermail").value=offerText(j);openModal("m-offer");setTimeout(()=>$("#offersend").focus(),80)}
+$("#offersend").onclick=()=>{sendMail("jobslop: I got an offer!",$("#offermail").value);closeModals();toast("Thank you for using jobslop! 💛")};
+$("#offercopy").onclick=async()=>{if(await copyText("To: jobslop@proton.me\n\n"+$("#offermail").value))toast("Copied — paste it into an email to jobslop@proton.me")};
+function feedbackText(){const s=stats();return ["Hi jobslop,","","","",
+  "-- a little about how I use it (delete if you like) --",`Applications: ${s.total}   Interviews: ${s.interviews}   Offers: ${s.offers}   Jobs tracked: ${s.tracked}`,
+  `Easy apply extension set up: ${$("#extdot").classList.contains("on")?"yes":"no"}`,`jobslop version: ${appVersion}`].join("\n")}
+$("#feedback").onclick=()=>{$("#fbmail").value=feedbackText();openModal("m-feedback");setTimeout(()=>{const t=$("#fbmail");t.focus();t.setSelectionRange(12,12)},80)};
+$("#fbsend").onclick=()=>{sendMail("jobslop feedback",$("#fbmail").value);closeModals();toast("Thank you for helping make jobslop better! 💛")};
+$("#fbcopy").onclick=async()=>{if(await copyText("To: jobslop@proton.me\n\n"+$("#fbmail").value))toast("Copied — paste it into an email to jobslop@proton.me")};
+$("#tsort").value=pref("tsort")||"added";
+$("#tsort").addEventListener("change",()=>{pref("tsort",$("#tsort").value);drawBoard()});
+let editing=null;
+$("#a_status").innerHTML=STAGES.concat("Not interested").map(s=>`<option>${s}</option>`).join("");
+function editApp(j){editing=j;$("#addtitle").textContent=j?"Edit application":"Add an application";$("#addsub").textContent=j?(j.source?"From "+j.source:""):"For jobs you applied to outside jobslop.";
+  $("#a_title").value=j?j.title:"";$("#a_company").value=j?j.company:"";$("#a_location").value=j?(j.location||""):"";$("#a_salary").value=j?(j.salary||""):"";
+  $("#a_status").value=j?(j.status||"Saved"):"Applied";$("#a_applied").value=j?(j.applied_on||""):todayStr();$("#a_follow").value=j?(j.follow_up||""):"";
+  $("#a_url").value=j&&String(j.url).startsWith("http")?j.url:"";$("#a_url").disabled=!!j;$("#a_notes").value=j?(j.notes||""):"";$("#a_delete").hidden=!j;openModal("m-add")}
+$("#addapp").onclick=()=>editApp(null);
+$("#a_save").onclick=async()=>{
+  const d={title:$("#a_title").value.trim(),company:$("#a_company").value.trim(),location:$("#a_location").value.trim(),salary:$("#a_salary").value.trim(),
+    status:$("#a_status").value,applied_on:$("#a_applied").value,follow_up:$("#a_follow").value,notes:$("#a_notes").value};
+  if(!d.title&&!d.company){toast("Add at least a title or company");return}
+  const was=editing,becameOffer=d.status==="Offer"&&(!was||was.status!=="Offer");
+  await trackerChange(was?`editing “${d.title||was.title}”`:`adding “${d.title||d.company}”`,async()=>{
+    if(was)saved=await post("/api/saved",{action:"update",job:{url:was.url,...d}});
+    else saved=await post("/api/saved",{action:"add",job:{url:$("#a_url").value.trim(),source:"Added by you",date:"",...d}})});
+  closeModals();refreshTracked();
+  if(becameOffer)celebrate(saved.find(x=>was?x.url===was.url:x.title===d.title&&x.company===d.company)||d);else toast("Saved",UNDO)};
+$("#a_delete").onclick=()=>{if(!editing)return;closeModals();binCard(saved.indexOf(editing),null)};
+
+// ============================================================= stats
+function appliedDate(j){if(j.applied_on)return j.applied_on;if(j.dates&&j.dates.Applied)return j.dates.Applied;if(APPLIED.includes(j.status))return j.saved_on||"";return""}
+function stats(){
+  const t=new Date(),today=todayStr(),days=saved.map(appliedDate).filter(Boolean);
+  const mon=new Date(t);mon.setDate(t.getDate()-((t.getDay()+6)%7));const weekStart=dayStr(mon),monthKey=today.slice(0,7);
+  const count=pred=>days.filter(pred).length;
+  const set=new Set(days);let streak=0,d=new Date(t);if(!set.has(today))d.setDate(d.getDate()-1);
+  while(set.has(dayStr(d))){streak++;d.setDate(d.getDate()-1)}
+  const reached=s=>saved.filter(j=>j.status===s||(j.dates&&j.dates[s])).length;
+  const applied=days.length,interviews=saved.filter(j=>j.status==="Interview"||j.status==="Offer"||(j.dates&&j.dates.Interview)).length;
+  const offers=reached("Offer"),rejected=reached("Rejected");
+  const first=days.slice().sort()[0];const weeks=first?Math.max(1,(t-new Date(first))/(7*864e5)):1;
+  return {today:count(x=>x===today),week:count(x=>x>=weekStart),month:count(x=>x.startsWith(monthKey)),total:applied,streak,interviews,offers,rejected,
+    tracked:saved.length,savedOnly:saved.filter(j=>(j.status||"Saved")==="Saved").length,
+    irate:applied?Math.round(100*interviews/applied):0,rrate:applied?Math.round(100*(interviews+rejected)/applied):0,perweek:applied?(applied/weeks).toFixed(1):"0",
+    searches:+(pref("searches_"+today)||0)};
+}
+function drawStrip(){const s=stats();$("#st_today").textContent=s.today;$("#st_month").textContent=s.month;$("#st_total").textContent=s.total;$("#st_streak").textContent=s.streak;if(tab==="progress")drawProgress()}
+function drawProgress(){
+  const s=stats();
+  const TILE_TIPS={"Day streak":"Days in a row you've applied to at least one job","Interview rate":"Interviews out of the applications you've sent",
+    "Response rate":"How often you hear back: interviews plus rejections, out of applications","This week":"Applications since Monday",
+    "All time":"Every application on your tracker","Offers":"Jobs that reached the Offer column"};
+  const tile=(n,l,sub)=>`<div class="tile" ${TILE_TIPS[l]?`data-tip="${esc(TILE_TIPS[l])}"`:""}><div class="n">${n}</div><div class="l">${l}</div>${sub?`<div class="s">${sub}</div>`:""}</div>`;
+  $("#tiles").innerHTML=tile(s.today,"Applied today",s.searches?`${s.searches} search${s.searches>1?"es":""} today`:"")+tile(s.week,"This week",`${s.perweek} a week on average`)+
+    tile(s.month,"This month",new Date().toLocaleDateString(undefined,{month:"long"}))+tile(s.total,"All time",`${s.tracked} jobs tracked`)+
+    tile(s.streak,"Day streak",s.streak?"Keep it going!":"Apply today to start one")+tile(s.irate+"%","Interview rate",`${s.interviews} interview${s.interviews===1?"":"s"}`)+
+    tile(s.rrate+"%","Response rate","interviews + rejections")+tile(s.offers,"Offers",s.offers?"🥂":"Your first is coming");
+  // last 30 days
+  const counts={};saved.map(appliedDate).filter(Boolean).forEach(d=>counts[d]=(counts[d]||0)+1);
+  const ds=[];for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);ds.push(dayStr(d))}
+  const max=Math.max(1,...ds.map(d=>counts[d]||0));
+  $("#bars").innerHTML=ds.map(d=>{const n=counts[d]||0;return `<div class="${n?"":"zero"}" style="height:${n?Math.max(6,100*n/max):2}%" title="${d}: ${n} application${n===1?"":"s"}"></div>`}).join("");
+  const fmt=d=>new Date(d).toLocaleDateString(undefined,{day:"numeric",month:"short"});
+  $("#barlabels").innerHTML=`<span>${fmt(ds[0])}</span><span>${fmt(ds[15])}</span><span>Today</span>`;
+  // funnel
+  const fun=[["Tracked",s.tracked],["Applied",s.total],["Interview",s.interviews],["Offer",s.offers]],top=Math.max(1,s.tracked);
+  $("#funnel").innerHTML=fun.map(([l,n])=>`<div class="row"><span>${l}</span><div class="bar"><i style="width:${100*n/top}%"></i></div><b style="text-align:right">${n}</b></div>`).join("");
+  // companies
+  const co={};saved.filter(j=>appliedDate(j)).forEach(j=>{if(j.company)co[j.company]=(co[j.company]||0)+1});
+  const tops=Object.entries(co).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  $("#topco").innerHTML=tops.length?tops.map(([c,n])=>`<div class="row"><span>${esc(c)}</span><b>${n}</b></div>`).join(""):`<p class="muted" style="font-size:13px">Apply to a few jobs to see this.</p>`;
+  // follow ups
+  const today=todayStr(),due=saved.filter(j=>j.follow_up&&!["Offer","Rejected","Not interested"].includes(j.status)).sort((a,b)=>a.follow_up.localeCompare(b.follow_up)).slice(0,6);
+  $("#followups").innerHTML=due.length?due.map(j=>`<div class="row"><span>${esc(j.title)} · ${esc(j.company)}</span><b style="color:${j.follow_up<=today?"var(--warn)":"inherit"}">${esc(j.follow_up)}</b></div>`).join(""):`<p class="muted" style="font-size:13px">Set a follow-up date on an application (Edit) to be reminded here.</p>`;
+  drawRing();
+}
+function drawRing(){const s=stats(),goal=+(pref("goal")||10);$("#goal").value=goal;const p=Math.min(1,s.week/goal),C=2*Math.PI*50;
+  $("#ring").innerHTML=`<circle cx="60" cy="60" r="50" fill="none" stroke="var(--line)" stroke-width="10"/><circle cx="60" cy="60" r="50" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C*p} ${C}" transform="rotate(-90 60 60)"/><text x="60" y="68" text-anchor="middle" font-size="24" fill="var(--text)" font-family="Italiana,serif">${Math.round(p*100)}%</text>`;
+  $("#goaltext").textContent=`${s.week} / ${goal}`}
+$("#goal").addEventListener("input",()=>{pref("goal",$("#goal").value);drawRing()});
+
+// ============================================================= profile
+const PF=[["Personal",[["first_name","First name"],["middle_name","Middle name(s)"],["last_name","Last name"],["email","Email","email"],["phone","Phone","tel"],["linkedin","LinkedIn URL"],["website","Website / portfolio"],["github","GitHub"]]],
+ ["Address",[["address1","Address line 1"],["address2","Address line 2"],["city","Town / city"],["county","County / state"],["postcode","Postcode / ZIP"],["country","Country"]]],
+ ["Work",[["years_experience","Years of experience"],["salary","Expected salary"],["notice_period","Notice period"],["skills","Key skills (comma separated)","area"]]],
+ ["Education",[["highest_qualification","Highest qualification"],["degree_subject","Subject"],["university","University / college"]]],
+ ["Eligibility",[["right_to_work","Right to work in your country?","yn"],["needs_sponsorship","Need visa sponsorship?","yn"],["driving_licence","Full driving licence?","yn"],["over_18","18 or over?","yn"],["willing_to_relocate","Willing to relocate?","yn"],["auto_consent","Let the extension tick privacy / terms boxes?","yn"]]]];
+$("#pfields").innerHTML=PF.map(([sec,fs])=>`<div class="psec">${sec}</div><div class="pgrid">${fs.map(([k,l,t])=>
+  t==="yn"?`<label class="f">${l}<select class="pf" id="${k}"><option value="">—</option><option>Yes</option><option>No</option></select></label>`:
+  t==="area"?`<label class="f wide">${l}<textarea class="pf" id="${k}" rows="2"></textarea></label>`:
+  `<label class="f">${l}<input type="${t||"text"}" class="pf" id="${k}"></label>`).join("")}</div>`).join("");
+let saveTimer=null;
+function saveSoon(){clearTimeout(saveTimer);$("#psaved").textContent="Saving…";saveTimer=setTimeout(async()=>{await post("/api/profile",{profile});$("#psaved").textContent="Saved ✓";drawWelcome()},500)}
+async function loadProfile(){
+  const r=await get("/api/profile");profile=r.profile||{};
+  $$(".pf").forEach(el=>el.value=profile[el.id]||"");
+  drawJobs();drawCv(r.cv);
+  $("#extfolder").textContent=r.ext.folder;$("#extcode").textContent=r.ext.code;
+  $("#extstatus").innerHTML=r.ext.connected?'<span style="color:var(--good)">● Extension connected</span>':"Not connected yet.";
+}
+function drawCv(cv){$("#cvinfo").innerHTML=cv?`📄 <b>${esc(cv.name)}</b> (${Math.round(cv.size/1024)} KB)`:"No CV uploaded yet.";$("#cvremove").hidden=!cv}
+document.addEventListener("input",e=>{const t=e.target;
+  if(t.classList.contains("pf")){profile[t.id]=t.value;saveSoon()}
+  if(t.classList.contains("jf")){profile.jobs[+t.dataset.j][t.dataset.f]=t.value;saveSoon()}});
+const JF=[["title","Job title"],["company","Company"],["location","Location"],["start","Start (e.g. Jul 2022)"],["end","End (e.g. Present)"]];
+function drawJobs(){const jobs=profile.jobs||[];
+  $("#jobs").innerHTML=jobs.length?jobs.map((j,i)=>`<div class="jobcard"><div class="jobhead"><span class="serif">${esc(j.title||"New job")}${j.company?" · "+esc(j.company):""}</span>
+    <span style="display:flex;gap:4px"><button class="iconbtn" data-mv="${i},-1" ${i?"":"disabled"} title="Move up">↑</button><button class="iconbtn" data-mv="${i},1" ${i<jobs.length-1?"":"disabled"} title="Move down">↓</button><button class="pill line sm" data-rmjob="${i}">Remove</button></span></div>
+    <div class="pgrid">${JF.map(([f,l])=>`<label class="f">${l}<input type="text" class="jf" data-j="${i}" data-f="${f}" value="${esc(j[f])}"></label>`).join("")}
+    <label class="f wide">What you did<textarea class="jf" data-j="${i}" data-f="description" rows="5">${esc(j.description)}</textarea></label></div></div>`).join(""):`<p class="muted" style="font-size:13.5px">No jobs yet — add one, or use “Fill from my CV”.</p>`;
+  $$("[data-rmjob]").forEach(b=>b.onclick=()=>{const j=profile.jobs[+b.dataset.rmjob]||{};profileChange(`removing “${j.title||"a job"}” from your work history`);
+    profile.jobs.splice(+b.dataset.rmjob,1);drawJobs();saveSoon();toast(`Removed “${j.title||"that job"}” from your work history`,UNDO)});
+  $$("[data-mv]").forEach(b=>b.onclick=()=>{const [i,d]=b.dataset.mv.split(",").map(Number),a=profile.jobs;profileChange("moving a job");[a[i],a[i+d]]=[a[i+d],a[i]];drawJobs();saveSoon()});}
+$("#addjob").onclick=()=>{profile.jobs=profile.jobs||[];profile.jobs.push({title:"",company:"",location:"",start:"",end:"",description:""});drawJobs();saveSoon();
+  const last=$$('.jf[data-f="title"]').pop();if(last)last.focus()};
+$("#cvremove").onclick=async()=>{const r=await post("/api/cv",{remove:true});drawCv(r.cv)};
+$("#openext").onclick=()=>post("/api/openfolder",{});
+
+// ---- extension code: shown top-right, one click to copy
+let extCode="";
+async function copyText(t){
+  try{await navigator.clipboard.writeText(t);return true}catch(e){}
+  try{const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();const ok=document.execCommand("copy");ta.remove();if(ok)return true}catch(e){}
+  try{const r=await post("/api/copy",{text:t});return !!r.ok}catch(e){return false}   // last resort: copy through Windows
+}
+async function loadExt(){try{const r=await get("/api/profile");extCode=r.ext.code;$("#extchipcode").textContent=extCode;
+  $("#extdot").classList.toggle("on",!!r.ext.connected);drawStarted();$("#extchip").dataset.tip=(r.ext.connected?"Extension connected · ":"Extension not connected yet · ")+"click to copy the code"}catch(e){}}
+const copyCode=async()=>{if(await copyText(extCode))toast(`Extension code ${extCode} copied`)};
+$("#extchip").onclick=copyCode;$("#copycode").onclick=copyCode;
+// ---- "Set up for me": opens Chrome's extensions page + the folder, copies the path, then watches for the connection
+let extPoll=null;
+$("#extsetup").onclick=()=>withSpinner($("#extsetup"),"Opening…",async()=>{
+  const r=await post("/api/ext/setup",{});
+  toast("Chrome's extensions page is opening — turn on Developer mode, click Load unpacked and paste (Ctrl+V)");
+  $("#extstatus").innerHTML='<span class="spin"></span> Waiting for the extension to connect…';
+  clearInterval(extPoll);let tries=0;
+  extPoll=setInterval(async()=>{tries++;const s=await fetch("/api/ext/status",{method:"POST"}).then(r=>r.json()).catch(()=>({}));
+    if(s.connected&&s.seconds_ago<30){clearInterval(extPoll);$("#extstatus").innerHTML='<span style="color:var(--good)">● Extension connected — you\'re all set!</span>';
+      $("#extdot").classList.add("on");toast("Extension connected 🎉")}
+    if(tries>150){clearInterval(extPoll);$("#extstatus").textContent="Not connected yet — follow the steps below."}},2000);
+});
+
+// ---- job match terms
+let matchTerms=[];
+async function loadTerms(){try{matchTerms=await get("/api/match_terms")}catch(e){matchTerms=[]}drawTerms()}
+function drawTerms(){
+  $("#mterms").innerHTML=matchTerms.length?matchTerms.map((t,i)=>`<div class="termrow">
+    <input type="text" data-tn="${i}" value="${esc(t.name)}" placeholder="Job, e.g. Communications">
+    <input type="text" data-ta="${i}" value="${esc((t.aliases||[]).join(", "))}" placeholder="Also called: comms, PR, public relations">
+    <label class="check" title="Only count it when the word is in the job title"><input type="checkbox" data-tt="${i}" ${t.title_only?"checked":""}> Title only</label>
+    <button class="iconbtn" data-tx="${i}" title="Remove">✕</button></div>`).join(""):`<p class="muted" style="font-size:12.5px;margin:0">No terms yet. Example: <b>Communications</b> — also called <i>comms, PR, public relations</i>.</p>`;
+  $$("[data-tn]").forEach(e=>e.oninput=()=>matchTerms[+e.dataset.tn].name=e.value);
+  $$("[data-ta]").forEach(e=>e.oninput=()=>matchTerms[+e.dataset.ta].aliases=e.value.split(",").map(s=>s.trim()).filter(Boolean));
+  $$("[data-tt]").forEach(e=>e.onchange=()=>matchTerms[+e.dataset.tt].title_only=e.checked);
+  $$("[data-tx]").forEach(e=>e.onclick=()=>{matchTerms.splice(+e.dataset.tx,1);drawTerms()});
+}
+$("#addterm").onclick=()=>{matchTerms.push({name:"",aliases:[],title_only:true});drawTerms();const l=$$("[data-tn]").pop();if(l)l.focus()};
+
+// clear profile
+$("#clearprof").onclick=()=>openModal("m-clear");
+async function clearProfile(withCv){profileChange("clearing your profile");await post("/api/profile/clear",{cv:withCv});closeModals();await loadProfile();$("#fromcvmsg").textContent="";drawWelcome();drawStarted();
+  toast(withCv?"Profile and CV cleared — Undo brings your details back (re-add the CV file yourself)":"Profile cleared — your CV is kept",UNDO)}
+$("#clear1").onclick=()=>clearProfile(false);$("#clear2").onclick=()=>clearProfile(true);
+
+// CV upload, drag & drop, fill from CV
+let fillAfterUpload=false;
+async function uploadCv(f,thenFill){
+  if(!/\.(pdf|docx?|rtf|txt)$/i.test(f.name)){toast("Please use a PDF or Word file");return}
+  if(f.size>10*1024*1024){toast("CV must be under 10 MB");return}
+  const data=await new Promise(res=>{const rd=new FileReader();rd.onload=()=>res(rd.result.split(",")[1]);rd.readAsDataURL(f)});
+  const r=await post("/api/cv",{name:f.name,data});if(r.error){toast(r.error);return}
+  drawCv(r.cv);toast("CV saved");if(thenFill)fillFromCv();
+}
+$("#cvfile").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f){uploadCv(f,fillAfterUpload);fillAfterUpload=false}};
+["dragover","drop"].forEach(ev=>window.addEventListener(ev,e=>e.preventDefault()));
+const drop=$("#drop");
+["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over")}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,()=>drop.classList.remove("over")));
+drop.addEventListener("drop",e=>{const f=e.dataTransfer.files[0];if(f)uploadCv(f,true)});
+window.addEventListener("drop",e=>{if(tab==="profile"&&!drop.contains(e.target)&&e.dataTransfer.files&&e.dataTransfer.files[0])uploadCv(e.dataTransfer.files[0],true)});
+$("#fromcv").onclick=()=>{if($("#cvremove").hidden){fillAfterUpload=true;$("#cvfile").click()}else withSpinner($("#fromcv"),"Reading CV…",fillFromCv)};
+async function fillFromCv(){
+  $("#fromcvmsg").textContent="Reading your CV…";
+  const r=await post("/api/cv/parse",{});if(r.error){$("#fromcvmsg").textContent=r.error;return}
+  if((r.found||{}).read_with_ocr)toast("Parts of this CV are pictures of text — read them with Windows' text recognition, please double-check");
+  offerImport(r.found||{},"your CV");
+}
+
+// ---- bringing details in from a CV or LinkedIn: add to what you have, or replace it
+const fieldLabel=k=>{const el=document.getElementById(k);return ((el&&el.closest("label")?.firstChild.textContent)||k.replace(/_/g," ")).trim()};
+const sameJob=(a,b)=>(a.title||"").toLowerCase().trim()===(b.title||"").toLowerCase().trim()&&(a.company||"").toLowerCase().trim()===(b.company||"").toLowerCase().trim();
+let pendingImport=null;
+function offerImport(found,source){
+  const jobs=(found.jobs||[]).filter(j=>j.title||j.company);delete found.jobs;delete found.current_title;delete found.current_company;
+  const keys=Object.keys(found).filter(k=>{const el=document.getElementById(k);return el&&el.classList.contains("pf")&&String(found[k]).trim()});
+  if(!keys.length&&!jobs.length){$("#fromcvmsg").textContent=`Couldn't find details in ${source} (scanned image PDFs can't be read).`;toast("Nothing found to import");return}
+  const haveFields=keys.filter(k=>(document.getElementById(k).value||"").trim()),haveJobs=(profile.jobs||[]).filter(j=>j.title||j.company);
+  pendingImport={found,jobs,keys,source};
+  if(!haveFields.length&&!haveJobs.length){applyImport("add");return}       // empty profile: nothing to decide
+  const differ=keys.filter(k=>{const cur=(document.getElementById(k).value||"").trim();return cur&&cur!==String(found[k]).trim()});
+  const fresh=keys.filter(k=>!(document.getElementById(k).value||"").trim());
+  const newJobs=jobs.filter(j=>!haveJobs.some(h=>sameJob(h,j)));
+  $("#imptitle").textContent=source==="your CV"?"Fill from your CV":"Import from LinkedIn";
+  $("#impsub").textContent=`Found ${keys.length} detail${keys.length===1?"":"s"} and ${jobs.length} job${jobs.length===1?"":"s"} in ${source}. Your profile already has some details — how should they be combined?`;
+  $("#implist").innerHTML=[
+    fresh.length?`<li><b>${fresh.length} empty field${fresh.length===1?"":"s"}</b> can be filled: ${esc(fresh.map(fieldLabel).slice(0,8).join(", "))}${fresh.length>8?"…":""}</li>`:"",
+    differ.length?`<li><b>${differ.length} different</b> from what you have: ${differ.slice(0,6).map(k=>`${esc(fieldLabel(k))} <span class="muted">(“${esc(String(document.getElementById(k).value).slice(0,28))}” → “${esc(String(found[k]).slice(0,28))}”)</span>`).join(", ")}${differ.length>6?"…":""}</li>`:"",
+    jobs.length?`<li><b>${newJobs.length} new job${newJobs.length===1?"":"s"}</b>${jobs.length-newJobs.length?` (${jobs.length-newJobs.length} already in your work history)`:""}: ${esc(newJobs.slice(0,4).map(j=>j.title+(j.company?" at "+j.company:"")).join("; "))}</li>`:""].join("");
+  $("#impadd").innerHTML=`Add to my profile`;$("#impreplace").textContent="Replace my profile";
+  openModal("m-import");
+}
+async function applyImport(mode){
+  const p=pendingImport;if(!p)return;pendingImport=null;closeModals();
+  profileChange(`importing from ${p.source}`);
+  const filled=[];
+  for(const k of p.keys){const el=document.getElementById(k),cur=(el.value||"").trim();
+    if(mode==="replace"||!cur){if(cur!==String(p.found[k]).trim()){el.value=p.found[k];profile[k]=p.found[k];filled.push(k);el.style.borderColor="var(--good)";setTimeout(()=>el.style.borderColor="",6000)}}}
+  let jobsAdded=0;
+  if(p.jobs.length){
+    if(mode==="replace"){profile.jobs=p.jobs;jobsAdded=p.jobs.length}
+    else{const have=(profile.jobs||[]).filter(j=>j.title||j.company);const add=p.jobs.filter(j=>!have.some(h=>sameJob(h,j)));
+      profile.jobs=have.concat(add);jobsAdded=add.length}
+    drawJobs();
+  }
+  if(filled.length||jobsAdded){await post("/api/profile",{profile});drawWelcome()}
+  const n=filled.filter(k=>k!=="country").length,jt=jobsAdded?` and ${mode==="replace"?"replaced your work history with":"added"} ${jobsAdded} job${jobsAdded>1?"s":""}`:"";
+  const msg=(n||jobsAdded)?`${mode==="replace"?"Replaced":"Filled"} ${n} field${n===1?"":"s"}${jt} from ${p.source} (green borders) — please check them.`:"Nothing new — your profile already has these details.";
+  $("#fromcvmsg").textContent=msg;toast(msg.split(" (")[0],(n||jobsAdded)?UNDO:undefined);drawStarted();
+}
+$("#impadd").onclick=()=>applyImport("add");
+$("#impreplace").onclick=()=>applyImport("replace");
+$("#fromli").onclick=()=>{$("#liurl").value=$("#liurl").value||profile.linkedin||"";$("#listatus").textContent="";openModal("m-lihelp")};
+// a profile link: the app opens it in Chrome, the extension reads the page and sends it back here
+let liPoll=null;
+async function importLinkedInLink(url,say){
+  url=(url||"").trim();if(!url){say("Paste your profile link first — it looks like linkedin.com/in/your-name");return}
+  const r=await post("/api/linkedin/link",{url});if(r.error){say(r.error);return}
+  say(r.connected?`<span class="spin"></span> Opened in Chrome — reading your profile. Keep that tab open for a few seconds…`
+    :`<span class="spin"></span> Opened in Chrome. The Chrome extension doesn't seem to be set up yet — set it up (Profile → Chrome extension), then press Import again.`,true);
+  clearInterval(liPoll);let n=0;
+  liPoll=setInterval(async()=>{n++;let st={};try{st=await fetch("/api/linkedin/link").then(r=>r.json())}catch(e){}
+    if(st.found){clearInterval(liPoll);post("/api/linkedin/link",{cancel:true});say("Read your LinkedIn profile ✓");
+      if($("#m-onboard").classList.contains("open")){await loadProfile();offerImport(st.found,"your LinkedIn profile");$("#obcvmsg").textContent=$("#fromcvmsg").textContent||"LinkedIn profile read ✓";return}
+      closeModals();setTab("profile");await loadProfile();offerImport(st.found,"your LinkedIn profile")}
+    else if(st.error){clearInterval(liPoll);say(esc(st.error))}
+    else if(!st.waiting||n>150){clearInterval(liPoll);say("Didn't hear back from Chrome. Check you're signed in to LinkedIn there and the extension is set up, then try again — or use a file instead.")}},2000);
+}
+$("#ligo").onclick=()=>importLinkedInLink($("#liurl").value,(t,h)=>{$("#listatus")[h?"innerHTML":"textContent"]=t.replace(/<(?!\/?span)[^>]*>/g,"")});
+$("#liurl").addEventListener("keydown",e=>{if(e.key==="Enter")$("#ligo").click()});
+$("#lipick").onclick=()=>{clearInterval(liPoll);closeModals();$("#lifile").click()};
+$("#lifile").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;
+  if(f.size>30*1024*1024){toast("That file is too big (30 MB max)");return}
+  await withSpinner($("#fromli"),"Reading…",async()=>{
+    const data=await new Promise(res=>{const rd=new FileReader();rd.onload=()=>res(rd.result.split(",")[1]);rd.readAsDataURL(f)});
+    const r=await post("/api/linkedin",{name:f.name,data});
+    if(r.error){toast(r.error);$("#fromcvmsg").textContent=r.error;return}
+    offerImport(r.found||{},"your LinkedIn "+(/\.zip$/i.test(f.name)?"export":"profile"))})};
+
+// ============================================================= getting started checklist (Search page, until it's all done)
+function startedItems(){
+  const extOn=$("#extdot").classList.contains("on");
+  return [
+    {done:!!(profile.first_name||profile.email||(profile.jobs||[]).length),label:"Add your CV or LinkedIn",go:()=>setTab("profile")},
+    {done:!!($("#where").value.trim()||profile.city),label:"Choose where you're looking",go:()=>{setTab("search");$("#where").focus()}},
+    {done:pref("searched")==="1"||results.length>0,label:"Run your first search",go:()=>{setTab("search");($("#q").disabled?$("#go"):$("#q")).focus()}},
+    {done:saved.length>0,label:"Save or apply to a job",go:()=>{setTab("search");toast("Press ☆ Save or ✓ Mark applied on any result")}},
+  ].concat(PHONE?[]:[{done:extOn,label:"Set up Easy apply (Chrome)",go:()=>{setTab("profile");setTimeout(()=>$("#extsetup").scrollIntoView({behavior:"smooth",block:"center"}),150)}}]);
+}
+function drawStarted(){
+  const box=$("#getstarted");if(!box)return;const items=startedItems(),done=items.filter(i=>i.done).length;
+  box.hidden=pref("gs_hide")==="1"||done===items.length||pref("onboarded")!=="1";if(box.hidden)return;
+  $("#gscount").textContent=`${done} of ${items.length} done`;$("#gsbar").style.width=(100*done/items.length)+"%";
+  $("#gslist").innerHTML=items.map((it,i)=>`<li class="${it.done?"done":""}" data-gs="${i}" ${it.done?'data-tip="Done ✓"':'tabindex="0" role="button" data-tip="Click to do this now"'}><span class="ck">${it.done?"✓":i+1}</span><span>${esc(it.label)}</span></li>`).join("");
+  $$("#gslist li").forEach(li=>{const it=items[+li.dataset.gs];if(it.done)return;li.onclick=it.go;li.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();it.go()}}});
+}
+$("#gsclose").onclick=()=>{savePref("gs_hide","1");drawStarted();toast("Hidden — bring it back from ⚙ Settings")};
+$("#gsshow").onclick=()=>{savePref("gs_hide","0");closeModals();setTab("search");drawStarted();if($("#getstarted").hidden)toast("You've done everything on the list already 🎉")};
+$("#where").addEventListener("change",drawStarted);
+
+// ============================================================= updates (new versions come from GitHub Releases)
+let appVersion="",upd=null,updPoll=null;
+async function loadUpdate(force){
+  try{upd=force?await post("/api/update",{action:"check"}):await get("/api/update")}catch(e){upd=null}
+  if(!upd||upd.error&&!upd.current)return upd;
+  appVersion=upd.current||"";
+  $("#updinfo").innerHTML=!upd.enabled?`You have jobslop ${esc(appVersion)}. Updates aren't switched on in this copy.`
+    :upd.off?`You have jobslop ${esc(appVersion)}. Updates are turned off.`
+    :upd.error?`You have jobslop ${esc(appVersion)}. ${esc(upd.error)}`
+    :upd.available?`You have ${esc(appVersion)} — <b style="color:var(--text)">${esc(upd.version)} is available</b>.`
+    :`You have the latest version (${esc(appVersion)}).`;
+  $("#updoff").checked=!!upd.off;$("#updcheck").hidden=!upd.enabled||!!upd.off;$("#updoff").closest("label").hidden=!upd.enabled;
+  drawUpdBar();
+  if(upd.updated_from&&pref("told_updated")!==appVersion){pref("told_updated",appVersion);
+    toast(`Updated to jobslop ${appVersion} ✓`,upd.notes&&upd.version===appVersion?{label:"What's new",fn:()=>showNotes(false)}:undefined)}
+  return upd;
+}
+// the green ⬇ in the top bar (like Discord): only there when a new version is out.
+// Click it for the details; while downloading it fills up; once ready it pulses until you restart.
+let updPhase="",updPct=0;              // "" | "dl" (downloading) | "ready"
+function drawUpdBar(){
+  const ic=$("#updicon"),pop=$("#updpop"),show=!!(upd&&upd.available&&!upd.skipped&&!PHONE);
+  ic.hidden=!show;if(!show){pop.classList.remove("open");return}
+  ic.classList.toggle("dl",updPhase==="dl");ic.classList.toggle("ready",updPhase==="ready");ic.style.setProperty("--p",updPct);
+  ic.textContent=updPhase==="ready"?"↻":"⬇";
+  ic.dataset.tip=updPhase==="ready"?"Restart to finish updating jobslop":updPhase==="dl"?`Downloading jobslop ${upd.version}… ${Math.round(updPct)}%`:`Update available — jobslop ${upd.version}`;
+  ic.setAttribute("aria-label",ic.dataset.tip);if(tipFor===ic)showTip(ic);
+  pop.innerHTML=`<div class="kicker">${updPhase==="ready"?"Ready to install":"Update available"}</div>
+    <h4>jobslop ${esc(upd.version)}</h4>
+    <div class="muted" style="font-size:12.5px">You have ${esc(upd.current)}.${upd.can_install?" Your jobs, profile and settings are kept.":" Get it from the download page."}</div>
+    <div class="updprog" id="updprog" ${updPhase==="dl"?"":"hidden"}><i style="width:${updPct}%"></i></div>
+    <div class="acts2">${upd.notes?`<button class="pill line sm" id="updnotes">What's new</button>`:""}${updPhase?"":`<button class="pill line sm" id="updskip">Skip</button>`}
+      <button class="pill dark sm" id="updgo" ${updPhase==="dl"?"disabled":""}>${updPhase==="dl"?`<span class="spin"></span> Downloading…`:updPhase==="ready"?"Restart to finish":upd.can_install?"Update now":"Download ↗"}</button></div>`;
+  const on=(id,fn)=>{const e=document.getElementById(id);if(e)e.onclick=fn};
+  on("updnotes",()=>{pop.classList.remove("open");showNotes(true)});on("updgo",startUpdate);
+  on("updskip",async()=>{upd=await post("/api/update",{action:"skip",version:upd.version});drawUpdBar();toast("Skipped — you'll hear about the next version")});
+}
+$("#updicon").onclick=e=>{e.stopPropagation();if(updPhase==="ready")return restartToUpdate();$("#themepop").classList.remove("open");$("#updpop").classList.toggle("open");hideTip()};
+document.addEventListener("click",e=>{if(!e.target.closest("#updpop")&&e.target.id!=="updicon")$("#updpop").classList.remove("open")});
+function showNotes(offer){$("#wntitle").textContent=`What's new in jobslop ${upd.version}`;$("#wnnotes").textContent=upd.notes||"No notes for this version.";
+  $("#wnupdate").hidden=!offer;openModal("m-whatsnew")}
+$("#wnupdate").onclick=()=>{closeModals();startUpdate()};
+async function startUpdate(){
+  if(!upd)return;
+  if(!upd.can_install){openUrl(upd.page);return}
+  if(updPhase==="ready")return restartToUpdate();
+  if(updPhase==="dl")return;
+  updPhase="dl";updPct=0;drawUpdBar();
+  await post("/api/update",{action:"download"});
+  clearInterval(updPoll);
+  updPoll=setInterval(async()=>{const st=await fetch("/api/update/status").then(r=>r.json()).catch(()=>({}));
+    if(st.total){updPct=Math.min(100,100*st.done/st.total);const bar=$("#updprog i");if(bar)bar.style.width=updPct+"%";
+      $("#updicon").style.setProperty("--p",updPct);$("#updicon").dataset.tip=`Downloading jobslop ${upd.version}… ${Math.round(updPct)}%`}
+    if(st.busy)return;clearInterval(updPoll);
+    if(st.error){updPhase="";drawUpdBar();toast(st.error);return}
+    if(st.ready){updPhase="ready";updPct=100;drawUpdBar();
+      toast("Update downloaded and checked ✓ — restart jobslop to finish",{label:"Restart now",fn:restartToUpdate})}},600);
+}
+async function restartToUpdate(){
+  $("#splash").classList.remove("gone");$("#splash .word").textContent="Updating jobslop…";
+  try{await post("/api/update",{action:"install"})}catch(e){}
+}
+$("#updcheck").onclick=()=>withSpinner($("#updcheck"),"Checking…",async()=>{const r=await loadUpdate(true);
+  if(r&&r.error)toast(r.error);else if(r&&r.available)toast(`jobslop ${r.version} is available`);else toast("You're up to date ✓")});
+$("#updoff").onchange=async()=>{const off=$("#updoff").checked;clearInterval(updPoll);
+  await post("/api/update",{action:"off",off});await loadUpdate(false);
+  toast(off?"Updates turned off — jobslop won't check for new versions":"Updates turned on")};
+
+// ============================================================= start
+// ============================================================= onboarding tour (first run)
+const OB_KICK=["Welcome","Step 1 · Your CV","Step 2 · Location","Step 3 · Searching","Step 4 · Apply & track"];
+let obStep=0;
+const obSteps=()=>$$("#m-onboard .obstep");
+function showObStep(i){
+  const steps=obSteps();obStep=Math.max(0,Math.min(steps.length-1,i));
+  steps.forEach((s,k)=>s.hidden=k!==obStep);
+  $("#obkick").textContent=OB_KICK[obStep];
+  $("#obdots").innerHTML=steps.map((_,k)=>`<i class="${k===obStep?"on":""}" data-ob="${k}" title="Step ${k+1}"></i>`).join("");
+  $$("#obdots i").forEach(d=>d.onclick=()=>{applyObStep();showObStep(+d.dataset.ob)});
+  $("#obback").style.visibility=obStep?"visible":"hidden";
+  const ready=(profile.jobs||[]).length>0;
+  $("#obnext").textContent=obStep===steps.length-1?(ready?"Find jobs for me →":"Start searching →"):obStep===1?"Next (or skip)":"Next";
+  if(obStep===steps.length-1)$("#obextnote").innerHTML=$("#extdot").classList.contains("on")?'<span style="color:var(--good)">● Already connected</span>':"or later from <b>Profile</b>";
+}
+function startOnboarding(){
+  $("#obcountry").innerHTML=countries.map(c=>`<option value="${c.code}">${esc(c.name)}</option>`).join("");
+  $("#obcountry").value=$("#country").value;
+  $("#obtown").value=$("#where").value||profile.city||"";
+  $("#obcurrency").value=currency;$("#obunit").value=unit();
+  $("#obcvmsg").textContent="";
+  showObStep(0);openModal("m-onboard");
+}
+function applyObStep(){
+  if(obStep!==2)return;                               // save the location choices when leaving that step
+  setCountry($("#obcountry").value);
+  $("#where").value=$("#obtown").value.trim();pref("f_where",$("#where").value);
+  if($("#obcurrency").value!==currency)setCurrency($("#obcurrency").value,true);
+  if($("#obunit").value!==unit()){savePref("unit",$("#obunit").value);drawMiles()}
+}
+function finishOnboarding(go){applyObStep();savePref("onboarded","1");$("#m-onboard").classList.remove("open");drawStarted();
+  // straight to something useful: jobs that fit your CV when there is one
+  if(go&&(profile.jobs||[]).length){toast("Finding jobs that fit your CV…");setTimeout(()=>$("#matchbtn").click(),250);return}
+  toast("You're all set — happy job hunting!");setTimeout(()=>$("#q").focus(),200)}
+$("#obnext").onclick=()=>{applyObStep();if(obStep===obSteps().length-1)finishOnboarding(true);else showObStep(obStep+1)};
+$("#obback").onclick=()=>{applyObStep();showObStep(obStep-1)};
+$("#obskip").onclick=()=>finishOnboarding(false);
+$("#obext").onclick=()=>$("#extsetup").click();
+$("#retour").onclick=()=>{closeModals();startOnboarding()};
+async function obUpload(f){
+  $("#obcvmsg").innerHTML='<span class="spin"></span> Reading your CV…';
+  await loadProfile();                                // only fill empty fields, never wipe what's there
+  await uploadCv(f,false);await fillFromCv();
+  $("#obcvmsg").textContent=$("#fromcvmsg").textContent||"CV saved.";
+  $("#obtown").value=$("#obtown").value||profile.city||"";
+  const hit=countryFromText(profile.country);if(hit&&!$("#where").value)$("#obcountry").value=hit.code;
+}
+$("#obligo").onclick=()=>importLinkedInLink($("#obliurl").value,(t,h)=>{$("#obcvmsg")[h?"innerHTML":"textContent"]=t.replace(/<(?!\/?span)[^>]*>/g,"")});
+$("#obliurl").addEventListener("keydown",e=>{if(e.key==="Enter")$("#obligo").click()});
+$("#obcv").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)obUpload(f)};
+const obdrop=$("#obdrop");
+["dragenter","dragover"].forEach(ev=>obdrop.addEventListener(ev,e=>{e.preventDefault();obdrop.classList.add("over")}));
+["dragleave","drop"].forEach(ev=>obdrop.addEventListener(ev,()=>obdrop.classList.remove("over")));
+obdrop.addEventListener("drop",e=>{e.preventDefault();e.stopPropagation();const f=e.dataTransfer.files[0];if(f)obUpload(f)});
+
+// ============================================================= phone access settings (computer only)
+function loadQr(){return new Promise((ok,fail)=>{if(window.qrcode)return ok();const s=document.createElement("script");s.src="/static/qrcode.min.js";s.onload=ok;s.onerror=fail;document.head.appendChild(s)})}
+async function drawPhone(st){
+  $("#phoneon").checked=st.enabled&&st.running;$("#phonebox").hidden=!(st.enabled&&st.running);
+  if(!(st.enabled&&st.running))return;
+  $("#phoneurl").textContent=st.url;$("#phonepin").textContent=st.pin;
+  $("#phonenote").innerHTML=`Your computer must be on with jobslop open, and both on the same Wi-Fi. ${st.phones?`<b>${st.phones}</b> phone${st.phones>1?"s":""} signed in.`:""} If Windows asks about the firewall, tick <b>Private networks</b> and allow.`+
+    (st.ip==="127.0.0.1"?' <span style="color:var(--warn)">This computer doesn\'t seem to be on a network right now.</span>':"");
+  try{await loadQr();const q=qrcode(0,"M");q.addData(st.url);q.make();$("#phoneqr").innerHTML=q.createSvgTag({cellSize:4,margin:2})}catch(e){$("#phoneqr").textContent=""}
+}
+async function loadPhone(){try{drawPhone(await get("/api/phone"))}catch(e){}}
+$("#phoneon").onchange=async()=>{const r=await post("/api/phone",{enabled:$("#phoneon").checked});
+  if(r.error)toast(r.error);else toast(r.enabled?"Phone access on — scan the code with your phone":"Phone access off");drawPhone(r)};
+$("#phonenewpin").onclick=async()=>{const r=await post("/api/phone",{new_pin:true});drawPhone(r);toast("New PIN made — phones need to sign in again")};
+$("#phonesignout").onclick=async()=>{const r=await post("/api/phone",{signout:true});drawPhone(r);toast("All phones signed out")};
+
+const hideSplash=()=>$("#splash").classList.add("gone");
+setTimeout(hideSplash,6000);   // never leave the splash up if something is slow
+(async()=>{
+  try{
+    // preferences saved with the app win over the window's own storage
+    try{const sp=await get("/api/prefs");Object.entries(sp).forEach(([k,v])=>pref(k,v))}catch(e){}
+    applyTheme();
+    const curOpts=`<option value="orig">Salaries as listed</option>`+CUR_LIST.map(c=>`<option value="${c}">${c} ${(CUR_SYM[c]||"").trim()}</option>`).join("");
+    $$(".cursel").forEach(s=>{s.innerHTML=curOpts;s.onchange=()=>setCurrency(s.value)});
+    await Promise.all([loadCountries(),loadRates()]);
+    $("#ratesnote").textContent=ratesInfo?`Currency conversion uses live ${ratesInfo}.`:"";
+    drawMiles(+(pref("f_miles")||15));
+    try{profile=(await get("/api/profile")).profile||{}}catch(e){}
+    if(!pref("country")&&profile.country){const hit=countryFromText(profile.country);if(hit)$("#country").value=hit.code}
+    setCurrency(pref("currency")||"orig",true);
+    drawWelcome();await Promise.all([loadKeys(),loadSaved(),loadExt(),loadTerms()]);drawStarted();
+    setInterval(loadExt,60000);
+  }finally{hideSplash()}
+  if(PHONE){["#extchip","#csv","#tcsv"].forEach(s=>{const e=$(s);if(e)e.classList.add("pc-only")})}
+  else{loadPhone();if(pref("onboarded")!=="1")setTimeout(startOnboarding,550);   // first run: show the welcome tour
+    setTimeout(()=>loadUpdate(false),2500)}                                      // a new version? (checked quietly)
+})();
+</script>
+</body></html>

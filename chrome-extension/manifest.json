@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "jobslop autofill",
+  "version": "1.4.0",
+  "description": "Fills job application forms in many languages with your jobslop profile and CV. You always review and submit yourself.",
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": ["http://127.0.0.1:47321/*"],
+  "background": { "service_worker": "background.js" },
+  "icons": { "16": "icons/jf16.png", "32": "icons/jf32.png", "48": "icons/jf48.png", "128": "icons/jf128.png" },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"],
+      "all_frames": true,
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    { "resources": ["Italiana-Regular.ttf", "Manrope.ttf", "icons/jf48.png"], "matches": ["http://*/*", "https://*/*"] }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "jobslop autofill",
+    "default_icon": { "16": "icons/jf16.png", "32": "icons/jf32.png", "48": "icons/jf48.png" }
+  },
+  "commands": {
+    "fill-form": {
+      "suggested_key": { "default": "Alt+Shift+F" },
+      "description": "Fill this application form"
+    }
+  }
+}

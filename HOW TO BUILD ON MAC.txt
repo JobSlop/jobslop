@@ -1,0 +1,28 @@
+JOB FINDER  -  building the Mac version
+=======================================
+
+You need: a Mac (macOS 12 or newer) and Python 3.10+ from
+https://www.python.org/downloads/macos/   (choose the "macOS 64-bit universal2 installer")
+
+1. Unzip this folder somewhere, e.g. your Desktop.
+2. Open the Terminal app (Applications > Utilities > Terminal).
+3. Type  cd  followed by a space, drag this folder into the Terminal window, press Return.
+4. Type:   bash build_mac.sh    and press Return.
+   The first build takes 5-10 minutes (it downloads its tools once).
+5. When it says "Done!":
+     dist/jobslop.app   -> drag into your Applications folder and open it
+     jobslop-Mac.zip     -> send this to Mac testers
+
+OPENING IT THE FIRST TIME
+- Because the app isn't signed with a paid Apple developer account, macOS may say it
+  "can't be opened" or "can't verify the developer". Right-click the app > Open > Open.
+- If a tester sees "jobslop is damaged and can't be opened" after downloading the zip,
+  they can run this once in Terminal, then open it normally:
+     xattr -cr "/Applications/jobslop.app"
+
+GOOD TO KNOW
+- The app works on Macs with the same chip type as the Mac you built it on
+  (Apple Silicon M1/M2/M3/M4, or Intel). Build on each type if you need both.
+- Your data is stored in:  ~/Library/Application Support/JobFinder
+- The Chrome extension works the same as on Windows (Profile > "Set up for me").
+  In Chrome's "Load unpacked" window, press Cmd+Shift+G and paste the folder path.

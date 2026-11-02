@@ -1,0 +1,15 @@
+# build outputs and test copies
+dist/
+update-test/
+jobslop-Tester-Windows/
+*.zip
+*.exe
+*.sha256
+# local tooling
+.venv/
+.pytest_cache/
+__pycache__/
+*.pyc
+.claude/
+.idea/workspace.xml
+.idea/shelf/
