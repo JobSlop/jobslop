@@ -4,8 +4,9 @@ import importlib.util
 import sys
 
 import pytest
-
 import support
+
+from jobslop import runtime
 
 # packages the CV reader needs; without them several tests fail in confusing ways
 NEEDED = {"pypdf": "pypdf", "pdfminer": "pdfminer.six", "phonenumbers": "phonenumbers"}
@@ -23,7 +24,7 @@ def pytest_sessionstart(session):
 def clean_data():
     """An empty jobslop data folder for one test."""
     support.reset_data()
-    yield support.jf
+    yield
     support.reset_data()
 
 
@@ -31,6 +32,6 @@ def clean_data():
 def app_server():
     """jobslop's own web server on a free port, for a whole test class."""
     app = support.AppServer()
-    support.jf.state["port"] = app.port
+    runtime.state["port"] = app.port
     yield app
     app.close()

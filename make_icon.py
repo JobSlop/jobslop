@@ -2,6 +2,7 @@
 Makes jf.ico, jf.icns and jf.png for the app, and the Chrome extension's icons.
 Run once after changing it:  python make_icon.py  (needs Pillow)."""
 from pathlib import Path
+
 from PIL import Image, ImageDraw, ImageFont
 
 HERE = Path(__file__).resolve().parent

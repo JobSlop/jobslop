@@ -6,7 +6,6 @@
    is run with Node.js.
 Each part is skipped, with a note, if Chrome or Node.js isn't installed.
 """
-import pytest
 import html
 import json
 import os
@@ -16,6 +15,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 from support import ROOT, TMP
 
 PROFILE = {

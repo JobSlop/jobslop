@@ -3,18 +3,26 @@
 Checks a full search with an address in "Where?", every sort order, every filter, tab switching,
 and the 📍 Mine button reading the profile address. Skipped if Chrome isn't installed.
 """
-import pytest
 import html
 import json
+import os
 import re
 import subprocess
+import webbrowser
 from datetime import datetime, timedelta
 from pathlib import Path
 from unittest import mock
 
-from support import jf, AppServer, FakeBoards, make_job, reset_data, no_internet, TMP
+import pytest
+from support import TMP, AppServer, FakeBoards, make_job, no_internet, reset_data
 from test_extension import find_chrome
 from test_linkedin_link import LI_PAGE
+
+from jobslop import net, runtime, settings
+from jobslop.boards import registry
+from jobslop.profile import linkedin_link
+from jobslop.profile import store as pstore
+from jobslop.server import handler
 
 
 def day(n):
@@ -233,14 +241,14 @@ window.addEventListener("load", () => setTimeout(async () => {
 """
 
 
-class HarnessHandler(jf.Handler):
+class HarnessHandler(handler.Handler):
     """The normal app server, plus /harness: the app screen with the test script added."""
 
     def do_GET(self):
         if self.path == "/harness":
-            return self.send(jf.load_page().replace("</body>", HARNESS + "</body>"), "text/html")
+            return self.send(handler.load_page().replace("</body>", HARNESS + "</body>"), "text/html")
         if self.path == "/harness/lifound":            # stands in for the extension reading the LinkedIn page
-            jf.li_link["found"] = jf.linkedin_from_page(LI_PAGE)
+            linkedin_link.li_link["found"] = linkedin_link.linkedin_from_page(LI_PAGE)
             return self.send("{}")
         return super().do_GET()
 
@@ -252,18 +260,18 @@ class ScreenTests:
         if not chrome:
             pytest.skip("Chrome isn't installed, so the app screen test can't run")
         reset_data()
-        jf.save_profile({"first_name": "Sarah", "address1": "22 London Road", "city": "Coventry",
+        pstore.save_profile({"first_name": "Sarah", "address1": "22 London Road", "city": "Coventry",
                          "postcode": "CV1 2AB", "country": "United Kingdom"})
-        jf.update_settings(lambda s: s.update(ui={"tour_done": "1", "onboarded": "1"}))
+        settings.update_settings(lambda s: s.update(ui={"tour_done": "1", "onboarded": "1"}))
         app = AppServer(HarnessHandler)
-        jf.state["port"] = app.port
+        runtime.state["port"] = app.port
         fake = FakeBoards(BOARD_JOBS)
         try:
-            with mock.patch.dict(jf.SOURCES, fake.sources(), clear=True), no_internet(), \
-                    mock.patch.object(jf, "get_json", side_effect=OSError("offline")), \
-                    mock.patch.object(jf, "open_in_chrome", return_value=True) as open_chrome, \
-                    mock.patch.object(jf.os, "startfile", create=True) as startfile, \
-                    mock.patch.object(jf.webbrowser, "open") as browser:
+            with mock.patch.dict(registry.SOURCES, fake.sources(), clear=True), no_internet(), \
+                    mock.patch.object(net, "get_json", side_effect=OSError("offline")), \
+                    mock.patch.object(handler, "open_in_chrome", return_value=True) as open_chrome, \
+                    mock.patch.object(os, "startfile", create=True) as startfile, \
+                    mock.patch.object(webbrowser, "open") as browser:
                 proc = subprocess.run([chrome, "--headless=new", "--disable-gpu", "--no-first-run",
                                        "--no-default-browser-check", f"--user-data-dir={Path(TMP) / 'chrome-screen'}",
                                        "--window-size=1300,900", "--virtual-time-budget=120000", "--dump-dom",

@@ -17,16 +17,32 @@ from pathlib import Path
 from unittest import mock
 
 TMP = tempfile.mkdtemp(prefix="jobfinder-tests-")
-import atexit, shutil  # noqa: E401,E402
+import atexit  # noqa: E401,E402
+import shutil
+
 atexit.register(shutil.rmtree, TMP, True)          # tidy up the temporary data folder afterwards
 for _var in ("APPDATA", "HOME", "XDG_DATA_HOME", "USERPROFILE"):
     os.environ[_var] = TMP
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-import jobfinder as jf  # noqa: E402
+from jobslop import (
+    config,  # noqa: E402
+    rates,  # noqa: E402
+    runtime,  # noqa: E402
+    settings,  # noqa: E402
+    tracker,  # noqa: E402
+)
+from jobslop.boards import base as board_base  # noqa: E402
+from jobslop.boards import registry  # noqa: E402
+from jobslop.geo import (
+    osm,  # noqa: E402
+    places,  # noqa: E402
+)
+from jobslop.profile import store as pstore  # noqa: E402
+from jobslop.server import handler as app_handler  # noqa: E402
 
-assert str(jf.DATA_DIR).startswith(TMP), "tests must not use the real jobslop data folder"
+assert str(config.DATA_DIR).startswith(TMP), "tests must not use the real jobslop data folder"
 
 # exact spots for the postcodes used in tests, instead of asking postcodes.io / OpenStreetMap
 FAKE_POSTCODES = {
@@ -46,9 +62,9 @@ def no_internet():
     """Context manager: postcodes from the table above, OpenStreetMap and other web calls fail."""
     from contextlib import ExitStack
     stack = ExitStack()
-    stack.enter_context(mock.patch.object(jf, "lookup_postcode", side_effect=fake_lookup))
-    stack.enter_context(mock.patch.object(jf, "nominatim", side_effect=OSError("no internet in tests")))
-    jf._places["mem"].clear()
+    stack.enter_context(mock.patch.object(places, "lookup_postcode", side_effect=fake_lookup))
+    stack.enter_context(mock.patch.object(osm, "nominatim", side_effect=OSError("no internet in tests")))
+    places._places["mem"].clear()
     return stack
 
 
@@ -64,17 +80,17 @@ def offline(fn):
 
 def reset_data():
     """Empty data folder: no profile, settings, saved jobs, cache or CV."""
-    for f in (jf.CACHE_FILE, jf.SETTINGS_FILE, jf.SAVED_FILE, jf.PROFILE_FILE, jf.PLACES_FILE, jf.RATES_FILE):
+    for f in (registry.CACHE_FILE, settings.SETTINGS_FILE, tracker.SAVED_FILE, pstore.PROFILE_FILE, places.PLACES_FILE, rates.RATES_FILE):
         f.unlink(missing_ok=True)
     import shutil
-    shutil.rmtree(jf.CV_DIR, ignore_errors=True)
-    jf._places["mem"].clear()
-    jf._places["disk"] = None
-    jf.state.update(active=None, ext_seen=0.0)
+    shutil.rmtree(pstore.CV_DIR, ignore_errors=True)
+    places._places["mem"].clear()
+    places._places["disk"] = None
+    runtime.state.update(active=None, ext_seen=0.0)
 
 
 def make_job(source, title, company="Acme", location="Birmingham, UK", desc="", url=None, **extra):
-    j = jf.job(source, title, company, url or f"https://example.com/{source}/{title.replace(' ', '-')}/{company}",
+    j = board_base.job(source, title, company, url or f"https://example.com/{source}/{title.replace(' ', '-')}/{company}",
                location=location, desc=desc)
     j.update(extra)
     return j
@@ -200,7 +216,7 @@ class AppServer:
 
     def __init__(self, handler=None):
         from http.server import ThreadingHTTPServer
-        self.server = ThreadingHTTPServer(("127.0.0.1", 0), handler or jf.Handler)
+        self.server = ThreadingHTTPServer(("127.0.0.1", 0), handler or app_handler.Handler)
         self.port = self.server.server_address[1]
         threading.Thread(target=self.server.serve_forever, daemon=True).start()
 
@@ -239,7 +255,7 @@ class AppTestCase:
     @classmethod
     def setup_class(cls):
         cls.app = AppServer()
-        jf.state["port"] = cls.app.port
+        runtime.state["port"] = cls.app.port
 
     @classmethod
     def teardown_class(cls):
@@ -247,4 +263,4 @@ class AppTestCase:
 
     def setup_method(self):
         reset_data()
-        jf.state["port"] = self.app.port
+        runtime.state["port"] = self.app.port

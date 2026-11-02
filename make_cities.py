@@ -2,7 +2,10 @@
 GeoNames data: CC BY 4.0, https://www.geonames.org/
 Usage: python make_cities.py path/to/cities5000.zip
 """
-import gzip, io, sys, zipfile
+import gzip
+import io
+import sys
+import zipfile
 from pathlib import Path
 
 

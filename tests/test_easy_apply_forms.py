@@ -18,7 +18,6 @@ import subprocess
 from pathlib import Path
 
 import pytest
-
 from support import ROOT, TMP
 from test_extension import find_chrome
 

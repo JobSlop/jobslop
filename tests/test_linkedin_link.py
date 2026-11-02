@@ -15,9 +15,12 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
-
-from support import jf, AppTestCase, ROOT, TMP
+from support import ROOT, TMP, AppTestCase
 from test_extension import find_chrome
+
+from jobslop import extension
+from jobslop.profile import linkedin_link
+from jobslop.server import handler
 
 # what the extension sends for a profile page: the lines of text it can see in each part of the page
 LI_PAGE = {
@@ -40,7 +43,7 @@ LI_PAGE = {
 
 
 def test_profile_links_are_recognised():
-    url = jf.linkedin_profile_url
+    url = linkedin_link.linkedin_profile_url
     assert url("https://www.linkedin.com/in/sarah-test/") == "https://www.linkedin.com/in/sarah-test/"
     assert url("linkedin.com/in/sarah-test?utm_source=share") == "https://www.linkedin.com/in/sarah-test/"
     assert url("uk.linkedin.com/in/Sarah-Test-123") == "https://www.linkedin.com/in/Sarah-Test-123/"
@@ -51,7 +54,7 @@ def test_profile_links_are_recognised():
 
 
 def test_page_to_profile():
-    f = jf.linkedin_from_page(LI_PAGE)
+    f = linkedin_link.linkedin_from_page(LI_PAGE)
     assert (f["first_name"], f["last_name"]) == ("Sarah", "de Vries")
     assert (f["city"], f["country"]) == ("Coventry", "United Kingdom"), "the headline isn't mistaken for a place"
     jobs = f["jobs"]
@@ -70,23 +73,23 @@ def test_page_to_profile():
 
 
 def test_an_empty_page_gives_nothing():
-    assert jf.linkedin_from_page({}) == {}
-    assert jf.linkedin_from_page({"name": "", "experience": ["junk", {"lines": []}]}) == {}
+    assert linkedin_link.linkedin_from_page({}) == {}
+    assert linkedin_link.linkedin_from_page({"name": "", "experience": ["junk", {"lines": []}]}) == {}
 
 
 class LinkHandOverTests(AppTestCase):
     def ext(self, path, body=None):
-        headers = {"X-JobFinder-Key": jf.pairing_code()}
+        headers = {"X-JobFinder-Key": extension.pairing_code()}
         if body is None:
             return self.app.get(path, headers=headers)
         return self.app.post(path, body, headers=headers)
 
     def setup_method(self):
         super().setup_method()
-        jf.li_link.update(url="", at=0.0, found=None, error="")
+        linkedin_link.li_link.update(url="", at=0.0, found=None, error="")
 
     def test_link_is_opened_and_read_back(self):
-        with mock.patch.object(jf, "open_in_chrome", return_value=True) as chrome:
+        with mock.patch.object(handler, "open_in_chrome", return_value=True) as chrome:
             code, r = self.app.post("/api/linkedin/link", {"url": "linkedin.com/in/sarah-test?trk=x"})
         assert code == 200 and r["chrome"] is True
         chrome.assert_called_once_with("https://www.linkedin.com/in/sarah-test/")
@@ -102,14 +105,14 @@ class LinkHandOverTests(AppTestCase):
         assert self.app.get("/api/linkedin/link")[1]["found"] is None
 
     def test_sign_in_problem_is_reported(self):
-        with mock.patch.object(jf, "open_in_chrome", return_value=True):
+        with mock.patch.object(handler, "open_in_chrome", return_value=True):
             self.app.post("/api/linkedin/link", {"url": "https://www.linkedin.com/in/sarah-test/"})
         self.ext("/ext/linkedin", {"error": "Sign in to LinkedIn in Chrome first"})
         st = self.app.get("/api/linkedin/link")[1]
         assert (st["waiting"], st["error"]) == (False, "Sign in to LinkedIn in Chrome first")
 
     def test_bad_links_and_unasked_pages_are_refused(self):
-        with mock.patch.object(jf, "open_in_chrome") as chrome:
+        with mock.patch.object(handler, "open_in_chrome") as chrome:
             code, r = self.app.post("/api/linkedin/link", {"url": "https://www.linkedin.com/company/rare"})
         assert code == 400 and "linkedin.com/in/" in r["error"]
         chrome.assert_not_called()
@@ -121,9 +124,9 @@ class LinkHandOverTests(AppTestCase):
         assert self.app.post("/ext/linkedin", {"page": LI_PAGE})[0] == 401
 
     def test_old_requests_expire(self):
-        with mock.patch.object(jf, "open_in_chrome", return_value=True):
+        with mock.patch.object(handler, "open_in_chrome", return_value=True):
             self.app.post("/api/linkedin/link", {"url": "https://www.linkedin.com/in/sarah-test/"})
-        jf.li_link["at"] -= jf.LI_LINK_WAIT + 1
+        linkedin_link.li_link["at"] -= linkedin_link.LI_LINK_WAIT + 1
         assert self.ext("/ext/linkedin/wanted")[1]["url"] == ""
         assert self.app.get("/api/linkedin/link")[1]["waiting"] is False
 
@@ -176,7 +179,7 @@ def test_extension_reads_a_linkedin_style_page():
     page = json.loads(html.unescape(m.group(1)))
     assert page["name"] == "Sarah de Vries"
     assert page["skills"] == ["C++", "Unreal Engine"], "skill names only, not the endorsements"
-    f = jf.linkedin_from_page({**page, "url": "https://www.linkedin.com/in/sarah-test/"})
+    f = linkedin_link.linkedin_from_page({**page, "url": "https://www.linkedin.com/in/sarah-test/"})
     assert [(j["title"], j["company"], j["start"], j["end"]) for j in f["jobs"]] == [
         ("Lead Gameplay Programmer", "Rare", "Mar 2023", "Present"),
         ("Gameplay Programmer", "Rare", "Sep 2019", "Feb 2023"),

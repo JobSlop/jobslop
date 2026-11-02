@@ -1,10 +1,16 @@
 """Profile, CV upload, LinkedIn import, settings and job-match terms — through the app's own web API."""
 import json
+import re
 from datetime import datetime
 from unittest import mock
 
-from support import jf, AppTestCase, b64, make_zip, make_pdf, make_docx
-import re
+from support import AppTestCase, b64, make_docx, make_pdf, make_zip
+
+from jobslop import config, extension, net, rates, runtime, settings
+from jobslop.boards import registry
+from jobslop.profile import cvparse
+from jobslop.profile import store as pstore
+from jobslop.search import engine, matching
 
 LI_PROFILE = "First Name,Last Name,Maiden Name,Address,Birth Date,Headline,Summary,Industry,Zip Code,Geo Location,Twitter Handles,Websites,Instant Messengers\n" \
              "Regilio Mark,Henry,,,,Games Programmer,,,B3 2BJ,\"Birmingham, England, United Kingdom\",,[PORTFOLIO:https://regilio.dev],\n"
@@ -38,24 +44,24 @@ class ProfileTests(AppTestCase):
         assert r["cv"] is None
 
     def test_profile_limits(self):
-        r = jf.save_profile({"bio": "x" * 9000, "jobs": [{"title": str(i)} for i in range(30)]})
+        r = pstore.save_profile({"bio": "x" * 9000, "jobs": [{"title": str(i)} for i in range(30)]})
         assert len(r["bio"]) == 8000
         assert len(r["jobs"]) == 20
 
     def test_clear_profile(self):
-        jf.save_profile({"first_name": "A"})
+        pstore.save_profile({"first_name": "A"})
         self.app.post("/api/cv", {"name": "cv.pdf", "data": b64(make_pdf(["Hello"]))})
         code, r = self.app.post("/api/profile/clear", {"cv": True})
         assert r == {"profile": {}, "cv_removed": True}
-        assert jf.load_profile() == {}
-        assert jf.cv_file() is None
+        assert pstore.load_profile() == {}
+        assert pstore.cv_file() is None
 
     def test_upload_parse_and_remove_cv(self):
         pdf = make_pdf(["**Sarah Thompson", "sarah@example.com", "Coventry CV1 2AB"])
         code, r = self.app.post("/api/cv", {"name": "../../My CV?.pdf", "data": b64(pdf)})
         assert code == 200
         assert r["cv"]["name"] == "My CV_.pdf", "folders and odd characters are stripped from the name"
-        with mock.patch.object(jf, "ocr_pdf", return_value=[]):
+        with mock.patch.object(cvparse, "ocr_pdf", return_value=[]):
             code, r = self.app.post("/api/cv/parse", {})
         assert (r["found"]["first_name"], r["found"]["email"], r["found"]["postcode"]) == \
                          ("Sarah", "sarah@example.com", "CV1 2AB")
@@ -67,7 +73,7 @@ class ProfileTests(AppTestCase):
     def test_only_one_cv_is_kept(self):
         self.app.post("/api/cv", {"name": "old.pdf", "data": b64(b"%PDF-1.4 old")})
         self.app.post("/api/cv", {"name": "new.docx", "data": b64(make_docx(["Hi"]))})
-        assert [f.name for f in jf.CV_DIR.iterdir()] == ["new.docx"]
+        assert [f.name for f in pstore.CV_DIR.iterdir()] == ["new.docx"]
 
     def test_cv_too_big(self):
         code, r = self.app.post("/api/cv", {"name": "big.pdf", "data": b64(b"0" * (10 * 1024 * 1024 + 1))})
@@ -96,7 +102,7 @@ class LinkedInTests(AppTestCase):
 
     def test_profile_pdf(self):
         pdf = make_pdf(["**Regilio Henry", "me@example.com", "www.linkedin.com/in/regilio (LinkedIn)", "Birmingham, England, United Kingdom"])
-        with mock.patch.object(jf, "ocr_pdf", return_value=[]):
+        with mock.patch.object(cvparse, "ocr_pdf", return_value=[]):
             code, r = self.app.post("/api/linkedin", {"name": "Profile.pdf", "data": b64(pdf)})
         assert (r["found"]["first_name"], r["found"]["email"]) == ("Regilio", "me@example.com")
         assert "linkedin.com" not in r["found"].get("website", "")
@@ -107,7 +113,7 @@ class LinkedInTests(AppTestCase):
             code, r = self.app.post("/api/linkedin", {"name": name, "data": b64(data) if data else ""})
             assert code == 400, name
             assert msg in r["error"], name
-        assert not list(jf.DATA_DIR.glob("linkedin-import*")), "temporary import files are cleaned up"
+        assert not list(config.DATA_DIR.glob("linkedin-import*")), "temporary import files are cleaned up"
 
 
 class SettingsTests(AppTestCase):
@@ -115,7 +121,7 @@ class SettingsTests(AppTestCase):
         code, r = self.app.post("/api/settings", {"reed_key": " abcdefghijk ", "apify_token": "short"})
         assert r["reed_key"] == "abc••••••jk"
         assert r["apify_token"] == "set"
-        assert jf.load_settings()["reed_key"] == "abcdefghijk", "keys are stored trimmed"
+        assert settings.load_settings()["reed_key"] == "abcdefghijk", "keys are stored trimmed"
         assert self.app.get("/api/settings")[1]["adzuna_id"] == ""
 
     def test_screen_preferences(self):
@@ -124,25 +130,25 @@ class SettingsTests(AppTestCase):
         assert self.app.get("/api/prefs")[1]["f_where"] == "B3 2BJ"
 
     def test_pairing_code_stays_the_same(self):
-        assert jf.pairing_code() == jf.pairing_code()
+        assert extension.pairing_code() == extension.pairing_code()
 
     def test_match_terms(self):
         code, r = self.app.post("/api/match_terms", {"terms": [
             {"name": "Communications", "aliases": "comms, PR, public relations", "title_only": True}, {"name": ""}]})
         assert r == [{"name": "Communications", "aliases": ["comms", "PR", "public relations"], "title_only": True}]
         assert self.app.get("/api/match_terms")[1] == r
-        g = jf.find_group("PR", jf.match_groups())
+        g = matching.find_group("PR", matching.match_groups())
         assert g["name"] == "Communications"
-        assert jf.group_score({"title": "PR Manager", "tags": [], "desc": ""}, g) > 0
-        assert jf.group_score({"title": "Office Manager", "tags": [], "desc": "good communications"}, g) == 0, \
+        assert matching.group_score({"title": "PR Manager", "tags": [], "desc": ""}, g) > 0
+        assert matching.group_score({"title": "Office Manager", "tags": [], "desc": "good communications"}, g) == 0, \
                          "title-only terms ignore the description"
 
     def test_match_terms_expand_the_search(self):
-        jf.update_settings(lambda s: s.update(match_terms=[{"name": "Games Programmer", "aliases": ["Gameplay Programmer"]}]))
-        from support import FakeBoards, make_job, base_opts
+        settings.update_settings(lambda s: s.update(match_terms=[{"name": "Games Programmer", "aliases": ["Gameplay Programmer"]}]))
+        from support import FakeBoards, base_opts, make_job
         fake = FakeBoards({"LinkedIn": [make_job("LinkedIn", "Gameplay Programmer")]})
-        with mock.patch.dict(jf.SOURCES, fake.sources(), clear=True):
-            out = jf.search("games programmer", ["LinkedIn"], base_opts(), fresh=True)
+        with mock.patch.dict(registry.SOURCES, fake.sources(), clear=True):
+            out = engine.search("games programmer", ["LinkedIn"], base_opts(), fresh=True)
         assert {c[1] for c in fake.calls} == {"Games Programmer", "Gameplay Programmer"}
         assert len(out["results"]) == 1
 
@@ -153,30 +159,30 @@ class SettingsTests(AppTestCase):
         assert next(c for c in r if c["code"] == "GB")["currency"] == "GBP"
 
     def test_exchange_rates_work_offline(self):
-        with mock.patch.object(jf, "get_json", side_effect=OSError("offline")):
+        with mock.patch.object(net, "get_json", side_effect=OSError("offline")):
             code, r = self.app.get("/api/rates")
         assert r["source"] == "built-in (offline)"
         assert r["rates"]["USD"] == 1
-        with mock.patch.object(jf, "get_json", return_value={"rates": {"GBP": 0.8, "EUR": 0.9}}):
-            jf.RATES_FILE.unlink(missing_ok=True)
-            r = jf.get_rates()
+        with mock.patch.object(net, "get_json", return_value={"rates": {"GBP": 0.8, "EUR": 0.9}}):
+            rates.RATES_FILE.unlink(missing_ok=True)
+            r = rates.get_rates()
         assert (r["rates"]["GBP"], r["rates"]["USD"]) == (0.8, 1)
-        with mock.patch.object(jf, "get_json", side_effect=AssertionError("should use the saved rates")):
-            assert jf.get_rates()["rates"]["GBP"] == 0.8
+        with mock.patch.object(net, "get_json", side_effect=AssertionError("should use the saved rates")):
+            assert rates.get_rates()["rates"]["GBP"] == 0.8
 
 
 class ExtensionDataTests(AppTestCase):
     def test_cover_letter_template(self):
-        letter = jf.render_letter("Dear {company}, I'm {full_name} applying for {title}. {unknown}",
+        letter = extension.render_letter("Dear {company}, I'm {full_name} applying for {title}. {unknown}",
                                   {"first_name": "Sarah", "last_name": "Thompson"}, {"company": "Rare", "title": "Programmer"})
         assert letter == "Dear Rare, I'm Sarah Thompson applying for Programmer. {unknown}"
-        assert "your company" in jf.render_letter("{company}", {}, None)
+        assert "your company" in extension.render_letter("{company}", {}, None)
 
     def test_extension_payload(self):
-        jf.save_profile({"first_name": "Sarah", "last_name": "Thompson", "cover_letter_template": "Hi {company}",
+        pstore.save_profile({"first_name": "Sarah", "last_name": "Thompson", "cover_letter_template": "Hi {company}",
                          "jobs": [{"title": "Programmer", "company": "Rare"}]})
-        jf.state["active"] = {"job": {"title": "Dev", "company": "Sumo", "url": "https://x"}, "t": __import__("time").time()}
-        p = jf.extension_payload()
+        runtime.state["active"] = {"job": {"title": "Dev", "company": "Sumo", "url": "https://x"}, "t": __import__("time").time()}
+        p = extension.extension_payload()
         assert (p["full_name"], p["cover_letter"], p["active"]["company"]) == ("Sarah Thompson", "Hi Sumo", "Sumo")
         assert (p["profile"]["current_title"], p["profile"]["current_company"]) == ("Programmer", "Rare")
 
@@ -185,8 +191,8 @@ class ExtensionDataTests(AppTestCase):
         assert code == 401
         code, _ = self.app.get("/ext/profile", headers={"X-JobFinder-Key": "WRONG-CODE"})
         assert code == 401
-        jf.save_profile({"first_name": "Sarah"})
-        code, r = self.app.get("/ext/profile", headers={"X-JobFinder-Key": jf.pairing_code().lower(),
+        pstore.save_profile({"first_name": "Sarah"})
+        code, r = self.app.get("/ext/profile", headers={"X-JobFinder-Key": extension.pairing_code().lower(),
                                                         "Origin": "chrome-extension://abc"})
         assert (code, r["profile"]["first_name"]) == (200, "Sarah")
         code, r = self.app.post("/api/ext/status", {})
@@ -194,12 +200,12 @@ class ExtensionDataTests(AppTestCase):
 
     def test_extension_gets_the_cv(self):
         self.app.post("/api/cv", {"name": "cv.pdf", "data": b64(b"%PDF-1.4 test")})
-        code, r = self.app.get("/ext/cv", headers={"X-JobFinder-Key": jf.pairing_code()})
+        code, r = self.app.get("/ext/cv", headers={"X-JobFinder-Key": extension.pairing_code()})
         assert (r["name"], r["type"]) == ("cv.pdf", "application/pdf")
 
     def test_extension_folder_is_installed(self):
-        folder = jf.install_extension()
-        assert (jf.EXT_DIR / "manifest.json").exists()
-        pairing = json.loads((jf.EXT_DIR / "pairing.json").read_text(encoding="utf-8"))
-        assert pairing["code"] == jf.pairing_code()
-        assert folder == str(jf.EXT_DIR)
+        folder = extension.install_extension()
+        assert (pstore.EXT_DIR / "manifest.json").exists()
+        pairing = json.loads((pstore.EXT_DIR / "pairing.json").read_text(encoding="utf-8"))
+        assert pairing["code"] == extension.pairing_code()
+        assert folder == str(pstore.EXT_DIR)

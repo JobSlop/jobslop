@@ -1,0 +1,9 @@
+# Linting: python -m ruff check .
+line-length = 140
+target-version = "py311"
+
+[lint]
+select = ["F", "E9", "I", "B006", "B008"]
+
+[lint.isort]
+known-first-party = ["jobslop"]

@@ -1,8 +1,11 @@
 """Reading CVs: PDF and Word files, UK / US / Dutch layouts, OCR for drawn or scanned CVs."""
+import sys
 from pathlib import Path
 from unittest import mock
 
-from support import jf, make_pdf, make_docx, reset_data, TMP
+from support import TMP, make_docx, make_pdf, reset_data
+
+from jobslop.profile import cvparse, cvtext, ocr
 
 UK_CV = """Sarah Jane Thompson
 12 Elm Grove, Coventry CV1 2AB
@@ -68,7 +71,7 @@ class CvTestCase:
 class UkCvTests(CvTestCase):
     @classmethod
     def setup_class(cls):
-        cls.cv = jf.parse_text(UK_CV)
+        cls.cv = cvparse.parse_text(UK_CV)
 
     def test_contact_details(self):
         self.check_fields(self.cv, {"first_name": "Sarah", "middle_name": "Jane", "last_name": "Thompson",
@@ -99,7 +102,7 @@ class UkCvTests(CvTestCase):
 class UsCvTests(CvTestCase):
     @classmethod
     def setup_class(cls):
-        cls.cv = jf.parse_text(US_CV)
+        cls.cv = cvparse.parse_text(US_CV)
 
     def test_contact_and_address(self):
         self.check_fields(self.cv, {"first_name": "Michael", "middle_name": "J.", "last_name": "Rodriguez",
@@ -121,18 +124,18 @@ class UsCvTests(CvTestCase):
 
     def test_us_dates_with_day(self):
         """'January 18th – May 2023' (day after the month) is a date range."""
-        cv = jf.parse_text("Irene Valle\nirene@example.com\nEXPERIENCE\nData Visualization Intern, NASCAR\n"
+        cv = cvparse.parse_text("Irene Valle\nirene@example.com\nEXPERIENCE\nData Visualization Intern, NASCAR\n"
                            "January 18th – May 2023\n• Built charts\n")
         assert (cv["jobs"][0]["start"], cv["jobs"][0]["end"]) == ("January 2023", "May 2023")
 
     def test_country_from_phone_when_no_address(self):
-        cv = jf.parse_text("Jane Doe\njane@example.com\n+1 512 555 0147\n")
+        cv = cvparse.parse_text("Jane Doe\njane@example.com\n+1 512 555 0147\n")
         assert cv.get("country") == "United States"
 
 
 class DutchCvTests(CvTestCase):
     def test_dutch_cv(self):
-        cv = jf.parse_text(NL_CV)
+        cv = cvparse.parse_text(NL_CV)
         self.check_fields(cv, {"first_name": "Jan", "last_name": "de Vries", "email": "jan.devries@ziggo.nl",
                                "phone": "+31 6 12345678", "address1": "Damrak 1", "postcode": "1012 LG", "city": "Amsterdam",
                                "country": "Netherlands", "skills": "Java, Kotlin, SQL", "university": "Hogeschool Utrecht"})
@@ -140,7 +143,7 @@ class DutchCvTests(CvTestCase):
                          ("Software Ontwikkelaar", "Bol.com", "Present")
 
     def test_curriculum_vitae_is_not_a_name(self):
-        assert jf.parse_text(NL_CV).get("first_name") != "Curriculum"
+        assert cvparse.parse_text(NL_CV).get("first_name") != "Curriculum"
 
 
 class FileTests(CvTestCase):
@@ -154,8 +157,8 @@ class FileTests(CvTestCase):
 
     def test_pdf_cv(self):
         p = self.write("cv.pdf", make_pdf(["**Sarah Jane Thompson"] + UK_CV.splitlines()[1:]))
-        with mock.patch.object(jf, "ocr_pdf", return_value=[]) as ocr:
-            cv = jf.parse_cv(p)
+        with mock.patch.object(cvparse, "ocr_pdf", return_value=[]) as ocr:
+            cv = cvparse.parse_cv(p)
         self.check_fields(cv, {"first_name": "Sarah", "last_name": "Thompson", "postcode": "CV1 2AB",
                                "university": "Staffordshire University"})
         assert len(cv["jobs"]) == 2
@@ -163,13 +166,13 @@ class FileTests(CvTestCase):
 
     def test_word_cv(self):
         p = self.write("cv.docx", make_docx(["**Sarah Jane Thompson"] + UK_CV.splitlines()[1:]))
-        cv = jf.parse_cv(p)
+        cv = cvparse.parse_cv(p)
         self.check_fields(cv, {"first_name": "Sarah", "email": "sarah.thompson@gmail.com", "city": "Coventry"})
         assert cv["jobs"][1]["location"] == "Southam"
 
     def test_text_cv(self):
         p = self.write("cv.txt", UK_CV.encode("utf-8"))
-        assert jf.parse_cv(p).get("last_name") == "Thompson"
+        assert cvparse.parse_cv(p).get("last_name") == "Thompson"
 
     def test_drawn_name_is_read_with_ocr(self):
         """CVs whose name and email are drawn as shapes: OCR fills in what the text layer lacks."""
@@ -182,8 +185,8 @@ class FileTests(CvTestCase):
                      {"t": "LOCATION", "x": 1200, "y": 420, "h": 20, "page": 0, "w": W},
                      {"t": "Coventry", "x": 1200, "y": 460, "h": 20, "page": 0, "w": W},
                      {"t": "Games programmer with C++ experience.", "x": 150, "y": 500, "h": 20, "page": 0, "w": W}]
-        with mock.patch.object(jf, "ocr_pdf", return_value=ocr_lines):
-            cv = jf.parse_cv(p)
+        with mock.patch.object(cvparse, "ocr_pdf", return_value=ocr_lines):
+            cv = cvparse.parse_cv(p)
         self.check_fields(cv, {"first_name": "Sarah", "last_name": "Thompson", "email": "sarah.thompson@gmail.com",
                                "read_with_ocr": "yes"})
         assert len(cv["jobs"]) == 2, "jobs from the text layer are kept"
@@ -191,7 +194,7 @@ class FileTests(CvTestCase):
     def test_ocr_pairs_labels_with_values(self):
         """Stacked fields: a label with its value underneath, or beside it."""
         W = 1785
-        text, _ = jf.ocr_to_text([
+        text, _ = cvparse.ocr_to_text([
             {"t": "PHONE", "x": 100, "y": 100, "h": 20, "page": 0, "w": W},
             {"t": "07700 900123", "x": 100, "y": 135, "h": 20, "page": 0, "w": W},
             {"t": "Email:", "x": 100, "y": 220, "h": 20, "page": 0, "w": W},
@@ -200,42 +203,42 @@ class FileTests(CvTestCase):
         assert "Email: me@example.com" in text
 
     def test_ocr_is_windows_only(self):
-        with mock.patch.object(jf.sys, "platform", "darwin"):
-            assert jf.ocr_pdf("whatever.pdf") == []
+        with mock.patch.object(sys, "platform", "darwin"):
+            assert ocr.ocr_pdf("whatever.pdf") == []
 
 
 class PieceTests:
     def test_find_phone(self):
-        assert jf.find_phone("Call 07911 123456 today", ["GB"]) == "07911 123456"
-        assert jf.find_phone("Tel: +44 7911 123456", ["GB"], with_region=True) == ("+44 7911 123456", "GB")
-        assert jf.find_phone("Bel +31 6 12345678", ["GB", "NL"], with_region=True) == ("+31 6 12345678", "NL")
-        assert jf.find_phone("Daytona Beach, FL 32114 (407) 701-0378", ["US"]) == "(407) 701-0378"
-        assert not jf.find_phone("Born 2019, ID 12345", ["GB"])
+        assert cvparse.find_phone("Call 07911 123456 today", ["GB"]) == "07911 123456"
+        assert cvparse.find_phone("Tel: +44 7911 123456", ["GB"], with_region=True) == ("+44 7911 123456", "GB")
+        assert cvparse.find_phone("Bel +31 6 12345678", ["GB", "NL"], with_region=True) == ("+31 6 12345678", "NL")
+        assert cvparse.find_phone("Daytona Beach, FL 32114 (407) 701-0378", ["US"]) == "(407) 701-0378"
+        assert not cvparse.find_phone("Born 2019, ID 12345", ["GB"])
 
     def test_street_and_flat(self):
         out = {}
-        jf.split_street("Flat 3, 22 London Road", out)
+        cvparse.split_street("Flat 3, 22 London Road", out)
         assert (out.get("address1"), out.get("address2")) == ("22 London Road", "Flat 3")
 
     def test_place_detection(self):
-        assert jf.is_place("Birmingham")
-        assert jf.is_place("Austin, TX")
-        assert jf.is_place("Kensington, London")
-        assert not jf.is_place("Hilton, Southam"), "a company name and a town in different countries"
-        assert not jf.is_place("Marketing Intern, Kraft Heinz — Chicago, IL")
+        assert cvparse.is_place("Birmingham")
+        assert cvparse.is_place("Austin, TX")
+        assert cvparse.is_place("Kensington, London")
+        assert not cvparse.is_place("Hilton, Southam"), "a company name and a town in different countries"
+        assert not cvparse.is_place("Marketing Intern, Kraft Heinz — Chicago, IL")
 
     def test_job_heading_split(self):
-        assert jf.split_header(["Gameplay Programmer", "Codemasters, Southam"]) == \
+        assert cvparse.split_header(["Gameplay Programmer", "Codemasters, Southam"]) == \
                          ("Gameplay Programmer", "Codemasters", "Southam")
-        assert jf.split_header(["Receptionist, Hilton"]) == ("Receptionist", "Hilton", ""), \
+        assert cvparse.split_header(["Receptionist, Hilton"]) == ("Receptionist", "Hilton", ""), \
                          "a company that shares its name with a town stays the company"
-        assert jf.split_header(["Engineer, Rolls-Royce, Derby"]) == ("Engineer", "Rolls-Royce", "Derby")
+        assert cvparse.split_header(["Engineer, Rolls-Royce, Derby"]) == ("Engineer", "Rolls-Royce", "Derby")
 
     def test_dates(self):
-        assert jf.find_dates("March 2021 - Present")[:2] == ("March 2021", "Present")
-        assert jf.find_dates("06/2019 – 02/2021")[:2] == ("06/2019", "02/2021")
-        assert jf.find_dates("No dates at all") is None
+        assert cvparse.find_dates("March 2021 - Present")[:2] == ("March 2021", "Present")
+        assert cvparse.find_dates("06/2019 – 02/2021")[:2] == ("06/2019", "02/2021")
+        assert cvparse.find_dates("No dates at all") is None
 
     def test_clean_text(self):
-        assert jf.clean_text("Phone07700900123Email") == "Phone07700900123 Email"
+        assert cvtext.clean_text("Phone07700900123Email") == "Phone07700900123 Email"
 

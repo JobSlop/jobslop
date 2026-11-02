@@ -1,7 +1,8 @@
 """Builds static/world.json - a small offline world map (country outlines) from Natural Earth (public domain).
 Usage: python make_world.py path/to/ne_50m_admin_0_countries.geojson
 """
-import json, sys
+import json
+import sys
 from pathlib import Path
 
 

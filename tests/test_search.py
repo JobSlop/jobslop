@@ -8,7 +8,15 @@ import json
 import urllib.error
 from unittest import mock
 
-from support import jf, fake_lookup, offline, make_job, base_opts, FakeBoards, reset_data, AppServer
+from support import AppServer, FakeBoards, base_opts, fake_lookup, make_job, offline, reset_data
+
+from jobslop import runtime
+from jobslop.boards import base as board_base
+from jobslop.boards import registry
+from jobslop.geo import countries, osm, places
+from jobslop.profile import store as pstore
+from jobslop.search import contract, engine
+
 
 class SearchTestCase:
     def setup_method(self):
@@ -16,10 +24,10 @@ class SearchTestCase:
 
     def run_search(self, boards, query="software developer", fresh=True, **opts):
         fake = FakeBoards(boards)
-        with mock.patch.dict(jf.SOURCES, fake.sources(), clear=True), \
-                mock.patch.object(jf, "lookup_postcode", side_effect=fake_lookup), \
-                mock.patch.object(jf, "nominatim", side_effect=OSError("no internet in tests")):
-            out = jf.search(query, list(boards), base_opts(**opts), fresh=fresh)
+        with mock.patch.dict(registry.SOURCES, fake.sources(), clear=True), \
+                mock.patch.object(places, "lookup_postcode", side_effect=fake_lookup), \
+                mock.patch.object(osm, "nominatim", side_effect=OSError("no internet in tests")):
+            out = engine.search(query, list(boards), base_opts(**opts), fresh=fresh)
         return out, fake
 
 
@@ -27,7 +35,7 @@ class SearchTestCase:
 
 class WhereTests:
     def check(self, text, cc, town, postcode="", country=None, region=None, board=None):
-        r = jf.resolve_where(text, cc)
+        r = places.resolve_where(text, cc)
         assert r is not None, f"{text!r} should be understood as a place"
         assert r["town"] == town, f"town for {text!r}"
         assert r["postcode"] == postcode, f"postcode for {text!r}"
@@ -70,7 +78,7 @@ class WhereTests:
     @offline
     def test_street_names_are_not_towns(self):
         """'London Road' must not become London; 'Colmore Row' must not be a town."""
-        r = jf.resolve_where("22 London Road, Coventry", "GB")
+        r = places.resolve_where("22 London Road, Coventry", "GB")
         assert r["town"] == "Coventry"
 
     @offline
@@ -93,42 +101,42 @@ class WhereTests:
     @offline
     def test_whole_country_means_no_town(self):
         for text in ("", "  ", "UK", "United Kingdom", "England", "gb"):
-            assert jf.resolve_where(text, "GB") is None, f"{text!r} means the whole country"
+            assert places.resolve_where(text, "GB") is None, f"{text!r} means the whole country"
 
     @offline
     def test_other_country_name_switches_country(self):
-        r = jf.resolve_where("Germany", "GB")
+        r = places.resolve_where("Germany", "GB")
         assert (r["town"], r["country_code"], r["explicit_country"]) == ("", "DE", True)
 
     @offline
     def test_unknown_place_is_passed_on_as_typed(self):
-        r = jf.resolve_where("Smalltownthatdoesnotexist", "GB")
+        r = places.resolve_where("Smalltownthatdoesnotexist", "GB")
         assert r["town"] == "Smalltownthatdoesnotexist"
         assert not r["found"]
         assert r["lat"] is None
 
     def test_postcode_lookup_failure_still_finds_town(self):
         """No internet: an address with a town still works, only the exact postcode spot is missing."""
-        jf._places["mem"].clear()
-        with mock.patch.object(jf, "lookup_postcode", return_value=None), \
-                mock.patch.object(jf, "nominatim", side_effect=OSError("offline")):
-            r = jf.resolve_where("12 Colmore Row, Birmingham B3 2BJ", "GB")
+        places._places["mem"].clear()
+        with mock.patch.object(places, "lookup_postcode", return_value=None), \
+                mock.patch.object(osm, "nominatim", side_effect=OSError("offline")):
+            r = places.resolve_where("12 Colmore Row, Birmingham B3 2BJ", "GB")
         assert r["town"] == "Birmingham"
         assert r["lat"] is not None
 
 
 class CountryTests:
     def test_is_country_name(self):
-        assert jf.is_country_name("", "GB")
-        assert jf.is_country_name("UK", "GB")
-        assert jf.is_country_name("Nederland", "NL")
-        assert not jf.is_country_name("Birmingham", "GB")
-        assert not jf.is_country_name("UK", "US")
+        assert countries.is_country_name("", "GB")
+        assert countries.is_country_name("UK", "GB")
+        assert countries.is_country_name("Nederland", "NL")
+        assert not countries.is_country_name("Birmingham", "GB")
+        assert not countries.is_country_name("UK", "US")
 
     def test_place_text_for_boards(self):
-        assert jf.place(base_opts(where="")) == "United Kingdom"
-        assert jf.place(base_opts(where="Birmingham")) == "Birmingham, United Kingdom"
-        assert jf.place(base_opts(where="Austin, TX", country="US")) == "Austin, TX"
+        assert places.place(base_opts(where="")) == "United Kingdom"
+        assert places.place(base_opts(where="Birmingham")) == "Birmingham, United Kingdom"
+        assert places.place(base_opts(where="Austin, TX", country="US")) == "Austin, TX"
 
 
 # ------------------------------------------------------------------ the search pipeline
@@ -257,7 +265,7 @@ class SearchMatchingTests(SearchTestCase):
 
 class SearchErrorTests(SearchTestCase):
     def test_board_errors_are_reported_not_crashing(self):
-        boards = {"Reed": jf.NeedsKey("add a key"), "Jobindex": jf.NotHere("Denmark only"),
+        boards = {"Reed": board_base.NeedsKey("add a key"), "Jobindex": board_base.NotHere("Denmark only"),
                   "ZipRecruiter": urllib.error.HTTPError("u", 403, "Forbidden", {}, None),
                   "LinkedIn": [make_job("LinkedIn", "Software Developer")]}
         out, _ = self.run_search(boards)
@@ -288,16 +296,16 @@ class SearchErrorTests(SearchTestCase):
 class DataFileTests:
     def test_profile_saved_with_bom_still_loads(self):
         """Some Windows editors put a hidden marker (BOM) at the start of a file; the profile must still load."""
-        jf.PROFILE_FILE.write_text("﻿" + json.dumps({"city": "Coventry", "postcode": "CV1 2AB"}), encoding="utf-8")
+        pstore.PROFILE_FILE.write_text("﻿" + json.dumps({"city": "Coventry", "postcode": "CV1 2AB"}), encoding="utf-8")
         try:
-            assert jf.load_profile().get("city") == "Coventry"
+            assert pstore.load_profile().get("city") == "Coventry"
         finally:
-            jf.PROFILE_FILE.unlink(missing_ok=True)
+            pstore.PROFILE_FILE.unlink(missing_ok=True)
 
 
 class ContractLengthTests:
     def check(self, text, label, months):
-        assert jf.contract_length({"title": text, "type": "", "desc": ""}) == (label, months), text
+        assert contract.contract_length({"title": text, "type": "", "desc": ""}) == (label, months), text
 
     def test_lengths(self):
         self.check("6 month contract", "6-month contract", 6)
@@ -321,7 +329,7 @@ class ApiTests(SearchTestCase):
 
     def setup_method(self):
         super().setup_method()
-        jf.state["port"] = self.app.port
+        runtime.state["port"] = self.app.port
 
     def get(self, path):
         code, data = self.app.get(path)
@@ -336,9 +344,9 @@ class ApiTests(SearchTestCase):
 
     def test_search_endpoint_with_an_address(self):
         fake = FakeBoards({"LinkedIn": [make_job("LinkedIn", "Software Developer")]})
-        with mock.patch.dict(jf.SOURCES, fake.sources(), clear=True), \
-                mock.patch.object(jf, "lookup_postcode", side_effect=fake_lookup), \
-                mock.patch.object(jf, "nominatim", side_effect=OSError("offline")):
+        with mock.patch.dict(registry.SOURCES, fake.sources(), clear=True), \
+                mock.patch.object(places, "lookup_postcode", side_effect=fake_lookup), \
+                mock.patch.object(osm, "nominatim", side_effect=OSError("offline")):
             r = self.get("/api/search?q=software+developer&where=12+Colmore+Row%2C+Birmingham+B3+2BJ"
                          "&country=GB&sources=LinkedIn&fresh=1")
         assert len(r["results"]) == 1
