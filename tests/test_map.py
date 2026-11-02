@@ -4,9 +4,8 @@ import os
 import time
 from unittest import mock
 
-from support import AppTestCase, no_internet, offline
+from support import AppTestCase, no_internet, offline, plugin_module
 
-from jobslop import studios
 from jobslop.geo import cities
 
 GAMEDEVMAP_CSV = "Organization,URL,City,Country/Region,Category\n" \
@@ -14,6 +13,7 @@ GAMEDEVMAP_CSV = "Organization,URL,City,Country/Region,Category\n" \
                  "Tiny Fox,https://tinyfox.example,Birmingham,United Kingdom,Microstudio\n" \
                  "Big Publisher,https://pub.example,London,United Kingdom,Publisher\n" \
                  "Nowhere Games,https://x,Atlantis,United Kingdom,Developer\n"
+studios = plugin_module("gamedev").studios      # the Game dev plugin's studio list
 INDIE_JSON = [{"name": "Indie Owl", "city": "Coventry", "country": "United Kingdom", "url": "https://w/owl", "games": "Hoot"},
               {"name": "Tiny Fox", "city": "Birmingham", "country": "United Kingdom", "url": "https://w/fox"}]
 
@@ -56,16 +56,16 @@ class TownTests:
 class StudioTests(AppTestCase):
     def setup_method(self):
         super().setup_method()
-        studios.STUDIOS_FILE.write_text(GAMEDEVMAP_CSV, encoding="utf-8")
-        studios.INDIE_FILE.write_text(json.dumps(INDIE_JSON), encoding="utf-8")
-        studios._studios.update(t=0, rows=[])
+        studios.studios_file.write_text(GAMEDEVMAP_CSV, encoding="utf-8")
+        studios.indie_file.write_text(json.dumps(INDIE_JSON), encoding="utf-8")
+        studios._cache.update(t=0, rows=[])
 
     def teardown_method(self):
-        studios._studios.update(t=0, rows=[])
+        studios._cache.update(t=0, rows=[])
 
     def test_studio_list_merges_both_sources(self):
         with mock.patch("urllib.request.urlopen", side_effect=AssertionError("fresh files must not be downloaded again")):
-            rows = studios.studios()
+            rows = studios.all()
         names = {r["name"]: r for r in rows}
         assert "Nowhere Games" not in names, "studios in unknown towns are left off the map"
         assert names["Tiny Fox"]["indie"], "Microstudio = indie"
@@ -75,24 +75,24 @@ class StudioTests(AppTestCase):
 
     def test_studios_near(self):
         b = cities.find_city("Birmingham", "GB")
-        near = studios.studios_near(b[1], b[2], 40)
+        near = studios.near(b[1], b[2], 40)
         assert [s["name"] for s in near][:1] == ["Tiny Fox"], "closest first"
         assert "Indie Owl" in [s["name"] for s in near]
         assert "Big Publisher" not in [s["name"] for s in near], "London is too far"
-        indie = studios.studios_near(b[1], b[2], 60, indie_only=True)
+        indie = studios.near(b[1], b[2], 60, indie_only=True)
         assert {s["name"] for s in indie} == {"Tiny Fox", "Indie Owl"}
 
     def test_studios_endpoint(self):
-        code, r = self.app.get("/api/studios?lat=52.48&lon=-1.90&km=40&kind=indie")
+        code, r = self.app.get("/api/plugin/gamedev/studios?lat=52.48&lon=-1.90&km=40&kind=indie")
         assert code == 200
         assert {s["name"] for s in r["studios"]} == {"Tiny Fox", "Indie Owl"}
-        assert self.app.get("/api/studios?lat=x")[1] == {"studios": [], "total": 0}
+        assert self.app.get("/api/plugin/gamedev/studios?lat=x")[1] == {"studios": [], "total": 0}
 
     def test_old_lists_are_refreshed(self):
         old = time.time() - 8 * 24 * 3600
-        os.utime(studios.STUDIOS_FILE, (old, old))
+        os.utime(studios.studios_file, (old, old))
         with mock.patch("urllib.request.urlopen", side_effect=OSError("offline")):
-            rows = studios.studios()
+            rows = studios.all()
         assert rows, "if the refresh fails, the old list is still used"
 
 

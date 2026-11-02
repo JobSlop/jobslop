@@ -1,0 +1,18 @@
+{
+  "id": "gamedev",
+  "name": "Game dev",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Work With Indies job board and game studios on the map (Game Dev Map and Wikipedia's indie developers), plus your games portfolio in the profile.",
+  "author": "jobslop",
+  "homepage": "https://github.com/JobSlop/jobslop-plugin-gamedev",
+  "python": "plugin.py",
+  "profile_fields": [
+    {"key": "games_portfolio", "label": "Games portfolio / itch.io page", "section": "Games", "type": "url",
+     "autofill": ["itch\\.io", "(games?|game dev) portfolio", "shipped (games|titles)"]},
+    {"key": "engines", "label": "Engines (Unity, Unreal, Godot…)", "section": "Games",
+     "autofill": ["(game )?engines?", "\\b(unity|unreal|godot)\\b"]},
+    {"key": "shipped_titles", "label": "Shipped titles", "section": "Games", "type": "area",
+     "autofill": ["shipped (games|titles)", "titles you('ve| have) (worked on|shipped)", "credits"]}
+  ]
+}

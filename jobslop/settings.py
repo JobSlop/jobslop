@@ -12,7 +12,7 @@ SETTINGS_FILE = DATA_DIR / "settings.json"
 
 # ---------------------------------------------------------------- settings
 
-KEY_NAMES = ("reed_key", "adzuna_id", "adzuna_key", "apify_token", "usajobs_key", "usajobs_email")
+KEY_NAMES = ("apify_token",)          # the app's own keys; plugins add theirs (Reed, Adzuna, ...)
 
 def load_settings():
     if not SETTINGS_FILE.exists():

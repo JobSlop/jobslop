@@ -233,6 +233,18 @@ window.addEventListener("load", () => setTimeout(async () => {
     await wait(500);
     out.tips.shown = $("#tip").classList.contains("on") ? $("#tip").textContent : "";
     setTab("search");
+    // 16. plugins: Settings lists them with their key boxes; switching one off takes its boards away
+    openModal("m-keys"); await loadPlugins();
+    const accChips = () => $$(".sc").map(c => c.value).filter(v => ["ICAEW", "ACCA"].includes(v));
+    out.plugins = {cards: $$("#plugs .plug .pn").map(e => e.firstChild.textContent.trim()),
+                   keyBoxes: $$("#plugsettings input").map(i => i.id)};
+    await togglePlugin("accounting", false);
+    out.plugins.chipsOff = accChips();
+    out.plugins.cardOff = $('.plugsw[data-id="accounting"]').checked;
+    await togglePlugin("accounting", true);
+    out.plugins.chipsOn = accChips();
+    out.plugins.cardOn = $('.plugsw[data-id="accounting"]').checked;
+    closeModals();
   } catch (e) { out.error = String(e && e.stack || e); }
   document.getElementById("selftest").textContent = JSON.stringify(out);
 }, 800));
@@ -433,3 +445,10 @@ class ScreenTests:
         assert o["liImportOpen"] and "your LinkedIn profile" in o["liImportText"]
         assert o["liJobs"] == ["Rare", "Rare", "Codemasters"]
         assert o["liJobsAfterUndo"] == 0, "Undo takes the import back out"
+
+    def test_plugins_in_settings(self):
+        pl = self.out["plugins"]
+        assert {"Accounting", "Artists", "Country boards", "Game dev", "Remote boards"} <= set(pl["cards"])
+        assert {"reed_key", "adzuna_id", "adzuna_key", "usajobs_key", "usajobs_email"} <= set(pl["keyBoxes"])
+        assert pl["chipsOff"] == [] and pl["cardOff"] is False, "switching Accounting off removes its boards"
+        assert pl["chipsOn"] == ["ICAEW", "ACCA"] and pl["cardOn"], "and switching it on brings them back"

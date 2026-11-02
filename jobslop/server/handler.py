@@ -34,7 +34,6 @@ from jobslop.search.matching import match_groups
 from jobslop.server import plugin_routes
 from jobslop.server.phone import PHONE_PORT, new_pin, phone_settings, phone_status, start_phone_server, stop_phone_server
 from jobslop.settings import KEY_NAMES, load_settings, public_settings, save_settings, update_settings
-from jobslop.studios import studios, studios_near
 from jobslop.system import copy_to_clipboard, export_csv, open_path
 from jobslop.tracker import APPLIED_STAGES, load_saved, lock, set_status, today, write_saved
 from jobslop.updates import UPDATE_DIR, check_for_update, download_update, install_update, update_state
@@ -207,14 +206,6 @@ class Handler(BaseHTTPRequestHandler):
                 self.send(json.dumps(towns_in_box(*box, limit=num("limit", 60, 1, 300))))
             except (KeyError, ValueError):
                 self.send("[]")
-        elif u.path == "/api/studios":
-            try:
-                lat, lon = float(p["lat"]), float(p["lon"])
-                self.send(json.dumps({"studios": studios_near(lat, lon, float(p.get("km", 40)),
-                                                              indie_only=p.get("kind") == "indie"),
-                                      "total": len(studios()), "source": "Game Dev Map + Wikipedia"}))
-            except (KeyError, ValueError):
-                self.send('{"studios":[],"total":0}')
         elif u.path.startswith("/static/"):
             name = Path(u.path).name
             f = RES_DIR / "static" / name

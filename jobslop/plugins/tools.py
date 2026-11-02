@@ -44,11 +44,17 @@ def country_code(text: str) -> str | None:
     return cities.code_for_country_text(text)
 
 
-http = SimpleNamespace(
-    get_json=net.get_json,          # get_json(url, timeout=20, headers=None) -> parsed JSON
-    get_text=net.fetch_html,        # get_text(url, timeout=25) -> page text, sent with a normal browser's User-Agent
-    BROWSER_HEADERS=dict(net.BROWSER_UA),
-)
+def get_json(url: str, timeout: int = 20, headers: dict | None = None):
+    """Fetch and parse JSON."""
+    return net.get_json(url, timeout=timeout, headers=headers)
+
+
+def get_text(url: str, timeout: int = 25) -> str:
+    """Fetch a page as text, sent with a normal browser's User-Agent."""
+    return net.fetch_html(url, timeout=timeout)
+
+
+http = SimpleNamespace(get_json=get_json, get_text=get_text, BROWSER_HEADERS=dict(net.BROWSER_UA))
 jobs = SimpleNamespace(
     make=job,                       # make(source, title, company, url, location, date, salary, jtype, tags, desc, remote)
     as_list=as_list,

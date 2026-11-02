@@ -15,7 +15,7 @@ rem the test tools live in the same environment (run_tests.bat) and must never e
   --collect-all jobspy --collect-all curl_cffi --collect-data certifi --collect-data pdfminer --collect-submodules phonenumbers.data --collect-submodules phonenumbers.shortdata --collect-all pypdfium2 --collect-all pypdfium2_raw ^
   --exclude-module pytest --exclude-module _pytest --exclude-module pluggy ^
   --add-data "%~dp0chrome-extension;chrome-extension" --add-data "%~dp0ui.html;." ^
-  --add-data "%~dp0static;static" --add-data "%~dp0cities.tsv.gz;." --add-data "%~dp0jf.ico;." ^
+  --add-data "%~dp0static;static" --add-data "%~dp0cities.tsv.gz;." --add-data "%~dp0jf.ico;." --add-data "%~dp0plugins;plugins" ^
   --workpath "%TEMP%\jobfinder-build" --specpath "%TEMP%\jobfinder-build" jobfinder.py || goto failed
 rem checksum the app checks an update download against (uploaded next to jobslop.exe by release.py)
 "%VENV%\Scripts\python.exe" -c "import hashlib; h=hashlib.sha256(open('dist/jobslop.exe','rb').read()).hexdigest(); open('dist/jobslop.exe.sha256','w').write(h+'  jobslop.exe\n')" || goto failed

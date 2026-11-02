@@ -1,0 +1,11 @@
+{
+  "id": "remote-boards",
+  "name": "Remote boards",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Remote-job boards that need no key: Himalayas, Jobicy, Remotive, RemoteOK and Arbeitnow.",
+  "author": "jobslop",
+  "homepage": "https://github.com/JobSlop/jobslop-plugin-remote-boards",
+  "python": "plugin.py",
+  "enabled_by_default": true
+}

@@ -39,6 +39,17 @@ from jobslop.server import handler as app_handler  # noqa: E402
 
 bootstrap.setup()
 
+
+def plugin_module(pid, module="plugin"):
+    """A built-in plugin's Python module (the plugin is switched on for the tests if it isn't already)."""
+    from jobslop.plugins.manager import PLUGINS
+    p = PLUGINS.get(pid)
+    assert p and p.manifest, f"no built-in plugin called {pid}"
+    if not p.loaded:
+        PLUGINS.set_enabled(pid, True)
+    assert p.loaded, p.error
+    return sys.modules[f"jobslop_plugins.{pid.replace('-', '_')}.{module}"]
+
 assert str(config.DATA_DIR).startswith(TMP), "tests must not use the real jobslop data folder"
 
 # exact spots for the postcodes used in tests, instead of asking postcodes.io / OpenStreetMap

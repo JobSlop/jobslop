@@ -13,18 +13,20 @@ from datetime import datetime, timedelta
 from unittest import mock
 
 import pytest
-from support import base_opts, fake_urlopen, reset_data
+from support import base_opts, fake_urlopen, plugin_module, reset_data
 
 from jobslop import net, settings, text
 from jobslop.boards import base as board_base
-from jobslop.boards import country as country_boards
 from jobslop.boards import jobspy as jobspy_boards
-from jobslop.boards import keyed as keyed_boards
 from jobslop.boards import linkedin as linkedin_board
 from jobslop.boards import registry, ziprecruiter
-from jobslop.boards import remote as remote_boards
-from jobslop.boards import special as special_boards
 from jobslop.geo import cities
+
+country_boards = plugin_module("country-boards")
+remote_boards = plugin_module("remote-boards")
+accounting = plugin_module("accounting")
+artists = plugin_module("artists")
+gamedev = plugin_module("gamedev")
 
 
 def days_ago(n):
@@ -126,11 +128,11 @@ class BoardTestCase:
 class KeyedBoardTests(BoardTestCase):
     def test_reed(self):
         with pytest.raises(board_base.NeedsKey):
-            keyed_boards.src_reed("x", base_opts())
+            country_boards.src_reed("x", base_opts())
         with pytest.raises(board_base.NotHere):
-            keyed_boards.src_reed("x", base_opts(country="US"))
+            country_boards.src_reed("x", base_opts(country="US"))
         self.set_keys(reed_key="abc")
-        jobs, asked = self.json_board(keyed_boards.src_reed, {"reed.co.uk": {"results": [
+        jobs, asked = self.json_board(country_boards.src_reed, {"reed.co.uk": {"results": [
             {"jobTitle": "Games Programmer", "employerName": "Studio", "jobUrl": "https://reed/1", "locationName": "Leamington Spa",
              "date": "30/10/2026", "minimumSalary": 35000, "maximumSalary": 45000, "currency": "GBP", "jobDescription": "<p>C++</p>"}]}},
             base_opts(where="Coventry", salary_min=30000, jtype="fulltime"))
@@ -146,9 +148,9 @@ class KeyedBoardTests(BoardTestCase):
 
     def test_adzuna(self):
         with pytest.raises(board_base.NeedsKey):
-            keyed_boards.src_adzuna("x", base_opts())
+            country_boards.src_adzuna("x", base_opts())
         self.set_keys(adzuna_id="id", adzuna_key="key")
-        jobs, asked = self.json_board(keyed_boards.src_adzuna, {"adzuna.com": {"results": [
+        jobs, asked = self.json_board(country_boards.src_adzuna, {"adzuna.com": {"results": [
             {"title": "Data Analyst", "company": {"display_name": "Bank"}, "redirect_url": "https://adz/1",
              "location": {"display_name": "Birmingham"}, "created": "2026-10-29T10:00:00Z", "salary_min": 30000,
              "salary_max": 36000, "contract_time": "full_time", "contract_type": "permanent",
@@ -226,7 +228,7 @@ class RemoteBoardTests(BoardTestCase):
         assert len(asked) == 3
 
     def test_artstation(self):
-        jobs, _ = self.json_board(special_boards.src_artstation, {"artstation.com": {"data": [
+        jobs, _ = self.json_board(artists.src_artstation, {"artstation.com": {"data": [
             {"title": "Environment Artist", "company_name": "Studio", "hash_id": "abc", "work_remotely": True,
              "recruitment_localities": [{"locality": {"city_name": "Guildford", "country_name": "United Kingdom"}}],
              "salary_range": {"min_salary": 30, "max_salary": 40, "currency": "GBP", "period": "hour"},
@@ -288,7 +290,7 @@ class CountryBoardTests(BoardTestCase):
     def test_workwithindies(self):
         card = ('<a href="/careers/abc" class="job-card w-inline-block"><div class="job-card-text bold">Tiny Studio</div>'
                 '<div class="text-block-28">Gameplay Programmer</div><div class="job-card-text-smol">Remote (EU)</div></a>')
-        jobs = self.html_board(special_boards.src_workwithindies, {"workwithindies.com": card})
+        jobs = self.html_board(gamedev.src_workwithindies, {"workwithindies.com": card})
         j = jobs[0]
         assert (j["title"], j["company"], j["url"], j["remote"]) == \
                          ("Gameplay Programmer", "Tiny Studio", "https://www.workwithindies.com/careers/abc", True)
@@ -299,12 +301,12 @@ class CountryBoardTests(BoardTestCase):
                "<description>£45,000: Big Four: Great audit role. Birmingham (GB)</description></item>"
                "<item><title>Tax Manager</title><link>https://icaew/2</link><pubDate>x</pubDate>"
                "<description>Role based in Dubai (AE)</description></item></rss>")
-        jobs = self.html_board(special_boards.src_icaew, {"icaewjobs.com": rss})
+        jobs = self.html_board(accounting.src_icaew, {"icaewjobs.com": rss})
         assert len(jobs) == 1, "jobs in other countries are dropped when 'workable from my country' is on"
         j = jobs[0]
         assert (j["company"], j["title"], j["location"], j["salary"], j["date"], j["url"]) == \
                          ("Big Four", "Audit Senior", "Birmingham", "£45,000", "2026-10-29", "https://icaew/1")
-        jobs = self.html_board(special_boards.src_acca, {"accaglobal.com": rss}, base_opts(local=False))
+        jobs = self.html_board(accounting.src_acca, {"accaglobal.com": rss}, base_opts(local=False))
         assert len(jobs) == 2
 
 

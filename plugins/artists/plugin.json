@@ -1,0 +1,21 @@
+{
+  "id": "artists",
+  "name": "Artists",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "ArtStation's job board for art, animation and games, plus your portfolio links in the profile (filled in on applications).",
+  "author": "jobslop",
+  "homepage": "https://github.com/JobSlop/jobslop-plugin-artists",
+  "python": "plugin.py",
+  "profile_fields": [
+    {"key": "artstation", "label": "ArtStation profile", "section": "Portfolio", "type": "url",
+     "autofill": ["artstation"]},
+    {"key": "behance", "label": "Behance profile", "section": "Portfolio", "type": "url", "autofill": ["behance"]},
+    {"key": "showreel", "label": "Showreel / demo reel link", "section": "Portfolio", "type": "url",
+     "autofill": ["(show|demo)[- ]?reel", "\\breel\\b"]},
+    {"key": "art_specialism", "label": "Specialism (e.g. 3D environment art, concept art)", "section": "Portfolio",
+     "autofill": ["specialism", "specialisation", "specialization", "discipline"]},
+    {"key": "art_software", "label": "Software (Blender, Maya, Photoshop…)", "section": "Portfolio",
+     "autofill": ["(software|tools) (you use|proficiency|experience)", "\\b(maya|blender|zbrush|photoshop)\\b"]}
+  ]
+}

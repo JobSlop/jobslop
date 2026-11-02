@@ -660,17 +660,10 @@ button.busy{pointer-events:none;opacity:.8}
   <div class="psec">Plugins</div>
   <p class="muted" style="font-size:12.5px;margin:-4px 0 10px">Extra job boards, fields and languages. Switch on what's useful to you — changes apply straight away.</p>
   <div class="plugs" id="plugs"></div>
-  <div id="plugsettings"></div>
   <div class="pc-only">
   <div class="psec">Job board keys</div>
   <p class="muted" style="font-size:13px;margin:-4px 0 8px">All optional. Keys are stored only on this computer.</p>
-  <div class="psec" style="margin-top:12px">Reed (UK), Adzuna (19 countries) & USAJOBS — adds more local jobs</div>
-  <label class="f">Reed API key<input type="password" id="reed_key"></label>
-  <p class="muted" style="font-size:12.5px;margin:4px 0 10px">Free: <span class="linkish" data-href="https://www.reed.co.uk/developers/jobseeker">reed.co.uk/developers/jobseeker</span></p>
-  <div class="pgrid"><label class="f">Adzuna App ID<input type="text" id="adzuna_id"></label><label class="f">Adzuna App Key<input type="password" id="adzuna_key"></label></div>
-  <p class="muted" style="font-size:12.5px;margin:4px 0 10px">Free: <span class="linkish" data-href="https://developer.adzuna.com/signup">developer.adzuna.com/signup</span></p>
-  <div class="pgrid"><label class="f">USAJOBS API key<input type="password" id="usajobs_key"></label><label class="f">Email you registered with<input type="text" id="usajobs_email"></label></div>
-  <p class="muted" style="font-size:12.5px;margin:4px 0 10px">US government jobs. Free: <span class="linkish" data-href="https://developer.usajobs.gov/apirequest/">developer.usajobs.gov/apirequest</span></p>
+  <div id="plugsettings"></div>
   <div class="psec">Backup for LinkedIn, Indeed & Glassdoor</div>
   <p class="muted" style="font-size:12.5px;margin:0 0 8px">Indeed and Glassdoor are searched free from this computer. If a site refuses, Apify takes over (free plan: $5 credit a month, each search capped at $0.25).</p>
   <label class="f">Apify API token<input type="password" id="apify_token"></label>
@@ -968,7 +961,7 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-copy
 
 // the job boards come from the app (core + plugins): name, description, group, countries, needs_key, slow
 let BOARDS=[];
-const KEYS=["reed_key","adzuna_id","adzuna_key","apify_token","usajobs_key","usajobs_email"];
+const KEYS=["apify_token"];          // the app's own keys; plugins add theirs (see plugins.settings)
 const STAGES=["Saved","Applying","Applied","Interview","Offer","Rejected"];
 const APPLIED=["Applied","Interview","Offer","Rejected"];
 let results=[],saved=[],profile={},keys={},countries=[],tab="search",anyMode=false,cvMode=false,searching=false;
@@ -1053,6 +1046,8 @@ function drawPlugins(){
     ${p.homepage?`<span class="linkish" style="font-size:12px" data-href="${esc(p.homepage)}">Website ↗</span>`:""}</div>`).join("")
     ||`<p class="muted" style="font-size:13px">No plugins yet.</p>`;
   $$(".plugsw").forEach(c=>c.onchange=()=>togglePlugin(c.dataset.id,c.checked));
+  const gd=plugins.plugins.some(p=>p.id==="gamedev"&&p.loaded);           // studios on the map come from Game dev
+  $("#mapstudios").closest("label").hidden=!gd;$("#studiokind").hidden=!gd;if(!gd)$("#studiolist").hidden=true;
   // boxes plugins add to Settings (API keys and the like), saved with "Save settings"
   const bySec={};plugins.settings.forEach(s=>{const n=(plugins.plugins.find(p=>p.id===s.plugin)||{}).name||s.plugin;(bySec[n]=bySec[n]||[]).push(s)});
   $("#plugsettings").innerHTML=Object.entries(bySec).map(([n,ss])=>`<div class="psec" style="margin-top:12px">${esc(n)}</div><div class="pgrid">${ss.map(s=>
@@ -1191,7 +1186,7 @@ async function drawStudios(){
   const km=toMiles(+$("#maprad").value,unit())*1.609;
   $("#studiolist").hidden=false;$("#studiolist").innerHTML='<div class="muted" style="padding:8px"><span class="spin"></span> Finding game studios…</div>';
   const kind=$("#studiokind").value;
-  const r=await get(`/api/studios?lat=${mapPlace.lat}&lon=${mapPlace.lon}&km=${km}&kind=${kind}`);
+  const r=await get(`/api/plugin/gamedev/studios?lat=${mapPlace.lat}&lon=${mapPlace.lon}&km=${km}&kind=${kind}`);
   const icon=L.divIcon({className:"",html:'<div class="studiodot">🎮</div>',iconSize:[22,22],iconAnchor:[11,11]});
   const indieIcon=L.divIcon({className:"",html:'<div class="studiodot indie">✦</div>',iconSize:[22,22],iconAnchor:[11,11]});
   r.studios.forEach(s=>L.marker([s.lat+(Math.random()-.5)*.01,s.lon+(Math.random()-.5)*.01],{icon:s.indie?indieIcon:icon}).addTo(studioLayer)
