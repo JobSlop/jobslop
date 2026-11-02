@@ -20,7 +20,7 @@ def _data_dir() -> Path:
 DATA_DIR = _data_dir()
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-# ui.html, static/, chrome-extension/, plugins/ ... : the project folder, or inside the .exe when built
+# ui/, static/, chrome-extension/, plugins/ ... : the project folder, or inside the .exe when built
 RES_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
 
 APP_PORT = 47321                       # fixed so the Chrome extension can find the app

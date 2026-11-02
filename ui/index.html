@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en" data-theme="auto" data-palette="sand"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>jobslop</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231d1b18'/%3E%3Ctext x='29' y='46' text-anchor='middle' font-family='Bodoni MT,Didot,serif' font-size='38' fill='%23f4efe6'%3Ejs%3C/text%3E%3Cpath d='M51 9c0 0-6 8-6 12a6 6 0 0 0 12 0c0-4-6-12-6-12z' fill='%23b08a5f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/ui/app.css">
+</head>
+<body>
+<div id="loadbar"></div>
+<div id="splash"><div>
+  <svg viewBox="0 0 64 64" class="mark"><rect width="64" height="64" rx="16" fill="#f4efe6"/><text x="29" y="46" text-anchor="middle" font-family="Italiana,'Bodoni MT',Didot,serif" font-size="38" fill="#1d1b18">js</text><path d="M51 9c0 0-6 8-6 12a6 6 0 0 0 12 0c0-4-6-12-6-12z" fill="#b08a5f"/></svg>
+  <div class="word">jobslop</div>
+</div></div>
+
+<!-- ======================= HERO ======================= -->
+<header class="hero">
+  <div class="wrap">
+    <nav class="top">
+      <a class="logo" id="home" href="#" aria-label="jobslop — go to Search" data-tip="Back to Search"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#f4efe6"/><text x="29" y="46" text-anchor="middle" font-family="Italiana,'Bodoni MT',Didot,serif" font-size="38" fill="#1d1b18">js</text><path d="M51 9c0 0-6 8-6 12a6 6 0 0 0 12 0c0-4-6-12-6-12z" fill="#b08a5f"/></svg><span class="brand">job<b>slop</b></span></a>
+      <div class="navlinks" style="position:relative">
+        <button class="tab on" data-tab="search">Search</button>
+        <button class="tab" data-tab="tracker">Tracker</button>
+        <button class="tab" data-tab="progress">Progress</button>
+        <button class="tab" data-tab="profile">Profile</button>
+        <button class="navchip" id="extchip" data-tip="Chrome extension code — click to copy"><span class="extdot" id="extdot"></span>🧩 <span id="extchipcode">····-····</span> <span style="opacity:.7">⧉</span></button>
+        <select class="navsel cursel" id="currency" title="Show salaries in this currency"></select>
+        <button class="iconbtn updicon" id="updicon" aria-label="Update available" aria-haspopup="true" hidden>⬇</button>
+        <div class="pop updpop" id="updpop" role="dialog" aria-label="jobslop update"></div>
+        <button class="iconbtn" id="undobtn" data-tip="Nothing to undo yet" aria-label="Undo" disabled>↶</button>
+        <button class="iconbtn" id="reloadbtn" data-tip="Reload (Ctrl+R)" aria-label="Reload">↻</button>
+        <button class="iconbtn" id="gear" data-tip="Settings" aria-label="Settings">⚙</button>
+        <button class="iconbtn" id="themebtn" data-tip="Light, dark and colours" aria-label="Light, dark and colours">◐</button>
+        <div class="pop" id="themepop">
+          <div class="kicker">Appearance</div>
+          <div class="seg" id="modeseg"><button data-mode="light">Light</button><button data-mode="auto">Auto</button><button data-mode="dark">Dark</button></div>
+          <div class="kicker">Colour scheme</div>
+          <div class="swatches" id="swatches"></div>
+        </div>
+      </div>
+    </nav>
+    <div class="heroinner">
+      <div class="kicker">Your next move starts here</div>
+      <h1 id="hello">Find Your<br>Next Role</h1>
+      <div class="sub" id="herosub"></div>
+      <p class="cheer" id="cheer"></p>
+      <form class="searchbox" id="f" autocomplete="off">
+        <div class="sfield"><input type="text" id="q" placeholder="What job? e.g. data analyst — commas for several"><button type="button" class="inbtn" id="anybtn" title="Search every job in the area">Any job</button></div>
+        <div class="sfield"><input type="text" id="where" placeholder="Where? Town, postcode or address" title="A town, postcode or full address — or leave empty for the whole country" style="padding-right:138px"><div class="wherehint" id="wherehint" hidden></div><button type="button" class="inbtn" id="mapbtn" title="Pick or view the location and radius on a map" style="right:72px">🗺 Map</button><button type="button" class="inbtn" id="locbtn" title="Use the location from your profile">📍 Mine</button></div>
+        <select id="country" title="Country"></select>
+        <select id="miles" title="Distance"><option value="5">+5 mi</option><option value="10">+10 mi</option><option value="15" selected>+15 mi</option><option value="25">+25 mi</option><option value="50">+50 mi</option><option value="100">+100 mi</option></select>
+        <div class="sourcechips" id="srcs"></div>
+        <div class="searchacts">
+          <button class="pill light" id="go" type="submit">Search jobs</button>
+          <button class="pill ghostw" id="matchbtn" type="button" title="Search using your work history and rank by how well jobs fit your CV">✦ Match jobs to my CV</button>
+          <button class="pill ghostw" id="internbtn" type="button" title="Internships, placements, graduate schemes and traineeships — for what you typed, or any field">🎓 Internships</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</header>
+<div class="wrap">
+  <div class="strip" id="strip">
+    <div><div class="n" id="st_today">0</div><div class="l">Applied today</div></div>
+    <div><div class="n" id="st_month">0</div><div class="l">Applied this month</div></div>
+    <div><div class="n" id="st_total">0</div><div class="l">Applications in total</div></div>
+    <div><div class="n" id="st_streak">0</div><div class="l">Day streak</div></div>
+  </div>
+</div>
+
+<main class="wrap">
+<!-- ======================= SEARCH ======================= -->
+<section class="view on" id="v-search">
+  <div class="panel getstarted" id="getstarted" hidden>
+    <div class="gshead"><div><div class="kicker">Getting started</div><b id="gscount"></b></div>
+      <button class="iconbtn" id="gsclose" data-tip="Hide this list (it's also in ⚙ Settings)" aria-label="Hide getting started">✕</button></div>
+    <div class="gsbar"><i id="gsbar"></i></div>
+    <ul class="gslist" id="gslist"></ul>
+  </div>
+  <div class="head">
+    <div><div class="kicker">Opportunities</div><h2 class="title" id="restitle">Search Results</h2></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <label class="sortby" data-tip="Change the order of the results">Sort by
+        <select id="sort">
+          <option value="score">Best keyword match</option><option value="cv">Best CV match</option>
+          <option value="date">Newest first</option><option value="old">Oldest first</option>
+          <option value="salary">Highest salary</option><option value="salary_lo">Lowest salary</option>
+          <option value="dist">Nearest first</option>
+          <option value="dur_short">Shortest contract first</option><option value="dur_long">Longest / permanent first</option>
+          <option value="company">Company A–Z</option><option value="title">Job title A–Z</option>
+        </select></label>
+      <label class="sortby">Show <select id="perpage" aria-label="Results per page"><option value="25">25</option><option value="50">50</option><option value="100">100</option><option value="0">All</option></select> per page</label>
+      <button class="pill line sm" id="csv">Export CSV</button></div>
+  </div>
+  <div class="filters">
+    <select id="posted" title="Posted within"><option value="0">Any date</option><option value="1">Last 24 hours</option><option value="3">Last 3 days</option><option value="7">Last week</option><option value="14">Last 2 weeks</option><option value="30">Last month</option></select>
+    <select id="jtype" title="Job type"><option value="">Any type</option><option value="fulltime">Full-time</option><option value="parttime">Part-time</option><option value="contract">Contract / temp</option><option value="internship">Internship</option></select>
+    <select id="remote" title="Work mode"><option value="">On-site, hybrid or remote</option><option value="remote">Remote only</option><option value="hybrid">Hybrid</option><option value="onsite">On-site only</option></select>
+    <input type="number" id="salmin" placeholder="Min salary / year" min="0" step="1000" style="width:150px" title="Jobs without a salary listed are kept unless you tick 'Has salary'">
+    <label class="check"><input type="checkbox" id="hassal"> Has salary</label>
+    <label class="check" title="Remote jobs must accept people from your country"><input type="checkbox" id="local" checked> Workable from my country</label>
+    <label class="check"><input type="checkbox" id="strict"> Title must match</label>
+    <label class="check" title="Search the sites again instead of reusing recent results"><input type="checkbox" id="fresh"> Fresh results</label>
+  </div>
+  <div class="filters" style="border-top:0">
+    <input type="text" class="grow" id="filter" placeholder="Filter results: company, place, word…">
+    <input type="text" id="exclude" placeholder="Hide titles with: senior, lead" style="width:220px">
+    <select id="durfilter" title="Contract length"><option value="">Any length</option><option value="perm">Permanent only</option><option value="contract">Contracts only</option><option value="short">Up to 6 months</option><option value="mid">6–12 months</option><option value="long">Over 12 months</option></select>
+    <select id="srcfilter"><option value="">All sources</option></select>
+  </div>
+  <div class="statusline" id="status"></div>
+  <ul class="jobs" id="list"><li class="empty"><span class="serif">Begin your search</span>Type a job above, try “Any job”, or let your CV do the work.</li></ul>
+  <nav class="pager" id="pager" aria-label="Result pages" hidden></nav>
+</section>
+
+<!-- ======================= TRACKER ======================= -->
+<section class="view" id="v-tracker">
+  <div class="head">
+    <div><div class="kicker">Application tracker</div><h2 class="title">Your Applications</h2></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input type="text" id="tfilter" placeholder="Find…" style="width:200px;border-radius:999px">
+      <label class="sortby">Sort by <select id="tsort"><option value="added">Recently added</option><option value="applied">Applied date</option><option value="follow">Follow-up date</option><option value="salary">Highest salary</option><option value="company">Company A–Z</option><option value="title">Job title A–Z</option></select></label>
+      <button class="pill dark sm" id="addapp">+ Add application</button>
+      <button class="pill line sm" id="tcsv">Export CSV</button>
+    </div>
+  </div>
+  <p class="muted" style="margin:0 0 16px;font-size:13.5px">Drag cards between columns, or use the buttons on each card. Dates are recorded automatically for your stats.</p>
+  <div class="panel boardempty" id="boardempty" hidden><div><b>Nothing tracked yet.</b> <span class="muted" style="font-size:13.5px">Press ☆ Save or ✓ Mark applied on any search result and it lands here — or add one you applied to elsewhere.</span></div><button class="pill dark sm" id="gosearch">Find jobs</button></div>
+  <div class="board" id="board"></div>
+</section>
+
+<!-- ======================= PROGRESS ======================= -->
+<section class="view" id="v-progress">
+  <div class="head"><div><div class="kicker">Your progress</div><h2 class="title">Momentum</h2></div></div>
+  <div class="tiles" id="tiles"></div>
+  <div class="grid2">
+    <div class="panel"><h3>Applications per day</h3><div class="muted" style="font-size:13px">Last 30 days</div><div class="bars" id="bars"></div><div class="barlabels" id="barlabels"></div></div>
+    <div class="panel"><h3>Weekly goal</h3><div class="goalbox" style="margin-top:10px"><svg class="ring" viewBox="0 0 120 120" id="ring"></svg>
+      <div><div class="muted" style="font-size:13px">Applications this week</div><div class="serif" style="font-size:40px" id="goaltext">0 / 10</div>
+      <label class="f" style="margin-top:8px">Goal per week<input type="number" id="goal" min="1" max="200" value="10" style="width:110px"></label></div></div></div>
+  </div>
+  <div class="grid3">
+    <div class="panel funnel"><h3>Pipeline</h3><div id="funnel"></div></div>
+    <div class="panel list2"><h3>Top companies</h3><div id="topco"></div></div>
+    <div class="panel list2"><h3>Follow-ups due</h3><div id="followups"></div></div>
+  </div>
+</section>
+
+<!-- ======================= PROFILE ======================= -->
+<section class="view" id="v-profile">
+  <div class="head">
+    <div><div class="kicker">Your profile</div><h2 class="title">About You</h2></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="pill dark sm" id="fromcv">📄 Fill from my CV</button>
+      <button class="pill line sm" id="fromli" data-tip="Your LinkedIn profile PDF (More → Save to PDF) or LinkedIn data export (.zip)">in Import from LinkedIn</button>
+      <input type="file" id="lifile" accept=".pdf,.zip,.csv" hidden>
+      <button class="pill line sm" id="clearprof">Clear profile</button>
+    </div>
+  </div>
+  <p class="muted" style="margin:0 0 6px;font-size:13.5px">Used by the Chrome extension to fill applications, and to match jobs to you. Everything stays on this computer and saves automatically. <span id="psaved"></span></p>
+  <p id="fromcvmsg" style="font-size:13.5px;color:var(--accent);margin:4px 0 0"></p>
+  <div id="pfields"></div>
+
+  <div class="psec">Work history</div>
+  <div class="cards" id="jobs"></div>
+  <button class="pill line sm" id="addjob" style="margin-top:10px">+ Add a job</button>
+
+  <div class="psec">CV</div>
+  <div class="drop" id="drop">
+    <div class="serif" style="font-size:24px">Drop your CV here</div>
+    <div class="muted" style="font-size:13px;margin-top:4px">or <label class="linkish">choose a file<input type="file" id="cvfile" accept=".pdf,.docx,.doc,.rtf,.txt" hidden></label> · PDF or Word, up to 10 MB · dropping a CV also fills your profile</div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;margin-top:10px"><span id="cvinfo" class="muted" style="font-size:13.5px"></span><button class="pill line sm" id="cvremove" hidden>Remove CV</button></div>
+
+  <div class="psec">Cover letter template</div>
+  <p class="muted" style="font-size:13px;margin:-4px 0 8px">These are replaced automatically: {company} {title} {first_name} {full_name}</p>
+  <textarea id="cover_letter_template" class="pf" rows="9" placeholder="Dear Hiring Manager,&#10;&#10;I'm excited to apply for the {title} role at {company}…&#10;&#10;Kind regards,&#10;{full_name}"></textarea>
+
+  <div class="psec pc-only">Chrome extension — one-time setup</div>
+  <div class="panel pc-only">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <div id="extstatus" class="muted" style="font-size:13.5px"></div>
+      <button class="pill dark sm" id="extsetup">⚡ Set up for me</button>
+    </div>
+    <ol class="steps">
+      <li>Click <b>⚡ Set up for me</b> — it opens Chrome's extensions page and the extension folder, and copies the folder path for you</li>
+      <li>In Chrome, turn on <b>Developer mode</b> (top-right switch)</li>
+      <li>Click <b>Load unpacked</b>, paste the path (Ctrl+V) or pick: <code id="extfolder"></code> <button class="pill line sm" id="openext">Open folder</button></li>
+      <li>That's it — the extension connects by itself. (If it ever asks, the code is <b id="extcode" class="code"></b> <button class="pill line sm" id="copycode">⧉ Copy</button>)</li>
+    </ol>
+    <p class="muted" style="font-size:12.5px;margin:0 0 8px">Chrome doesn't allow programs to install extensions silently, so these two clicks in Chrome are needed once.</p>
+    <p class="muted" style="font-size:13px;margin:0">Then press <b>⚡ Easy apply</b> on any job: it opens in Chrome and a <b>Fill application</b> button appears. It never submits — you always check and submit yourself.</p>
+  </div>
+</section>
+</main>
+
+<!-- ======================= MODALS ======================= -->
+<div class="modal" id="m-keys"><div class="box wide">
+  <h3>Settings</h3>
+  <div class="psec" style="margin-top:8px">Preferences</div>
+  <div class="pgrid">
+    <label class="f">Show salaries in<select class="cursel" id="setcurrency"></select></label>
+    <label class="f">Distances in<select id="setunit"><option value="mi">Miles</option><option value="km">Kilometres</option></select></label>
+  </div>
+  <p class="muted" style="font-size:12.5px;margin:6px 0 0" id="ratesnote"></p>
+  <div class="pc-only">
+    <div class="psec">📱 Phone access</div>
+    <p class="muted" style="font-size:12.5px;margin:-4px 0 10px">Use jobslop from your phone on the same Wi-Fi while it runs on this computer. Protected by a PIN, and only reachable on your home network.</p>
+    <label class="check"><input type="checkbox" id="phoneon"> Allow my phone to connect</label>
+    <div id="phonebox" class="phonebox" hidden>
+      <div id="phoneqr" class="phoneqr" data-tip="Scan with your phone's camera"></div>
+      <div style="flex:1;min-width:200px">
+        <div class="muted" style="font-size:12.5px">On your phone, scan the code or open:</div>
+        <div class="code" id="phoneurl" style="font-size:15px;letter-spacing:1px;margin:2px 0 10px"></div>
+        <div class="muted" style="font-size:12.5px">PIN</div>
+        <div class="code" id="phonepin" style="font-size:28px;letter-spacing:6px"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+          <button class="pill line sm" id="phonenewpin" data-tip="Make a new PIN (signs all phones out)">New PIN</button>
+          <button class="pill line sm" id="phonesignout">Sign out all phones</button>
+        </div>
+        <p class="muted" style="font-size:12px;margin:10px 0 0" id="phonenote"></p>
+      </div>
+    </div>
+  </div>
+  <div class="psec">Job match terms</div>
+  <p class="muted" style="font-size:12.5px;margin:-4px 0 10px">Teach the app what a job can be called. Searching any of the names finds all of them, and “title only” means the word must be in the job <i>title</i> — so “communication” listed as a skill in an advert won't count as a communications job. Also used by “Match jobs to my CV”.</p>
+  <div id="mterms"></div>
+  <div style="display:flex;gap:8px;margin-top:8px"><button class="pill line sm" id="addterm">+ Add a job term</button></div>
+  <div class="psec">Plugins</div>
+  <p class="muted" style="font-size:12.5px;margin:-4px 0 10px">Extra job boards, fields and languages. Switch on what's useful to you — changes apply straight away.</p>
+  <div class="plugs" id="plugs"></div>
+  <div class="pc-only">
+  <div class="psec">Job board keys</div>
+  <p class="muted" style="font-size:13px;margin:-4px 0 8px">All optional. Keys are stored only on this computer.</p>
+  <div id="plugsettings"></div>
+  <div class="psec">Backup for LinkedIn, Indeed & Glassdoor</div>
+  <p class="muted" style="font-size:12.5px;margin:0 0 8px">Indeed and Glassdoor are searched free from this computer. If a site refuses, Apify takes over (free plan: $5 credit a month, each search capped at $0.25).</p>
+  <label class="f">Apify API token<input type="password" id="apify_token"></label>
+  <p class="muted" style="font-size:12.5px;margin:4px 0 0">Free: <span class="linkish" data-href="https://console.apify.com/sign-up">console.apify.com/sign-up</span> → Settings → API &amp; Integrations</p>
+  </div>
+  <div class="pc-only">
+    <div class="psec">Updates</div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span id="updinfo" class="muted" style="font-size:13px;flex:1;min-width:200px"></span><button class="pill line sm" id="updcheck">Check for updates</button></div>
+    <label class="check" style="margin-top:8px"><input type="checkbox" id="updoff"> Don't receive any updates</label>
+    <p class="muted" style="font-size:12px;margin:4px 0 0 22px">When ticked, jobslop never checks for new versions. Otherwise it asks GitHub twice a day — nothing about you is sent, and nothing is installed unless you press Update.</p>
+  </div>
+  <div class="psec">Help &amp; feedback</div>
+  <div class="shortcuts">
+    <span><span class="kbd">Ctrl</span> <span class="kbd">Z</span></span><span>Undo your last change (saving, applying, moving or removing a job, profile imports)</span>
+    <span><span class="kbd">/</span></span><span>Jump to the search box</span>
+    <span><span class="kbd">Ctrl</span> <span class="kbd">R</span></span><span>Reload the app</span>
+    <span><span class="kbd">Esc</span></span><span>Close a window or pop-up</span>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="pill line sm" id="feedback">✉ Send feedback</button><button class="pill line sm" id="gsshow">Show the getting-started list</button></div>
+  <div class="row"><button class="pill line" id="retour" style="margin-right:auto" data-tip="Show the welcome tour again">↺ Take the tour again</button><button class="pill line" data-close>Close</button><button class="pill dark" id="savekeys">Save settings</button></div>
+</div></div>
+
+<div class="modal" id="m-clear"><div class="box">
+  <h3>Clear your profile?</h3>
+  <p class="muted">This removes your details, work history and cover letter so you can start fresh — for example with a new CV. Your saved jobs and tracker are kept.</p>
+  <div class="row"><button class="pill line" data-close>Cancel</button><button class="pill line" id="clear1">Clear details, keep CV</button><button class="pill dark" id="clear2">Clear details and CV</button></div>
+</div></div>
+
+<div class="modal" id="m-import"><div class="box">
+  <h3 id="imptitle">Import from LinkedIn</h3>
+  <p class="muted" id="impsub" style="font-size:13.5px"></p>
+  <ul class="implist" id="implist"></ul>
+  <div class="row"><button class="pill line" data-close>Cancel</button>
+    <button class="pill line" id="impreplace" data-tip="Use these details instead of what's in your profile now">Replace my profile</button>
+    <button class="pill dark" id="impadd" data-tip="Keep what you have, fill the empty fields and add new jobs">Add to my profile</button></div>
+</div></div>
+
+<div class="modal" id="m-lihelp"><div class="box">
+  <h3>Import from LinkedIn</h3>
+  <p class="muted" style="font-size:13.5px;margin-bottom:4px"><b style="color:var(--text)">Paste your profile link.</b> jobslop opens it in Chrome, where the extension reads your profile — you need to be signed in to LinkedIn there.</p>
+  <div class="lirow"><input type="text" id="liurl" placeholder="linkedin.com/in/your-name" autocomplete="off"><button class="pill dark" id="ligo">Import</button></div>
+  <p id="listatus" class="muted" style="font-size:13px;min-height:18px;margin:8px 0 0"></p>
+  <div class="psec" style="margin-top:14px">Or use a file</div>
+  <ol class="oblist" style="counter-reset:none">
+    <li><b>Profile PDF (quickest):</b> on LinkedIn open your profile → <b>Resources</b> (or <b>More</b>) → <b>Save to PDF</b>.</li>
+    <li><b>Data export (most complete):</b> LinkedIn → <b>Settings → Data privacy → Get a copy of your data</b> → pick Profile, Positions, Education, Skills. LinkedIn emails you a .zip — use that.</li>
+  </ol>
+  <div class="row"><button class="pill line" data-close>Close</button><button class="pill line" id="lipick">Choose a file…</button></div>
+</div></div>
+
+<div class="modal" id="m-add"><div class="box">
+  <h3 id="addtitle">Add an application</h3>
+  <p class="muted" style="font-size:13.5px" id="addsub">For jobs you applied to outside jobslop.</p>
+  <div class="pgrid" style="margin-top:10px">
+    <label class="f">Job title<input type="text" id="a_title"></label>
+    <label class="f">Company<input type="text" id="a_company"></label>
+    <label class="f">Location<input type="text" id="a_location"></label>
+    <label class="f">Salary<input type="text" id="a_salary"></label>
+    <label class="f">Status<select id="a_status"></select></label>
+    <label class="f">Date applied<input type="date" id="a_applied"></label>
+    <label class="f">Follow up on<input type="date" id="a_follow"></label>
+    <label class="f wide">Link (optional)<input type="text" id="a_url" placeholder="https://"></label>
+    <label class="f wide">Notes<textarea id="a_notes" rows="3"></textarea></label>
+  </div>
+  <div class="row"><button class="pill line" id="a_delete" hidden style="margin-right:auto">Remove</button><button class="pill line" data-close>Cancel</button><button class="pill dark" id="a_save">Save</button></div>
+</div></div>
+
+<div class="modal" id="m-map"><div class="box" style="width:min(820px,100%)">
+  <h3>Search area</h3>
+  <p class="muted" style="font-size:13.5px;margin:0 0 10px">Click the map (or drag the pin) to choose a place, then set how far you'll travel. Town search is built into the app, and the <b>Offline</b> map works with no internet at all.</p>
+  <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
+    <input type="text" id="mapq" placeholder="Search a town or city…" style="flex:1;min-width:180px"><button class="pill dark sm" id="mapfind">Find</button>
+    <div class="seg" id="mapseg" style="margin:0;width:200px" data-tip="Street map needs internet (free OpenStreetMap). Offline map is built in."><button data-style="street">Street</button><button data-style="offline">Offline</button></div>
+    <label class="check" data-tip="Show game studios from Game Dev Map and Wikipedia's indie developer list"><input type="checkbox" id="mapstudios"> 🎮 Game studios</label>
+    <select id="studiokind" title="Which studios to show" style="padding:5px 8px;border-radius:999px;font-size:12.5px;width:auto!important;flex:0 0 auto"><option value="all">All studios</option><option value="indie">Indie studios only</option></select>
+  </div>
+  <div id="map" style="height:400px;border-radius:14px;border:1px solid var(--line);overflow:hidden;background:var(--surface2);display:grid;place-items:center"><span class="muted"><span class="spin"></span> Loading map…</span></div>
+  <div style="display:flex;align-items:center;gap:14px;margin-top:12px;flex-wrap:wrap">
+    <div style="flex:1;min-width:200px"><div class="serif" style="font-size:22px" id="maplabel">—</div></div>
+    <label class="f" style="flex:1;min-width:220px">Radius: <b id="mapradlabel" style="color:var(--text)"></b><input type="range" id="maprad" min="1" max="100" value="15" style="accent-color:var(--accent)"></label>
+  </div>
+  <div id="studiolist" class="studiolist" hidden></div>
+  <div class="row"><button class="pill line" data-close>Cancel</button><button class="pill dark" id="mapuse">Use this area</button></div>
+</div></div>
+
+<div class="modal" id="m-offer"><div class="box">
+  <div class="offerhead">🥂</div>
+  <h3>Congratulations!</h3>
+  <p style="margin-top:0">You got an offer for <b id="offerjob"></b>. Thank you for using jobslop — that's brilliant news.</p>
+  <p class="muted" style="font-size:13px">Would you share how you got there? It helps make jobslop better for the next person. The email is anonymous — it doesn't mention the job, the company or anything about you, just a few numbers. It opens in your own email app, addressed to <b>jobslop@proton.me</b>, so you can read and change every word before you press send. jobslop itself never sends anything.</p>
+  <textarea id="offermail" rows="12" aria-label="Email text"></textarea>
+  <div class="row"><button class="pill line" data-close>Not now</button><button class="pill line" id="offercopy">⧉ Copy text</button><button class="pill dark" id="offersend">✉ Open in my email</button></div>
+</div></div>
+
+<div class="modal" id="m-whatsnew"><div class="box">
+  <h3 id="wntitle">What's new</h3>
+  <div id="wnnotes" class="muted" style="font-size:14px;white-space:pre-wrap;line-height:1.6;max-height:50vh;overflow:auto"></div>
+  <div class="row"><button class="pill line" data-close>Close</button><button class="pill dark" id="wnupdate">Update now</button></div>
+</div></div>
+
+<div class="modal" id="m-feedback"><div class="box">
+  <h3>Send feedback</h3>
+  <p class="muted" style="font-size:13px">Ideas, bugs, a job you landed — anything helps. This opens an email to <b>jobslop@proton.me</b> in your email app, so you can check it before sending. Thank you for using jobslop!</p>
+  <textarea id="fbmail" rows="10" aria-label="Email text"></textarea>
+  <div class="row"><button class="pill line" data-close>Cancel</button><button class="pill line" id="fbcopy">⧉ Copy text</button><button class="pill dark" id="fbsend">✉ Open in my email</button></div>
+</div></div>
+
+<!-- ======================= ONBOARDING (first run) ======================= -->
+<div class="modal" id="m-onboard"><div class="box ob">
+  <div class="obhero"><svg viewBox="0 0 64 64" class="oblogo"><rect width="64" height="64" rx="16" fill="#f4efe6"/><text x="29" y="46" text-anchor="middle" font-family="Italiana,'Bodoni MT',Didot,serif" font-size="38" fill="#1d1b18">js</text><path d="M51 9c0 0-6 8-6 12a6 6 0 0 0 12 0c0-4-6-12-6-12z" fill="#b08a5f"/></svg>
+    <div class="kicker" style="color:rgba(244,239,230,.7)" id="obkick">Welcome</div></div>
+
+  <section class="obstep" data-step="0">
+    <h3>Welcome to jobslop</h3>
+    <p>One place to search dozens of job boards, match jobs to your CV, track every application, and fill in application forms for you.</p>
+    <ul class="oblist"><li>🔎 <b>Search</b> LinkedIn, Indeed, Glassdoor and many more at once</li><li>✦ <b>Match</b> jobs to your CV and see how well each fits</li><li>📋 <b>Track</b> applications and your progress</li><li>⚡ <b>Easy apply</b> with the Chrome extension filling forms for you</li></ul>
+    <p class="muted" style="font-size:12.5px">Takes about a minute, and you can skip any step. Everything stays on this computer — and anything you do can be undone with <span class="kbd">Ctrl</span> <span class="kbd">Z</span>.</p>
+  </section>
+
+  <section class="obstep" data-step="1" hidden>
+    <h3>Start with your CV</h3>
+    <p>Drop your CV here and jobslop fills in your profile — name, contact details, work history, skills and more. You can check and edit it later in <b>Profile</b>.</p>
+    <div class="drop" id="obdrop"><div class="serif" style="font-size:22px">Drop your CV here</div>
+      <div class="muted" style="font-size:13px;margin-top:4px">or <label class="linkish">choose a file<input type="file" id="obcv" accept=".pdf,.docx,.doc,.rtf,.txt" hidden></label> · PDF or Word</div></div>
+    <div class="muted" style="font-size:12.5px;margin-top:12px">No CV to hand? Paste your LinkedIn profile link instead (opens in Chrome; needs the extension):</div>
+    <div class="lirow"><input type="text" id="obliurl" placeholder="linkedin.com/in/your-name" autocomplete="off"><button class="pill line sm" id="obligo">Import</button></div>
+    <p id="obcvmsg" style="font-size:13.5px;color:var(--accent);min-height:20px;margin:10px 0 0"></p>
+  </section>
+
+  <section class="obstep" data-step="2" hidden>
+    <h3>Where are you looking?</h3>
+    <p>Pick your country and town. You can change these any time with <b>📍 Mine</b> or the <b>🗺 Map</b> next to the search box.</p>
+    <div class="pgrid">
+      <label class="f">Country<select id="obcountry"></select></label>
+      <label class="f">Town or city<input type="text" id="obtown" placeholder="e.g. Birmingham"></label>
+      <label class="f">Show salaries in<select class="cursel" id="obcurrency"></select></label>
+      <label class="f">Distances in<select id="obunit"><option value="mi">Miles</option><option value="km">Kilometres</option></select></label>
+    </div>
+  </section>
+
+  <section class="obstep" data-step="3" hidden>
+    <h3>Searching</h3>
+    <ul class="oblist">
+      <li><b>Type a job</b> — use commas for several, e.g. <i>chef, kitchen porter</i></li>
+      <li><b>Any job</b> — no keyword, shows everything near you</li>
+      <li><b>✦ Match jobs to my CV</b> — searches your job titles and ranks results by fit</li>
+      <li><b>Filters</b> — date posted, full/part-time, remote, minimum salary, nearest first</li>
+      <li><b>Job boards</b> — tick or untick the chips under the search box; extra boards can be added with free keys in <b>⚙ Settings</b></li>
+    </ul>
+  </section>
+
+  <section class="obstep" data-step="4" hidden>
+    <h3>Apply & keep track</h3>
+    <ul class="oblist">
+      <li><b>☆ Save</b> or <b>✓ Mark applied</b> on any job — it goes on your <b>Tracker</b> board</li>
+      <li><b>Progress</b> shows applications today, this month, your streak and interview rate</li>
+      <li>Changed your mind? <b>↶ Undo</b> (top right, or <span class="kbd">Ctrl</span> <span class="kbd">Z</span>) puts back your last change</li>
+      <li><b>⚡ Easy apply</b> opens the job in Chrome where the extension fills the form with your profile and CV. It never submits — you always check and submit yourself.</li>
+    </ul>
+    <div class="panel" style="padding:14px 16px;margin-top:6px"><b>Set up the Chrome extension</b> <span class="muted" style="font-size:13px">(optional, two clicks in Chrome)</span>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button class="pill dark sm" id="obext">⚡ Set it up now</button><span class="muted" style="font-size:12.5px;align-self:center" id="obextnote">or later from <b>Profile</b></span></div></div>
+  </section>
+
+  <div class="obfoot">
+    <button class="pill line sm" id="obskip">Skip tour</button>
+    <div class="obdots" id="obdots"></div>
+    <div style="display:flex;gap:8px"><button class="pill line sm" id="obback">Back</button><button class="pill dark sm" id="obnext">Next</button></div>
+  </div>
+</div></div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="/ui/js/core.js"></script>
+<script src="/ui/js/nav.js"></script>
+<script src="/ui/js/boards.js"></script>
+<script src="/ui/js/plugins.js"></script>
+<script src="/ui/js/search.js"></script>
+<script src="/ui/js/map.js"></script>
+<script src="/ui/js/results.js"></script>
+<script src="/ui/js/tracker.js"></script>
+<script src="/ui/js/progress.js"></script>
+<script src="/ui/js/profile.js"></script>
+<script src="/ui/js/started.js"></script>
+<script src="/ui/js/updates.js"></script>
+<script src="/ui/js/onboarding.js"></script>
+<script src="/ui/js/phone.js"></script>
+<script src="/ui/js/start.js"></script>
+</body></html>

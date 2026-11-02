@@ -246,10 +246,16 @@ window.addEventListener("load", () => setTimeout(async () => {
     out.plugins.cardOn = $('.plugsw[data-id="accounting"]').checked;
     closeModals();
   } catch (e) { out.error = String(e && e.stack || e); }
+  out.loadErrors = window.__loadErrors;
   document.getElementById("selftest").textContent = JSON.stringify(out);
 }, 800));
 </script><pre id="selftest"></pre>
 """
+
+
+# put first in <head>: records any error while the screen's script files load (they share one page)
+CATCH_LOAD_ERRORS = ('<script>window.__loadErrors=[];addEventListener("error",e=>__loadErrors.push('
+                     '(e.filename||"").split("/").pop()+": "+e.message))</script>')
 
 
 class HarnessHandler(handler.Handler):
@@ -257,7 +263,8 @@ class HarnessHandler(handler.Handler):
 
     def do_GET(self):
         if self.path == "/harness":
-            return self.send(handler.load_page().replace("</body>", HARNESS + "</body>"), "text/html")
+            page = handler.load_page().replace("<head>", "<head>" + CATCH_LOAD_ERRORS, 1)
+            return self.send(page.replace("</body>", HARNESS + "</body>"), "text/html")
         if self.path == "/harness/lifound":            # stands in for the extension reading the LinkedIn page
             linkedin_link.li_link["found"] = linkedin_link.linkedin_from_page(LI_PAGE)
             return self.send("{}")
@@ -300,6 +307,7 @@ class ScreenTests:
 
     def test_no_script_errors(self):
         assert "error" not in self.out, self.out.get("error")
+        assert self.out["loadErrors"] == [], "errors while the screen's files loaded"
 
     def test_search_with_an_address(self):
         o = self.out

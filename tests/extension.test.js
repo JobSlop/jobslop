@@ -152,11 +152,13 @@ test("the extension's manifest is valid", () => {
     assert.ok(fs.existsSync(path.join(__dirname, "..", "chrome-extension", f)), f);
 });
 
-test("the app screen's script has no syntax errors", () => {
-  const html = fs.readFileSync(path.join(__dirname, "..", "ui.html"), "utf8");
-  const scripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
-  assert.ok(scripts.length >= 1);
-  for (const s of scripts) assert.doesNotThrow(() => new vm.Script(s), "ui.html script");
+test("the app screen's scripts have no syntax errors", () => {
+  const ui = path.join(__dirname, "..", "ui");
+  const html = fs.readFileSync(path.join(ui, "index.html"), "utf8");
+  const files = [...html.matchAll(/<script src="\/ui\/(js\/[\w-]+\.js)"><\/script>/g)].map((m) => m[1]);
+  assert.ok(files.length >= 10, "index.html loads the screen's scripts");
+  for (const f of fs.readdirSync(path.join(ui, "js"))) assert.ok(files.includes("js/" + f), `${f} is loaded by index.html`);
+  for (const f of files) assert.doesNotThrow(() => new vm.Script(fs.readFileSync(path.join(ui, f), "utf8")), f);
   for (const f of ["background.js", "popup.js"]) {
     assert.doesNotThrow(() => new vm.Script(fs.readFileSync(path.join(__dirname, "..", "chrome-extension", f), "utf8")), f);
   }

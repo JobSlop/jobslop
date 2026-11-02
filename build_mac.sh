@@ -26,7 +26,7 @@ echo "Building the app (takes a few minutes)..."
 "$VENV/bin/python" -m PyInstaller --noconfirm --windowed --name "jobslop" --icon "$SRC/jf.icns" \
   --osx-bundle-identifier com.jobfinder.desktop \
   --collect-all jobspy --collect-all curl_cffi --collect-data certifi --collect-data pdfminer --collect-submodules phonenumbers.data --collect-submodules phonenumbers.shortdata \
-  --add-data "$SRC/chrome-extension:chrome-extension" --add-data "$SRC/ui.html:." \
+  --add-data "$SRC/chrome-extension:chrome-extension" --add-data "$SRC/ui:ui" \
   --add-data "$SRC/static:static" --add-data "$SRC/cities.tsv.gz:." --add-data "$SRC/jf.ico:." --add-data "$SRC/plugins:plugins" \
   --workpath "$HOME/.jobfinder-build" --specpath "$HOME/.jobfinder-build" \
   --distpath "$SRC/dist" \

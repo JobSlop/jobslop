@@ -206,6 +206,17 @@ class Handler(BaseHTTPRequestHandler):
                 self.send(json.dumps(towns_in_box(*box, limit=num("limit", 60, 1, 300))))
             except (KeyError, ValueError):
                 self.send("[]")
+        elif u.path.startswith("/ui/"):
+            found = ui_file(u.path)
+            if not found:
+                return self.send('{"error":"not found"}', code=404)
+            data = found[0].read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", found[1] + "; charset=utf-8")
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Cache-Control", "no-cache")         # always the version that came with this jobslop
+            self.end_headers()
+            self.wfile.write(data)
         elif u.path.startswith("/static/"):
             name = Path(u.path).name
             f = RES_DIR / "static" / name
@@ -483,5 +494,15 @@ def setting_keys():
 
 
 def load_page():
-    """The app's screen lives in ui.html next to this file (bundled inside the .exe)."""
-    return (RES_DIR / "ui.html").read_text(encoding="utf-8")
+    """The app's screen: ui/index.html (bundled inside the .exe). Its styles and code are served from /ui/."""
+    return (RES_DIR / "ui" / "index.html").read_text(encoding="utf-8")
+
+
+UI_FILE_RE = re.compile(r"/ui/((?:js/)?[\w-]+\.(js|css))")
+
+
+def ui_file(path):
+    """The screen's own .css / .js file for a /ui/ path, or None."""
+    m = UI_FILE_RE.fullmatch(path)
+    f = RES_DIR / "ui" / m[1] if m else None
+    return (f, {"js": "text/javascript", "css": "text/css"}[m[2]]) if f and f.is_file() else None

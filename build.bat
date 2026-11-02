@@ -14,7 +14,7 @@ rem the test tools live in the same environment (run_tests.bat) and must never e
 "%VENV%\Scripts\python.exe" -m PyInstaller --noconfirm --onefile --windowed --name jobslop --icon "%~dp0jf.ico" ^
   --collect-all jobspy --collect-all curl_cffi --collect-data certifi --collect-data pdfminer --collect-submodules phonenumbers.data --collect-submodules phonenumbers.shortdata --collect-all pypdfium2 --collect-all pypdfium2_raw ^
   --exclude-module pytest --exclude-module _pytest --exclude-module pluggy ^
-  --add-data "%~dp0chrome-extension;chrome-extension" --add-data "%~dp0ui.html;." ^
+  --add-data "%~dp0chrome-extension;chrome-extension" --add-data "%~dp0ui;ui" ^
   --add-data "%~dp0static;static" --add-data "%~dp0cities.tsv.gz;." --add-data "%~dp0jf.ico;." --add-data "%~dp0plugins;plugins" ^
   --workpath "%TEMP%\jobfinder-build" --specpath "%TEMP%\jobfinder-build" jobfinder.py || goto failed
 rem checksum the app checks an update download against (uploaded next to jobslop.exe by release.py)
