@@ -1,7 +1,7 @@
 {
   "id": "lang-nl",
   "name": "Dutch (Nederlands)",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "api": 1,
   "description": "jobslop in Dutch: every screen, plus Dutch job titles when you search in the Netherlands and Belgium.",
   "author": "jobslop",

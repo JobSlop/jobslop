@@ -1,7 +1,7 @@
 {
   "id": "remote-boards",
   "name": "Remote boards",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "api": 1,
   "description": "Remote-job boards that need no key: Himalayas, Jobicy, Remotive, RemoteOK and Arbeitnow.",
   "author": "jobslop",
