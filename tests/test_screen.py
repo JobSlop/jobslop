@@ -234,10 +234,26 @@ window.addEventListener("load", () => setTimeout(async () => {
     out.tips.shown = $("#tip").classList.contains("on") ? $("#tip").textContent : "";
     setTab("search");
     // 16. plugins: Settings lists them with their key boxes; switching one off takes its boards away
-    openModal("m-keys"); await loadPlugins();
+    plugOpen.add("country-boards");
+    openSettings("plugins"); await loadPlugins();
+    out.settingsTabs = {shown: $$(".setpane > section").filter(s => !s.hidden).map(s => s.dataset.set),
+                        nav: $$("#setnav button").map(b => b.textContent)};
     const accChips = () => $$(".sc").map(c => c.value).filter(v => ["ICAEW", "ACCA"].includes(v));
-    out.plugins = {cards: $$("#plugs .plug .pn").map(e => e.firstChild.textContent.trim()),
-                   keyBoxes: $$("#plugsettings input").map(i => i.id)};
+    out.plugins = {cards: $$("#plugs .prow .pname").map(e => e.firstChild.textContent.trim()),
+                   keyBoxes: $$('.prow[data-id="country-boards"] .pset').map(i => i.dataset.key),
+                   folded: $$(".prow").filter(r => r.querySelector(".pbody").hidden).map(r => r.dataset.id).includes("accounting"),
+                   ticks: $$(".prow .plugsw").every(c => c.type === "checkbox")};
+    $('.prow[data-id="accounting"] .pfold').click();
+    out.plugins.unfolds = !$('.prow[data-id="accounting"] .pbody').hidden;
+    $("#plugonly").checked = true; $("#plugonly").dispatchEvent(new Event("change"));
+    out.plugins.enabledOnly = $$(".prow").every(r => r.classList.contains("on"));
+    $("#plugonly").checked = false; $("#plugonly").dispatchEvent(new Event("change"));
+    $("#plugfind").value = "remote"; $("#plugfind").dispatchEvent(new Event("input"));
+    out.plugins.found = $$(".prow").map(r => r.dataset.id);
+    $("#plugfind").value = ""; $("#plugfind").dispatchEvent(new Event("input"));
+    showSettings("help");
+    out.settingsTabs.help = $$(".setpane > section").filter(s => !s.hidden).map(s => s.dataset.set);
+    showSettings("plugins");
     await togglePlugin("accounting", false);
     out.plugins.chipsOff = accChips();
     out.plugins.cardOff = $('.plugsw[data-id="accounting"]').checked;
@@ -497,7 +513,12 @@ class ScreenTests:
     def test_plugins_in_settings(self):
         pl = self.out["plugins"]
         assert {"Accounting", "Artists", "Country boards", "Game dev", "Remote boards"} <= set(pl["cards"])
-        assert {"reed_key", "adzuna_id", "adzuna_key", "usajobs_key", "usajobs_email"} <= set(pl["keyBoxes"])
+        assert {"reed_key", "adzuna_id", "adzuna_key", "usajobs_key", "usajobs_email"} <= set(pl["keyBoxes"]), "keys sit in their plugin's fold"
+        assert pl["folded"] and pl["unfolds"] and pl["ticks"], "rows start folded, open with the arrow, and use tick boxes"
+        assert pl["enabledOnly"] and pl["found"] == ["remote-boards"]
+        st = self.out["settingsTabs"]
+        assert st["shown"] == ["plugins"] and st["help"] == ["help"], "one section at a time"
+        assert st["nav"][:3] == ["General", "Searching", "Plugins"]
         assert pl["chipsOff"] == [] and pl["cardOff"] is False, "switching Accounting off removes its boards"
         assert pl["chipsOn"] == ["ICAEW", "ACCA"] and pl["cardOn"], "and switching it on brings them back"
         assert pl["badLink"].startswith("That isn't a GitHub link") and not pl["installOpen"]

@@ -64,30 +64,63 @@ function drawPluginCards(){
 
 // ---- Settings → Plugins
 let plugins={plugins:[],profile_fields:[],settings:[]};
-const allKeys=()=>KEYS.concat(plugins.settings.map(s=>s.key));
+const allKeys=()=>KEYS;                 // plugin settings save themselves (see savePluginSetting)
 async function loadPlugins(){plugins=await get("/api/plugins");drawPlugins();jobslop.sync(plugins.plugins);
   if(typeof drawProfileFields==="function")drawProfileFields()}
+// one row per plugin, like Blender's add-ons: ▸ to fold open, a tick box to switch it on, its settings inside
+let plugOpen=new Set((pref("plugopen")||"").split(",").filter(Boolean));
+function settingControl(s){
+  const id=`ps-${esc(s.key)}`,key=`data-key="${esc(s.key)}" data-type="${esc(s.type)}"`;
+  if(s.type==="toggle")return `<label class="check"><input type="checkbox" class="pset" id="${id}" ${key} ${s.value==="1"?"checked":""}> ${esc(s.label)}</label>`;
+  if(s.type==="choice")return `<label class="f">${esc(s.label)}<select class="pset" id="${id}" ${key}>${s.options.map(([v,l])=>`<option value="${esc(v)}" ${v===s.value?"selected":""}>${esc(l)}</option>`).join("")}</select></label>`;
+  if(s.type==="secret")return `<label class="f">${esc(s.label)}<input type="password" class="pset" id="${id}" ${key} autocomplete="off" placeholder="${esc(s.value?t("saved ({0}) — paste to replace").replace("{0}",s.value):t("paste here"))}"></label>`;
+  return `<label class="f">${esc(s.label)}<input type="${s.type==="number"?"number":"text"}" class="pset" id="${id}" ${key} value="${esc(s.value)}"></label>`;
+}
+function pluginRow(p){
+  const sets=plugins.settings.filter(s=>s.plugin===p.id),open=plugOpen.has(p.id),upd=pluginUpdates[p.id];
+  const kind=p.language?"🌐 "+t("Language"):p.builtin?t("Built in"):t("Installed");
+  return `<div class="prow ${p.enabled?"on":"off"} ${open?"open":""}" data-id="${esc(p.id)}">
+    <div class="phead">
+      <button class="pfold" aria-expanded="${open}" aria-label="${esc(t("Show details"))}" data-tip="${esc(t("Show details and settings"))}">›</button>
+      <input type="checkbox" class="plugsw" data-id="${esc(p.id)}" ${p.enabled?"checked":""} ${p.error&&!p.enabled&&!p.version?"disabled":""} aria-label="${esc(p.name)}" data-tip="${p.enabled?t("Switch off"):t("Switch on")} ${esc(p.name)}">
+      <span class="pname">${esc(p.name)}${p.version?`<small>v${esc(p.version)}</small>`:""}</span>
+      ${upd?`<span class="tag">${esc(t("Update to {0}").replace("{0}",upd.latest))}</span>`:""}${p.error?`<span class="perr">⚠</span>`:""}
+      <span class="pkind">${esc(kind)}</span>
+    </div>
+    <div class="pbody" ${open?"":"hidden"}>
+      ${p.description?`<div class="pd">${esc(p.description)}</div>`:""}
+      ${p.adds.length?`<div class="pa">${p.adds.map(a=>`<span>${esc(a)}</span>`).join("")}</div>`:""}
+      ${p.error?`<div class="perr">⚠ ${esc(p.error)}</div>`:""}
+      <div class="pbtns">${p.author?`<span class="muted" style="font-size:12px">${esc(t("by {0}").replace("{0}",p.author))}</span>`:""}
+        ${p.homepage?`<span class="linkish" style="font-size:12px" data-href="${esc(p.homepage)}">${esc(t("Website ↗"))}</span>`:""}
+        ${upd?`<button class="pill dark sm plugupd" data-link="${esc(upd.link)}">${esc(t("Update to {0}").replace("{0}",upd.latest))}</button>`:""}
+        ${!p.builtin?`<button class="pill line sm plugrm" data-id="${esc(p.id)}" data-tip="Remove this plugin from jobslop">Remove</button>`:""}</div>
+      ${sets.length?`<div class="psets"><div class="psec" style="margin:0 0 8px">${esc(t("Settings"))}</div><div class="pgrid">${sets.map(settingControl).join("")}</div>
+        ${sets.filter(s=>s.help||s.link).map(s=>`<div class="help">${esc(s.help)} ${s.link?`<span class="linkish" data-href="${esc(s.link)}">${esc(s.link.replace(/^https:\/\//,""))}</span>`:""}</div>`).join("")}</div>`
+        :!p.enabled&&p.has_settings?`<div class="help muted" style="font-size:12px">${esc(t("Switch it on to change its settings."))}</div>`:""}
+    </div></div>`;
+}
 function drawPlugins(){
-  $("#plugs").innerHTML=plugins.plugins.map(p=>`<div class="plug ${p.enabled?"on":""}">
-    <div class="ph"><div><div class="pn">${esc(p.name)}${p.builtin?'<span class="tag">BUILT IN</span>':""}</div>
-      <div class="pv">v${esc(p.version)}${p.author?" · "+esc(p.author):""}</div></div>
-      <label class="sw" data-tip="${p.enabled?"Switch off":"Switch on"} ${esc(p.name)}"><input type="checkbox" class="plugsw" data-id="${esc(p.id)}" ${p.enabled?"checked":""} ${p.error&&!p.enabled&&!p.version?"disabled":""} aria-label="${esc(p.name)}"><span></span></label></div>
-    ${p.description?`<div class="pd">${esc(p.description)}</div>`:""}
-    ${p.adds.length?`<div class="pa">${p.adds.map(a=>`<span>${esc(a)}</span>`).join("")}</div>`:""}
-    ${p.error?`<div class="perr">⚠ ${esc(p.error)}</div>`:""}
-    <div class="pbtns">${p.homepage?`<span class="linkish" style="font-size:12px" data-href="${esc(p.homepage)}">Website ↗</span>`:""}
-      ${pluginUpdates[p.id]?`<button class="pill dark sm plugupd" data-link="${esc(pluginUpdates[p.id].link)}">Update to ${esc(pluginUpdates[p.id].latest)}</button>`:""}
-      ${!p.builtin?`<button class="pill line sm plugrm" data-id="${esc(p.id)}" data-tip="Remove this plugin from jobslop">Remove</button>`:""}</div></div>`).join("")
-    ||`<p class="muted" style="font-size:13px">No plugins yet.</p>`;
+  const q=($("#plugfind")||{value:""}).value.trim().toLowerCase(),only=($("#plugonly")||{}).checked;
+  const list=plugins.plugins.filter(p=>(!only||p.enabled)&&(!q||`${p.name} ${p.description} ${t(p.name)} ${t(p.description)}`.toLowerCase().includes(q)));
+  $("#plugs").innerHTML=list.map(pluginRow).join("")||`<p class="muted" style="font-size:13px">${esc(plugins.plugins.length?t("No plugins match."):t("No plugins yet."))}</p>`;
   $$(".plugsw").forEach(c=>c.onchange=()=>togglePlugin(c.dataset.id,c.checked));
+  $$(".prow .pfold,.prow .pname").forEach(b=>b.onclick=()=>{
+    const row=b.closest(".prow"),id=row.dataset.id,open=!plugOpen.has(id);
+    open?plugOpen.add(id):plugOpen.delete(id);pref("plugopen",[...plugOpen].join(","));
+    row.classList.toggle("open",open);row.querySelector(".pbody").hidden=!open;row.querySelector(".pfold").setAttribute("aria-expanded",open)});
   $$(".plugrm").forEach(b=>b.onclick=()=>removePlugin(b.dataset.id));
   $$(".plugupd").forEach(b=>b.onclick=()=>previewPlugin(b.dataset.link,b));
-  // boxes plugins add to Settings (API keys and the like), saved with "Save settings"
-  const bySec={};plugins.settings.forEach(s=>{const n=(plugins.plugins.find(p=>p.id===s.plugin)||{}).name||s.plugin;(bySec[n]=bySec[n]||[]).push(s)});
-  $("#plugsettings").innerHTML=Object.entries(bySec).map(([n,ss])=>`<div class="psec" style="margin-top:12px">${esc(n)}</div><div class="pgrid">${ss.map(s=>
-    `<label class="f">${esc(s.label)}<input type="${s.type==="secret"?"password":"text"}" id="${esc(s.key)}" autocomplete="off"></label>`).join("")}</div>
-    ${ss.filter(s=>s.help||s.link).map(s=>`<p class="muted" style="font-size:12.5px;margin:4px 0 10px">${esc(s.help)} ${s.link?`<span class="linkish" data-href="${esc(s.link)}">${esc(s.link.replace(/^https:\/\//,""))}</span>`:""}</p>`).join("")}`).join("");
-  plugins.settings.forEach(s=>{const el=$("#"+s.key);if(el)el.placeholder=keys[s.key]?"saved ("+keys[s.key]+") — paste to replace":"paste here"});
+  $$(".pset").forEach(el=>el.onchange=()=>savePluginSetting(el));
+}
+// a plugin's setting is saved as soon as it changes (an empty key box leaves the saved key alone)
+async function savePluginSetting(el){
+  const v=el.type==="checkbox"?(el.checked?"1":""):el.value.trim();
+  if(el.dataset.type==="secret"&&!v)return;
+  await post("/api/settings",{[el.dataset.key]:v});
+  if(el.dataset.type==="secret")el.value="";
+  plugins=await get("/api/plugins");keys=await get("/api/settings");drawPlugins();await loadBoards();
+  toast(t("Saved ✓"));
 }
 async function togglePlugin(id,on){
   const p=plugins.plugins.find(x=>x.id===id)||{name:id};
@@ -99,6 +132,10 @@ async function togglePlugin(id,on){
   if(!on&&LANGS.some(l=>l.code===LANG&&l.plugin===id)){savePref("lang","en");await loadLanguage("en")}else await loadLanguage(LANG);
   toast(t(on?"{0} switched on":"{0} switched off").replace("{0}",p.name));
 }
+$("#plugfind").addEventListener("input",()=>drawPlugins());
+$("#plugonly").onchange=()=>{pref("plugonly",$("#plugonly").checked?"1":"");drawPlugins()};
+$("#plugonly").checked=pref("plugonly")==="1";
+
 // ---- install from a GitHub link: download and show what it is first, install only when the user says yes
 let pluginUpdates={},pendingPlugin=null;
 async function previewPlugin(link,btn){

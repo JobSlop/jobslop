@@ -13,7 +13,7 @@ VERSION_RE = re.compile(r"\d+(\.\d+){0,3}")
 KEY_RE = re.compile(r"[a-z][a-z0-9_]{1,39}")
 FILE_RE = re.compile(r"[\w-]+(/[\w-]+)*\.(py|js|css|json)")
 FIELD_TYPES = ("text", "area", "yn", "email", "tel", "url")
-SETTING_TYPES = ("secret", "text")
+SETTING_TYPES = ("secret", "text", "number", "toggle", "choice")   # toggle values are "1" or ""
 
 
 class ManifestError(ValueError):
@@ -36,6 +36,35 @@ class SettingField:
     type: str = "secret"
     help: str = ""
     link: str = ""
+    options: tuple[tuple[str, str], ...] = ()   # for "choice": (value, label) pairs
+    default: str = ""
+
+
+def setting_field(key, label, type="secret", help="", link="", options=(), default="") -> SettingField:
+    """A checked SettingField (used for plugin.json and api.add_setting alike)."""
+    if not KEY_RE.fullmatch(str(key)):
+        raise ManifestError(f'setting "{key}": use a-z, 0-9 and _')
+    if type not in SETTING_TYPES:
+        raise ManifestError(f'setting "{key}": type must be one of {", ".join(SETTING_TYPES)}')
+    if link and not str(link).startswith("https://"):
+        raise ManifestError(f'setting "{key}": "link" must start with https://')
+    pairs = []
+    for o in options or ():
+        value, text = (o, o) if isinstance(o, str) else (list(o) + [""])[:2]
+        pairs.append((str(value)[:60], str(text or value)[:80]))
+    if type == "choice" and not pairs:
+        raise ManifestError(f'setting "{key}": a choice needs "options"')
+    if isinstance(default, bool):
+        default = "1" if default else ""
+    default = "" if default is None else str(default)[:200]
+    if type == "choice" and default and default not in [v for v, _ in pairs]:
+        raise ManifestError(f'setting "{key}": "default" must be one of its options')
+    if type == "number" and default:
+        try:
+            float(default)
+        except ValueError:
+            raise ManifestError(f'setting "{key}": "default" must be a number') from None
+    return SettingField(str(key), str(label)[:80], type, str(help)[:200], str(link)[:200], tuple(pairs), default)
 
 
 @dataclass(frozen=True)
@@ -158,13 +187,11 @@ def parse(data: dict, folder: Path) -> Manifest:
         key = _text(s, "key", 40, required=True)
         if not KEY_RE.fullmatch(key):
             raise ManifestError(f'setting "{key}": use a-z, 0-9 and _')
-        stype = _text(s, "type", 10) or "secret"
-        if stype not in SETTING_TYPES:
-            raise ManifestError(f'setting "{key}": type must be one of {", ".join(SETTING_TYPES)}')
-        link = _text(s, "link", 200)
-        if link and not link.startswith("https://"):
-            raise ManifestError(f'setting "{key}": "link" must start with https://')
-        settings.append(SettingField(key, _text(s, "label", 80, required=True), stype, _text(s, "help", 200), link))
+        options = s.get("options") or []
+        if not isinstance(options, list):
+            raise ManifestError(f'setting "{key}": "options" must be a list')
+        settings.append(setting_field(key, _text(s, "label", 80, required=True), _text(s, "type", 10) or "secret",
+                                      _text(s, "help", 200), _text(s, "link", 200), options, s.get("default", "")))
     lang = None
     if data.get("language"):
         lg = data["language"]

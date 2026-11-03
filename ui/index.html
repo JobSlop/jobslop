@@ -195,18 +195,57 @@
 </main>
 
 <!-- ======================= MODALS ======================= -->
-<div class="modal" id="m-keys"><div class="box wide">
-  <h3>Settings</h3>
-  <div class="psec" style="margin-top:8px">Preferences</div>
-  <div class="pgrid">
-    <label class="f" data-tip="The app's language. More languages come as plugins">Language<select class="langsel" id="setlang"></select></label>
-    <label class="f">Show salaries in<select class="cursel" id="setcurrency"></select></label>
-    <label class="f">Distances in<select id="setunit"><option value="mi">Miles</option><option value="km">Kilometres</option></select></label>
-  </div>
-  <p class="muted" style="font-size:12.5px;margin:6px 0 0" id="ratesnote"></p>
-  <div class="pc-only">
-    <div class="psec">📱 Phone access</div>
-    <p class="muted" style="font-size:12.5px;margin:-4px 0 10px">Use jobslop from your phone on the same Wi-Fi while it runs on this computer. Protected by a PIN, and only reachable on your home network.</p>
+<div class="modal" id="m-keys"><div class="box settings">
+  <div class="sethead"><h3>Settings</h3></div>
+  <div class="setwrap">
+    <nav class="setnav" id="setnav" aria-label="Settings sections">
+      <button data-set="general" class="on">General</button>
+      <button data-set="search">Searching</button>
+      <button data-set="plugins">Plugins</button>
+      <button data-set="phone" class="pc-only">Phone access</button>
+      <button data-set="updates" class="pc-only">Updates</button>
+      <button data-set="help">Help &amp; feedback</button>
+    </nav>
+    <div class="setpane">
+      <section data-set="general">
+        <div class="psec" style="margin-top:0">Preferences</div>
+        <div class="pgrid">
+          <label class="f" data-tip="The app's language. More languages come as plugins">Language<select class="langsel" id="setlang"></select></label>
+          <label class="f">Show salaries in<select class="cursel" id="setcurrency"></select></label>
+          <label class="f">Distances in<select id="setunit"><option value="mi">Miles</option><option value="km">Kilometres</option></select></label>
+        </div>
+        <p class="muted" style="font-size:12.5px;margin:8px 0 0" id="ratesnote"></p>
+      </section>
+      <section data-set="search" hidden>
+        <div class="psec" style="margin-top:0">Job match terms</div>
+  <p class="muted" style="font-size:12.5px;margin:-4px 0 10px">Teach the app what a job can be called. Searching any of the names finds all of them, and “title only” means the word must be in the job <i>title</i> — so “communication” listed as a skill in an advert won't count as a communications job. Also used by “Match jobs to my CV”.</p>
+        <div id="mterms"></div>
+        <div style="display:flex;gap:8px;margin-top:8px"><button class="pill line sm" id="addterm">+ Add a job term</button></div>
+        <div class="pc-only">
+          <div class="psec">Backup for LinkedIn, Indeed & Glassdoor</div>
+          <p class="muted" style="font-size:12.5px;margin:0 0 8px">Indeed and Glassdoor are searched free from this computer. If a site refuses, Apify takes over (free plan: $5 credit a month, each search capped at $0.25).</p>
+          <label class="f" style="max-width:420px">Apify API token<input type="password" id="apify_token"></label>
+          <p class="muted" style="font-size:12.5px;margin:4px 0 0">Free: <span class="linkish" data-href="https://console.apify.com/sign-up">console.apify.com/sign-up</span> → Settings → API &amp; Integrations</p>
+          <p class="muted" style="font-size:12.5px;margin:10px 0 0">Keys for other job boards are with their plugin under Plugins.</p>
+        </div>
+      </section>
+      <section data-set="plugins" hidden>
+        <div class="plugbar">
+          <input type="search" id="plugfind" placeholder="Search plugins" aria-label="Search plugins">
+          <label class="check"><input type="checkbox" id="plugonly"> Enabled only</label>
+        </div>
+        <div class="plist" id="plugs"></div>
+        <div class="pc-only">
+          <div class="psec">Add a plugin</div>
+          <div class="lirow"><input type="text" id="pluglink" placeholder="github.com/someone/their-plugin" autocomplete="off" aria-label="GitHub link of a plugin">
+            <button class="pill dark sm" id="plugget" data-tip="Download the plugin and show what it adds — nothing is installed until you say so">Install from link</button>
+            <button class="pill line sm" id="plugcheck" data-tip="Ask GitHub whether your plugins have newer versions">Check for plugin updates</button></div>
+          <p class="muted" id="plugmsg" style="font-size:12.5px;min-height:16px;margin:6px 0 0"></p>
+        </div>
+      </section>
+      <section data-set="phone" class="pc-only" hidden>
+        <div class="psec" style="margin-top:0">📱 Phone access</div>
+        <p class="muted" style="font-size:12.5px;margin:-4px 0 10px">Use jobslop from your phone on the same Wi-Fi while it runs on this computer. Protected by a PIN, and only reachable on your home network.</p>
     <label class="check"><input type="checkbox" id="phoneon"> Allow my phone to connect</label>
     <div id="phonebox" class="phonebox" hidden>
       <div id="phoneqr" class="phoneqr" data-tip="Scan with your phone's camera"></div>
@@ -222,44 +261,27 @@
         <p class="muted" style="font-size:12px;margin:10px 0 0" id="phonenote"></p>
       </div>
     </div>
-  </div>
-  <div class="psec">Job match terms</div>
-  <p class="muted" style="font-size:12.5px;margin:-4px 0 10px">Teach the app what a job can be called. Searching any of the names finds all of them, and “title only” means the word must be in the job <i>title</i> — so “communication” listed as a skill in an advert won't count as a communications job. Also used by “Match jobs to my CV”.</p>
-  <div id="mterms"></div>
-  <div style="display:flex;gap:8px;margin-top:8px"><button class="pill line sm" id="addterm">+ Add a job term</button></div>
-  <div class="psec">Plugins</div>
-  <p class="muted" style="font-size:12.5px;margin:-4px 0 10px">Extra job boards, fields and languages. Switch on what's useful to you — changes apply straight away.</p>
-  <div class="plugs" id="plugs"></div>
-  <div class="pc-only">
-    <div class="lirow" style="margin-top:12px"><input type="text" id="pluglink" placeholder="github.com/someone/their-plugin" autocomplete="off" aria-label="GitHub link of a plugin">
-      <button class="pill dark sm" id="plugget" data-tip="Download the plugin and show what it adds — nothing is installed until you say so">Install from link</button>
-      <button class="pill line sm" id="plugcheck" data-tip="Ask GitHub whether your plugins have newer versions">Check for plugin updates</button></div>
-    <p class="muted" id="plugmsg" style="font-size:12.5px;min-height:16px;margin:6px 0 0"></p>
-  </div>
-  <div class="pc-only">
-  <div class="psec">Job board keys</div>
-  <p class="muted" style="font-size:13px;margin:-4px 0 8px">All optional. Keys are stored only on this computer.</p>
-  <div id="plugsettings"></div>
-  <div class="psec">Backup for LinkedIn, Indeed & Glassdoor</div>
-  <p class="muted" style="font-size:12.5px;margin:0 0 8px">Indeed and Glassdoor are searched free from this computer. If a site refuses, Apify takes over (free plan: $5 credit a month, each search capped at $0.25).</p>
-  <label class="f">Apify API token<input type="password" id="apify_token"></label>
-  <p class="muted" style="font-size:12.5px;margin:4px 0 0">Free: <span class="linkish" data-href="https://console.apify.com/sign-up">console.apify.com/sign-up</span> → Settings → API &amp; Integrations</p>
-  </div>
-  <div class="pc-only">
-    <div class="psec">Updates</div>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span id="updinfo" class="muted" style="font-size:13px;flex:1;min-width:200px"></span><button class="pill line sm" id="updcheck">Check for updates</button></div>
-    <label class="check" style="margin-top:8px"><input type="checkbox" id="updoff"> Don't receive any updates</label>
-    <p class="muted" style="font-size:12px;margin:4px 0 0 22px">When ticked, jobslop never checks for new versions. Otherwise it asks GitHub twice a day — nothing about you is sent, and nothing is installed unless you press Update.</p>
-  </div>
-  <div class="psec">Help &amp; feedback</div>
+      </section>
+      <section data-set="updates" class="pc-only" hidden>
+        <div class="psec" style="margin-top:0">Updates</div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span id="updinfo" class="muted" style="font-size:13px;flex:1;min-width:200px"></span><button class="pill line sm" id="updcheck">Check for updates</button></div>
+        <label class="check" style="margin-top:8px"><input type="checkbox" id="updoff"> Don't receive any updates</label>
+        <p class="muted" style="font-size:12px;margin:4px 0 0 22px">When ticked, jobslop never checks for new versions. Otherwise it asks GitHub twice a day — nothing about you is sent.</p>
+      </section>
+      <section data-set="help" hidden>
+        <div class="psec" style="margin-top:0">Keyboard shortcuts</div>
   <div class="shortcuts">
     <span><span class="kbd">Ctrl</span> <span class="kbd">Z</span></span><span>Undo your last change (saving, applying, moving or removing a job, profile imports)</span>
     <span><span class="kbd">/</span></span><span>Jump to the search box</span>
     <span><span class="kbd">Ctrl</span> <span class="kbd">R</span></span><span>Reload the app</span>
     <span><span class="kbd">Esc</span></span><span>Close a window or pop-up</span>
   </div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="pill line sm" id="feedback">✉ Send feedback</button><button class="pill line sm" id="gsshow">Show the getting-started list</button></div>
-  <div class="row"><button class="pill line" id="retour" style="margin-right:auto" data-tip="Show the welcome tour again">↺ Take the tour again</button><button class="pill line" data-close>Close</button><button class="pill dark" id="savekeys">Save settings</button></div>
+        <div class="psec">More</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="pill line sm" id="feedback">✉ Send feedback</button><button class="pill line sm" id="gsshow">Show the getting-started list</button><button class="pill line sm" id="retour" data-tip="Show the welcome tour again">↺ Take the tour again</button></div>
+      </section>
+    </div>
+  </div>
+  <div class="row setfoot"><button class="pill line" data-close>Close</button><button class="pill dark" id="savekeys">Save settings</button></div>
 </div></div>
 
 <div class="modal" id="m-plugin"><div class="box">

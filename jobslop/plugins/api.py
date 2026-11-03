@@ -12,7 +12,7 @@ from jobslop.boards.base import Board, SearchFn
 from jobslop.boards.registry import BoardRegistry
 from jobslop.config import DATA_DIR
 from jobslop.plugins import tools
-from jobslop.plugins.manifest import API_VERSION, KEY_RE, Manifest, SettingField
+from jobslop.plugins.manifest import API_VERSION, KEY_RE, Manifest, setting_field
 from jobslop.plugins.points import Endpoint, ExtensionPoints, NamedEndpoint, Terms
 from jobslop.settings import load_settings
 
@@ -38,14 +38,22 @@ class PluginAPI:
                                native_types=native_types, needs=tuple(needs), slow_without=slow_without,
                                cache_seconds=max(60, int(cache_seconds)), plugin=self.id))
 
-    def add_setting(self, key: str, label: str, *, secret: bool = True, help: str = "", link: str = "") -> None:
-        """A box in Settings (an API key, say). Read it with api.setting(key)."""
-        if not KEY_RE.fullmatch(key):
-            raise ValueError(f'setting "{key}": use a-z, 0-9 and _')
-        self._points.settings.add(self.id, SettingField(key, label, "secret" if secret else "text", help, link))
+    def add_setting(self, key: str, label: str, *, type: str = "secret", help: str = "", link: str = "",
+                    options=(), default="", secret: bool | None = None) -> None:
+        """A setting shown in the plugin's fold in Settings → Plugins. type: secret (an API key, hidden),
+        text, number, toggle (on/off, read as "1" or "") or choice (options: [(value, label), ...]).
+        Read it with api.setting(key)."""
+        if secret is not None:                       # older form: secret=True/False
+            type = "secret" if secret else "text"
+        self._points.settings.add(self.id, setting_field(key, label, type, help, link, options, default))
 
     def setting(self, key: str) -> str:
-        return str(load_settings().get(key) or "")
+        """The setting's value, or its default when it has never been set (a toggle reads "1" or "")."""
+        value = load_settings().get(key)
+        if value is None:
+            f = next((f for f in self._points.settings if f.key == key), None)
+            return f.default if f else ""
+        return str(value)
 
     def add_endpoint(self, name: str, fn: Endpoint) -> None:
         """Data for the plugin's own screen code, at /api/plugin/<id>/<name>. fn(params, body) -> JSON-able."""

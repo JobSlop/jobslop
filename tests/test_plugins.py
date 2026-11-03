@@ -235,3 +235,60 @@ class TestServer:
         routes.points.endpoints.add("acct", type(routes.points.endpoints.items()[0][1])("boom", lambda p, b: 1 / 0))
         code, data = app_server.get("/api/plugin/acct/boom")
         assert code == 500 and "ZeroDivisionError" in data["error"]
+
+
+# ---------------------------------------------------------------- settings of every kind
+def test_setting_types_in_plugin_json(tmp_path):
+    folder = make_plugin(tmp_path, "opts", settings=[
+        {"key": "o_key", "label": "Key"},
+        {"key": "o_name", "label": "Name", "type": "text", "default": "Ann"},
+        {"key": "o_max", "label": "Max", "type": "number", "default": 5},
+        {"key": "o_on", "label": "Include old jobs", "type": "toggle", "default": True},
+        {"key": "o_mode", "label": "Mode", "type": "choice", "options": ["fast", ["slow", "Slow and careful"]], "default": "slow"}])
+    s = {f.key: f for f in mf.read(folder).settings}
+    assert s["o_key"].type == "secret" and s["o_on"].default == "1" and s["o_max"].default == "5"
+    assert s["o_mode"].options == (("fast", "fast"), ("slow", "Slow and careful"))
+
+
+@pytest.mark.parametrize("bad, message", [
+    ({"type": "choice"}, "needs"),
+    ({"type": "choice", "options": ["a"], "default": "b"}, "one of its options"),
+    ({"type": "number", "default": "lots"}, "a number"),
+    ({"type": "colour"}, "type must be"),
+])
+def test_bad_settings_are_refused(tmp_path, bad, message):
+    folder = make_plugin(tmp_path, "opts", settings=[{"key": "o_x", "label": "X", **bad}])
+    with pytest.raises(mf.ManifestError, match=message):
+        mf.read(folder)
+
+
+def test_settings_from_code_with_defaults_and_values(world):
+    mgr, tmp, _, points = world
+    make_plugin(tmp / "builtin", "opts", {"plugin.py": '''
+        seen = {}
+        def register(api):
+            api.add_setting("o_mode", "Mode", type="choice", options=[("a", "A"), ("b", "B")], default="b")
+            api.add_setting("o_on", "On", type="toggle")
+            api.add_setting("o_old", "Old style", secret=False)
+            api.add_endpoint("read", lambda p, b: {k: api.setting(k) for k in ("o_mode", "o_on", "o_old")})
+    '''}, python="plugin.py")
+    mgr.discover()
+    mgr.set_enabled("opts", True)
+    read = points.endpoint("opts", "read")
+    assert read({}, None) == {"o_mode": "b", "o_on": "", "o_old": ""}, "defaults until set"
+    assert {f.key: f.type for f in points.settings} == {"o_mode": "choice", "o_on": "toggle", "o_old": "text"}
+    from jobslop.settings import update_settings
+    update_settings(lambda s: s.update(o_mode="a", o_on="1"))
+    assert read({}, None)["o_mode"] == "a" and read({}, None)["o_on"] == "1"
+
+
+def test_the_screen_gets_values_but_never_secrets(world):
+    mgr, tmp, _, points = world
+    make_plugin(tmp / "builtin", "opts", settings=[{"key": "o_key", "label": "Key"},
+                                                   {"key": "o_name", "label": "Name", "type": "text", "default": "Ann"}])
+    mgr.discover()
+    mgr.set_enabled("opts", True)
+    from jobslop.settings import update_settings
+    update_settings(lambda s: s.update(o_key="supersecretvalue"))
+    values = {s["key"]: s["value"] for s in plugin_routes.PluginRoutes(mgr, points).overview()["settings"]}
+    assert values["o_name"] == "Ann" and "supersecretvalue" not in values["o_key"] and values["o_key"].startswith("sup")

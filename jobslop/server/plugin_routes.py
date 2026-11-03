@@ -16,6 +16,7 @@ from dataclasses import asdict
 from jobslop.plugins.installer import INSTALLER, Installer, InstallError
 from jobslop.plugins.manager import PLUGINS, PluginManager
 from jobslop.plugins.points import POINTS, ExtensionPoints
+from jobslop.settings import load_settings, public_settings
 
 STATIC_TYPES = {"js": "text/javascript", "css": "text/css", "json": "application/json", "png": "image/png",
                 "svg": "image/svg+xml"}
@@ -29,10 +30,16 @@ class PluginRoutes:
         self.plugins, self.points, self.installer = plugins, points, installer
 
     def overview(self) -> dict:
+        saved = load_settings()
+        masked = public_settings(tuple(self.points.setting_keys(secret_only=True)))
         return {"plugins": [self.plugins.describe(p) for p in self.plugins.all()],
                 "profile_fields": [{**asdict(f), "autofill": list(f.autofill), "plugin": pid}
                                    for pid, f in self.points.profile_fields.items()],
-                "settings": [{**asdict(s), "plugin": pid} for pid, s in self.points.settings.items()]}
+                # secret settings are only ever sent masked; others with their value (or default)
+                "settings": [{**asdict(s), "options": [list(o) for o in s.options], "plugin": pid,
+                              "value": masked.get(s.key, "") if s.type == "secret"
+                              else str(saved[s.key]) if saved.get(s.key) is not None else s.default}
+                             for pid, s in self.points.settings.items()]}
 
     def get(self, req, path: str, params: dict) -> bool:
         """Answer a GET if it is a plugin path. Returns False when it isn't one."""
