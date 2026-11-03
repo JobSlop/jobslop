@@ -162,19 +162,6 @@ def test_a_failed_swap_changes_nothing(tmp_path):
     assert (tmp_path / "jobslop.exe").read_bytes() == b"old version"
 
 
-def test_new_copy_starts_without_the_old_ones_hidden_settings():
-    """The bug behind 'it didn't reopen': a self-unpacking app passes its unpack folder to programs it starts."""
-    fake_env = {"PATH": r"C:\Windows", "APPDATA": r"C:\Users\me\AppData\Roaming", "_PYI_APPLICATION_HOME_DIR": r"C:\Temp\_MEI1",
-                "_PYI_PARENT_PROCESS_LEVEL": "1", "_PYI_ARCHIVE_FILE": r"C:\Apps\jobslop.exe", "_MEIPASS2": r"C:\Temp\_MEI1"}
-    with mock.patch.dict(os.environ, fake_env, clear=True), mock.patch.object(subprocess, "Popen") as popen:
-        updates.launch_fresh(Path(r"C:\Apps\jobslop.exe"))
-    env = popen.call_args.kwargs["env"]
-    assert popen.call_args.args[0] == [r"C:\Apps\jobslop.exe"], "started directly - no shell or script"
-    assert env["PYINSTALLER_RESET_ENVIRONMENT"] == "1"
-    assert not [k for k in env if k.startswith(("_PYI_", "_MEI"))]
-    assert env["APPDATA"] == fake_env["APPDATA"], "everything else is passed on as it was"
-
-
 def test_start_up_never_crashes_over_the_old_copy(repo, tmp_path):
     """Right after an update the old version may still be closing, so its .old file can't be deleted yet."""
     exe = tmp_path / "jobslop.exe"
@@ -206,7 +193,7 @@ def test_install_needs_a_finished_download(repo):
     popen.assert_not_called()
 
 
-def test_install_swaps_starts_the_new_version_and_closes(repo, tmp_path):
+def test_install_swaps_and_closes_without_reopening(repo, tmp_path):
     updates.UPDATE_DIR.mkdir(parents=True, exist_ok=True)
     new = updates.UPDATE_DIR / "jobslop-new.exe"
     new.write_bytes(NEW_EXE)
@@ -217,7 +204,8 @@ def test_install_swaps_starts_the_new_version_and_closes(repo, tmp_path):
             mock.patch.object(sys, "executable", str(exe)), \
             mock.patch.object(subprocess, "Popen") as popen, mock.patch.object(threading, "Timer") as timer:
         updates.install_update()
-    assert exe.read_bytes() == NEW_EXE and popen.call_args.args[0] == [str(exe)]
+    assert exe.read_bytes() == NEW_EXE
+    popen.assert_not_called()                                   # the user opens the new version themselves
     timer.return_value.start.assert_called_once()
     assert updates.update_state["ready"] == ""
 

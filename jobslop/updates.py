@@ -4,7 +4,6 @@ import hashlib
 import os
 import re
 import shutil
-import subprocess
 import sys
 import threading
 import time
@@ -115,7 +114,7 @@ def download_update():
 def swap_in_update(new_exe, target):
     """Put the new .exe where the running one is. Windows won't let a running program be overwritten or
     deleted, but it can be renamed - so the running copy steps aside as '.old' (the new version deletes it
-    once this one has closed). If anything fails, the original is put back and nothing changes."""
+    when it's next opened). If anything fails, the original is put back and nothing changes."""
     target, new_exe = Path(target), Path(new_exe)
     old = Path(str(target) + ".old")
     try:
@@ -134,25 +133,16 @@ def swap_in_update(new_exe, target):
         raise ValueError("Couldn't put the new version in place - nothing was changed")
 
 
-def launch_fresh(exe):
-    """Start a separate copy of jobslop. A self-unpacking app passes hidden settings to programs it starts;
-    a new copy of itself must ignore them, or it can't find its own files and never opens."""
-    env = {k: v for k, v in os.environ.items() if not k.startswith(("_PYI_", "_MEI"))}
-    env["PYINSTALLER_RESET_ENVIRONMENT"] = "1"
-    flags = getattr(subprocess, "DETACHED_PROCESS", 0) | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
-    return subprocess.Popen([str(exe)], env=env, cwd=str(Path(exe).parent), creationflags=flags, close_fds=True)
-
-
 def install_update():
-    """Swap in the downloaded version, start it, and close this one."""
+    """Swap in the downloaded version and close jobslop. The user opens it again to use the new version
+    (it isn't started automatically)."""
     new = Path(update_state["ready"] or "")
     if not (config.FROZEN and config.IS_WIN and new.is_file()):
         raise ValueError("Download the update first")
     target = Path(sys.executable)
     swap_in_update(new, target)
     update_state["ready"] = ""
-    launch_fresh(target)
-    threading.Timer(0.8, lambda: os._exit(0)).start()    # time to answer the screen, then close
+    threading.Timer(1.5, lambda: os._exit(0)).start()    # time to answer the screen and say so, then close
 
 
 def after_update_cleanup():

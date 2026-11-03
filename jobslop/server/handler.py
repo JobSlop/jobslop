@@ -318,7 +318,7 @@ class Handler(BaseHTTPRequestHandler):
                     return self.send('{"started":true}')
                 if act == "install":
                     install_update()
-                    return self.send('{"restarting":true}')
+                    return self.send('{"closing":true}')
             except Exception as e:
                 return self.send(json.dumps({"error": str(e)[:160]}), code=400)
             return self.send('{"error":"unknown action"}', code=400)

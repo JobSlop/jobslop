@@ -16,26 +16,27 @@ async function loadUpdate(force){
   return upd;
 }
 // the green ⬇ in the top bar (like Discord): only there when a new version is out.
-// Click it for the details; while downloading it fills up; once ready it pulses until you restart.
+// Click it for the details; while downloading it fills up; once ready it pulses until you install it.
+// Installing closes jobslop - you open it again yourself to use the new version.
 let updPhase="",updPct=0;              // "" | "dl" (downloading) | "ready"
 function drawUpdBar(){
   const ic=$("#updicon"),pop=$("#updpop"),show=!!(upd&&upd.available&&!upd.skipped&&!PHONE);
   ic.hidden=!show;if(!show){pop.classList.remove("open");return}
   ic.classList.toggle("dl",updPhase==="dl");ic.classList.toggle("ready",updPhase==="ready");ic.style.setProperty("--p",updPct);
   ic.textContent=updPhase==="ready"?"↻":"⬇";
-  ic.dataset.tip=updPhase==="ready"?"Restart to finish updating jobslop":updPhase==="dl"?`Downloading jobslop ${upd.version}… ${Math.round(updPct)}%`:`Update available — jobslop ${upd.version}`;
+  ic.dataset.tip=updPhase==="ready"?"Install the update — jobslop closes, then open it again":updPhase==="dl"?`Downloading jobslop ${upd.version}… ${Math.round(updPct)}%`:`Update available — jobslop ${upd.version}`;
   ic.setAttribute("aria-label",ic.dataset.tip);if(tipFor===ic)showTip(ic);
   pop.innerHTML=`<div class="kicker">${updPhase==="ready"?"Ready to install":"Update available"}</div>
     <h4>jobslop ${esc(upd.version)}</h4>
     <div class="muted" style="font-size:12.5px">You have ${esc(upd.current)}. ${upd.can_install?"Your jobs, profile and settings are kept.":upd.how==="source"?"Get the new code from GitHub and run or build it again.":"Download it where you got jobslop (e.g. your Gumroad library) — your jobs, profile and settings are kept."}</div>
     <div class="updprog" id="updprog" ${updPhase==="dl"?"":"hidden"}><i style="width:${updPct}%"></i></div>
     <div class="acts2">${upd.notes?`<button class="pill line sm" id="updnotes">What's new</button>`:""}${updPhase?"":`<button class="pill line sm" id="updskip">Skip</button>`}
-      <button class="pill dark sm" id="updgo" ${updPhase==="dl"?"disabled":""}>${updPhase==="dl"?`<span class="spin"></span> Downloading…`:updPhase==="ready"?"Restart to finish":upd.can_install?"Update now":"Get it ↗"}</button></div>`;
+      <button class="pill dark sm" id="updgo" ${updPhase==="dl"?"disabled":""}>${updPhase==="dl"?`<span class="spin"></span> Downloading…`:updPhase==="ready"?"Install and close":upd.can_install?"Update now":"Get it ↗"}</button></div>`;
   const on=(id,fn)=>{const e=document.getElementById(id);if(e)e.onclick=fn};
   on("updnotes",()=>{pop.classList.remove("open");showNotes(true)});on("updgo",startUpdate);
   on("updskip",async()=>{upd=await post("/api/update",{action:"skip",version:upd.version});drawUpdBar();toast("Skipped — you'll hear about the next version")});
 }
-$("#updicon").onclick=e=>{e.stopPropagation();if(updPhase==="ready")return restartToUpdate();$("#themepop").classList.remove("open");$("#updpop").classList.toggle("open");hideTip()};
+$("#updicon").onclick=e=>{e.stopPropagation();if(updPhase==="ready")return installAndClose();$("#themepop").classList.remove("open");$("#updpop").classList.toggle("open");hideTip()};
 document.addEventListener("click",e=>{if(!e.target.closest("#updpop")&&e.target.id!=="updicon")$("#updpop").classList.remove("open")});
 function showNotes(offer){$("#wntitle").textContent=`What's new in jobslop ${upd.version}`;$("#wnnotes").textContent=upd.notes||"No notes for this version.";
   $("#wnupdate").hidden=!offer;openModal("m-whatsnew")}
@@ -43,7 +44,7 @@ $("#wnupdate").onclick=()=>{closeModals();startUpdate()};
 async function startUpdate(){
   if(!upd)return;
   if(!upd.can_install){openUrl(upd.get_url||upd.page);return}
-  if(updPhase==="ready")return restartToUpdate();
+  if(updPhase==="ready")return installAndClose();
   if(updPhase==="dl")return;
   updPhase="dl";updPct=0;drawUpdBar();
   await post("/api/update",{action:"download"});
@@ -54,10 +55,10 @@ async function startUpdate(){
     if(st.busy)return;clearInterval(updPoll);
     if(st.error){updPhase="";drawUpdBar();toast(st.error);return}
     if(st.ready){updPhase="ready";updPct=100;drawUpdBar();
-      toast("Update downloaded and checked ✓ — restart jobslop to finish",{label:"Restart now",fn:restartToUpdate})}},600);
+      toast("Update downloaded and checked ✓ — install it, then open jobslop again",{label:"Install and close",fn:installAndClose})}},600);
 }
-async function restartToUpdate(){
-  $("#splash").classList.remove("gone");$("#splash .word").textContent="Updating jobslop…";
+async function installAndClose(){
+  $("#splash").classList.remove("gone");$("#splash .word").textContent=t("jobslop is closing — open it again to use the new version");
   try{await post("/api/update",{action:"install"})}catch(e){}
 }
 $("#updcheck").onclick=()=>withSpinner($("#updcheck"),"Checking…",async()=>{const r=await loadUpdate(true);
