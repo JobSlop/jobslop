@@ -161,7 +161,8 @@ class PluginManager:
                 "description": m.description if m else "", "author": m.author if m else "",
                 "homepage": (m.homepage if m else "") or p.source.get("url", ""), "builtin": p.builtin,
                 "enabled": self.is_enabled(p.id), "loaded": p.loaded, "error": p.error,
-                "adds": m.adds() if m else [], "has_settings": bool(m and m.settings), "ui": f"/plugins/{p.id}/{m.ui}" if m and m.ui and p.loaded else "",
+                "adds": m.adds() if m else [], "has_settings": bool(m and m.settings),
+                "countries": list((m.language.countries if m.language else m.countries) if m else ()), "ui": f"/plugins/{p.id}/{m.ui}" if m and m.ui and p.loaded else "",
                 "language": {"code": m.language.code, "name": m.language.name} if m and m.language else None}
 
 

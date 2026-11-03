@@ -1,0 +1,31 @@
+{
+  "id": "jobs-us",
+  "name": "United States",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Job boards for the US: Jobs2Careers (a large job search) and USAJOBS (government jobs, needs a free key).",
+  "author": "jobslop",
+  "homepage": "https://github.com/JobSlop/jobslop-plugin-jobs-us",
+  "python": "plugin.py",
+  "countries": [
+    "US"
+  ],
+  "settings": [
+    {
+      "key": "usajobs_key",
+      "label": "USAJOBS API key"
+    },
+    {
+      "key": "usajobs_email",
+      "label": "Email you registered with",
+      "type": "text",
+      "help": "US government jobs. Free:",
+      "link": "https://developer.usajobs.gov/apirequest/"
+    }
+  ],
+  "translations": {
+    "nl": "lang/nl.json",
+    "es": "lang/es.json",
+    "da": "lang/da.json"
+  }
+}

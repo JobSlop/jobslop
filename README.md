@@ -3,7 +3,7 @@
 Search dozens of job boards at once, match jobs to your CV, track every application, and let the Chrome
 extension fill in application forms for you. Everything stays on your own computer.
 
-- **Search:** LinkedIn, Indeed, Glassdoor and ZipRecruiter, plus many more through plugins (country boards, remote boards, accounting, art and games boards).
+- **Search:** LinkedIn, Indeed, Glassdoor and ZipRecruiter, plus many more through plugins: one per country (UK, US, Denmark, Netherlands), Adzuna, remote boards, accounting, art and games. Every plugin starts switched off; pick yours in the welcome tour.
 - **Match:** drop in your CV and jobslop ranks jobs by how well they fit.
 - **Track:** a board of everything you've saved and applied to, with streaks, a weekly goal and follow-up reminders.
 - **Easy apply:** the Chrome extension fills application forms with your profile and CV. It never submits; you always check and send.

@@ -61,7 +61,7 @@ def test_plugins_add_job_titles_for_their_field():
 
 
 def test_searching_in_the_netherlands_also_searches_dutch_titles_on_dutch_boards(dutch):
-    plugin_module("country-boards")
+    plugin_module("jobs-nl")
     fake = FakeBoards({"Jobbird": [make_job("Jobbird", "Boekhouder", location="Utrecht")],
                        "Himalayas": [make_job("Himalayas", "Accountant", location="Remote")]})
     with fake.installed(), no_internet():

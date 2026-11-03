@@ -22,7 +22,11 @@ from jobslop.boards import linkedin as linkedin_board
 from jobslop.boards import registry, ziprecruiter
 from jobslop.geo import cities
 
-country_boards = plugin_module("country-boards")
+uk_boards = plugin_module("jobs-uk")
+us_boards = plugin_module("jobs-us")
+dk_boards = plugin_module("jobs-dk")
+nl_boards = plugin_module("jobs-nl")
+adzuna_board = plugin_module("adzuna")
 remote_boards = plugin_module("remote-boards")
 accounting = plugin_module("accounting")
 artists = plugin_module("artists")
@@ -63,11 +67,11 @@ class HelperTests:
         d = text.short_date("1 Jan")
         assert re.search(r"^\d{4}-01-01$", d)
         assert d <= datetime.now().strftime("%Y-%m-%d"), "a date without a year is never in the future"
-        assert country_boards.dutch_date("Vandaag") == days_ago(0)
-        assert country_boards.dutch_date("gisteren") == days_ago(1)
-        assert country_boards.dutch_date("3 dagen geleden") == days_ago(3)
-        assert country_boards.dutch_date("2 weken geleden") == days_ago(14)
-        assert country_boards.dutch_date("onbekend") == ""
+        assert nl_boards.dutch_date("Vandaag") == days_ago(0)
+        assert nl_boards.dutch_date("gisteren") == days_ago(1)
+        assert nl_boards.dutch_date("3 dagen geleden") == days_ago(3)
+        assert nl_boards.dutch_date("2 weken geleden") == days_ago(14)
+        assert nl_boards.dutch_date("onbekend") == ""
 
     def test_strip_html(self):
         assert text.strip_html("<p>Hello&nbsp;<b>world</b></p>") == "Hello world"
@@ -128,11 +132,11 @@ class BoardTestCase:
 class KeyedBoardTests(BoardTestCase):
     def test_reed(self):
         with pytest.raises(board_base.NeedsKey):
-            country_boards.src_reed("x", base_opts())
+            uk_boards.src_reed("x", base_opts())
         with pytest.raises(board_base.NotHere):
-            country_boards.src_reed("x", base_opts(country="US"))
+            uk_boards.src_reed("x", base_opts(country="US"))
         self.set_keys(reed_key="abc")
-        jobs, asked = self.json_board(country_boards.src_reed, {"reed.co.uk": {"results": [
+        jobs, asked = self.json_board(uk_boards.src_reed, {"reed.co.uk": {"results": [
             {"jobTitle": "Games Programmer", "employerName": "Studio", "jobUrl": "https://reed/1", "locationName": "Leamington Spa",
              "date": "30/10/2026", "minimumSalary": 35000, "maximumSalary": 45000, "currency": "GBP", "jobDescription": "<p>C++</p>"}]}},
             base_opts(where="Coventry", salary_min=30000, jtype="fulltime"))
@@ -148,9 +152,9 @@ class KeyedBoardTests(BoardTestCase):
 
     def test_adzuna(self):
         with pytest.raises(board_base.NeedsKey):
-            country_boards.src_adzuna("x", base_opts())
+            adzuna_board.src_adzuna("x", base_opts())
         self.set_keys(adzuna_id="id", adzuna_key="key")
-        jobs, asked = self.json_board(country_boards.src_adzuna, {"adzuna.com": {"results": [
+        jobs, asked = self.json_board(adzuna_board.src_adzuna, {"adzuna.com": {"results": [
             {"title": "Data Analyst", "company": {"display_name": "Bank"}, "redirect_url": "https://adz/1",
              "location": {"display_name": "Birmingham"}, "created": "2026-10-29T10:00:00Z", "salary_min": 30000,
              "salary_max": 36000, "contract_time": "full_time", "contract_type": "permanent",
@@ -163,11 +167,11 @@ class KeyedBoardTests(BoardTestCase):
 
     def test_usajobs(self):
         with pytest.raises(board_base.NotHere):
-            country_boards.src_usajobs("x", base_opts())
+            us_boards.src_usajobs("x", base_opts())
         with pytest.raises(board_base.NeedsKey):
-            country_boards.src_usajobs("x", base_opts(country="US"))
+            us_boards.src_usajobs("x", base_opts(country="US"))
         self.set_keys(usajobs_key="k", usajobs_email="me@example.com")
-        jobs, asked = self.json_board(country_boards.src_usajobs, {"usajobs.gov": {"SearchResult": {"SearchResultItems": [
+        jobs, asked = self.json_board(us_boards.src_usajobs, {"usajobs.gov": {"SearchResult": {"SearchResultItems": [
             {"MatchedObjectDescriptor": {"PositionTitle": "IT Specialist", "OrganizationName": "NASA",
                                          "PositionURI": "https://usajobs/1", "PositionLocationDisplay": "Houston, Texas",
                                          "PublicationStartDate": "2026-10-01",
@@ -243,8 +247,8 @@ class RemoteBoardTests(BoardTestCase):
 class CountryBoardTests(BoardTestCase):
     def test_jobindex(self):
         with pytest.raises(board_base.NotHere):
-            country_boards.src_jobindex("x", base_opts())
-        jobs, asked = self.json_board(country_boards.src_jobindex, {"jobindex.dk": {"total_pages": 1, "results": [
+            dk_boards.src_jobindex("x", base_opts())
+        jobs, asked = self.json_board(dk_boards.src_jobindex, {"jobindex.dk": {"total_pages": 1, "results": [
             {"headline": "Udvikler", "companytext": "Firma", "share_url": "https://ji/1", "area": "Aarhus",
              "firstdate": "2026-10-25", "addresses": [{"coordinates": {"latitude": 56.15, "longitude": 10.2}}]}]}},
             base_opts(country="DK", where="Aarhus"))
@@ -253,26 +257,26 @@ class CountryBoardTests(BoardTestCase):
 
     def test_jobbird(self):
         with pytest.raises(board_base.NotHere):
-            country_boards.src_jobbird("x", base_opts())
+            nl_boards.src_jobbird("x", base_opts())
         card = ('<a href="https://www.jobbird.com/nl/vacature/123-dev" class="job-search__result-list__result__title">Developer</a>'
                 '<span class="cro-recruiter-name"><span>Bedrijf BV</span></span>'
                 '<span class="cro-job-location"><span>Utrecht</span></span>'
                 '<span class="cro-time-posted"><span>2 dagen geleden</span></span>')
-        jobs = self.html_board(country_boards.src_jobbird, {"jobbird.com": card}, base_opts(country="NL", where="Utrecht"))
+        jobs = self.html_board(nl_boards.src_jobbird, {"jobbird.com": card}, base_opts(country="NL", where="Utrecht"))
         assert len(jobs) == 1
         assert (jobs[0]["title"], jobs[0]["company"], jobs[0]["location"], jobs[0]["date"]) == \
                          ("Developer", "Bedrijf BV", "Utrecht", days_ago(2))
 
     def test_jobs2careers(self):
         with pytest.raises(board_base.NotHere):
-            country_boards.src_jobs2careers("x", base_opts())
+            us_boards.src_jobs2careers("x", base_opts())
         ads = {"jobAds": {"byId": {"1": {"adType": "job", "title": "Nurse", "companyName": "Hospital", "link": "https://j2c/1",
                                          "cityState": "Austin, TX", "datePosted": "2026-10-30", "workLocation": "onsite",
                                          "salaryDetails": {"0": {"label": "$30/hr"}}, "workTypeDetails": {"0": {"label": "Full-time"}},
                                          "coordinates": {"0": "30.27,-97.74"}},
                                    "2": {"adType": "sponsored", "title": "Ad"}}}}
         page = "<script>window.__DATA__=" + json.dumps(ads, separators=(",", ":")) + ";</script>"
-        jobs = self.html_board(country_boards.src_jobs2careers, {"jobs2careers.com": page}, base_opts(country="US", where="Austin"))
+        jobs = self.html_board(us_boards.src_jobs2careers, {"jobs2careers.com": page}, base_opts(country="US", where="Austin"))
         assert len(jobs) == 1, "sponsored adverts are skipped"
         assert (jobs[0]["salary"], jobs[0]["type"], jobs[0]["lat"]) == ("$30/hr", "Full-time", 30.27)
 

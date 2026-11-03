@@ -1,0 +1,26 @@
+{
+  "id": "jobs-uk",
+  "name": "United Kingdom",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Job boards for the UK: Reed.co.uk, one of the biggest (needs a free API key).",
+  "author": "jobslop",
+  "homepage": "https://github.com/JobSlop/jobslop-plugin-jobs-uk",
+  "python": "plugin.py",
+  "countries": [
+    "GB"
+  ],
+  "settings": [
+    {
+      "key": "reed_key",
+      "label": "Reed API key",
+      "help": "Reed (UK). Free:",
+      "link": "https://www.reed.co.uk/developers/jobseeker"
+    }
+  ],
+  "translations": {
+    "nl": "lang/nl.json",
+    "es": "lang/es.json",
+    "da": "lang/da.json"
+  }
+}

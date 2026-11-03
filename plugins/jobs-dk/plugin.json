@@ -1,0 +1,18 @@
+{
+  "id": "jobs-dk",
+  "name": "Denmark",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Job boards for Denmark: Jobindex.dk, the country's biggest. No key needed.",
+  "author": "jobslop",
+  "homepage": "https://github.com/JobSlop/jobslop-plugin-jobs-dk",
+  "python": "plugin.py",
+  "countries": [
+    "DK"
+  ],
+  "translations": {
+    "nl": "lang/nl.json",
+    "es": "lang/es.json",
+    "da": "lang/da.json"
+  }
+}

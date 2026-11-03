@@ -39,6 +39,10 @@ from jobslop.server import handler as app_handler  # noqa: E402
 
 bootstrap.setup()
 
+# every plugin starts switched off; the tests need the job boards, so those are switched on here
+# (test_builtin_plugins checks the real defaults)
+BOARD_PLUGINS = ("jobs-uk", "jobs-us", "jobs-dk", "jobs-nl", "adzuna", "remote-boards")
+
 
 def plugin_module(pid, module="plugin"):
     """A built-in plugin's Python module (the plugin is switched on for the tests if it isn't already)."""
@@ -278,3 +282,7 @@ class AppTestCase:
     def setup_method(self):
         reset_data()
         runtime.state["port"] = self.app.port
+
+
+for _pid in BOARD_PLUGINS:
+    plugin_module(_pid)

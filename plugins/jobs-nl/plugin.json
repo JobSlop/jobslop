@@ -1,0 +1,18 @@
+{
+  "id": "jobs-nl",
+  "name": "Netherlands",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Job boards for the Netherlands: Jobbird.com. No key needed.",
+  "author": "jobslop",
+  "homepage": "https://github.com/JobSlop/jobslop-plugin-jobs-nl",
+  "python": "plugin.py",
+  "countries": [
+    "NL"
+  ],
+  "translations": {
+    "nl": "lang/nl.json",
+    "es": "lang/es.json",
+    "da": "lang/da.json"
+  }
+}

@@ -86,6 +86,7 @@ class Manifest:
     python: str = ""                       # file with register(api)
     ui: str = ""                           # screen code
     enabled_by_default: bool = False
+    countries: tuple[str, ...] = ()        # where it's most useful (suggested for people there); () = anywhere
     profile_fields: tuple[ProfileField, ...] = ()
     settings: tuple[SettingField, ...] = ()
     language: Language | None = None
@@ -211,9 +212,16 @@ def parse(data: dict, folder: Path) -> Manifest:
         id=pid, name=name, version=version, api=api,
         description=_text(data, "description", 300), author=_text(data, "author", 60), homepage=homepage,
         python=_file(data, "python", folder), ui=_file(data, "ui", folder),
-        enabled_by_default=bool(data.get("enabled_by_default")),
+        enabled_by_default=bool(data.get("enabled_by_default")), countries=_countries(data),
         profile_fields=tuple(fields), settings=tuple(settings), language=lang,
         translations=_files(data, "translations", folder), search_terms=_files(data, "search_terms", folder))
+
+
+def _countries(data: dict) -> tuple[str, ...]:
+    c = data.get("countries") or []
+    if not isinstance(c, list) or not all(isinstance(x, str) and re.fullmatch(r"[A-Z]{2}", x) for x in c):
+        raise ManifestError('"countries" must be a list of codes like "GB"')
+    return tuple(c)
 
 
 def read(folder: Path) -> Manifest:

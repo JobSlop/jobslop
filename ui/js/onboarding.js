@@ -1,6 +1,6 @@
 // ============================================================= start
 // ============================================================= onboarding tour (first run)
-const OB_KICK=["Welcome","Step 1 · Your CV","Step 2 · Location","Step 3 · Searching","Step 4 · Apply & track"];
+const OB_KICK=["Welcome","Step 1 · Your CV","Step 2 · Location","Step 3 · Job boards & extras","Step 4 · Searching","Step 5 · Apply & track"];
 let obStep=0;
 const obSteps=()=>$$("#m-onboard .obstep");
 function showObStep(i){
@@ -12,7 +12,27 @@ function showObStep(i){
   $("#obback").style.visibility=obStep?"visible":"hidden";
   const ready=(profile.jobs||[]).length>0;
   $("#obnext").textContent=obStep===steps.length-1?(ready?"Find jobs for me →":"Start searching →"):obStep===1?"Next (or skip)":"Next";
+  if(steps[obStep].dataset.step==="3")drawObPlugins();
   if(obStep===steps.length-1)$("#obextnote").innerHTML=$("#extdot").classList.contains("on")?'<span style="color:var(--good)">● Already connected</span>':"or later from <b>Profile</b>";
+}
+// the plugins step: extras for your country first ("Suggested"), then ones that work anywhere;
+// other countries' boards are folded away. Nothing is ticked until you tick it.
+async function drawObPlugins(){
+  if(!plugins.plugins.length)await loadPlugins();
+  const cc=$("#country").value,cname=t((countries.find(c=>c.code===cc)||{}).name||"");
+  const extras=plugins.plugins.filter(p=>!p.language);   // suggested: the country's own plugin before wide ones like Adzuna
+  const mine=extras.filter(p=>(p.countries||[]).includes(cc)).sort((a,b)=>a.countries.length-b.countries.length),
+        anywhere=extras.filter(p=>!(p.countries||[]).length),
+        others=extras.filter(p=>(p.countries||[]).length&&!(p.countries||[]).includes(cc));
+  const row=(p,tag)=>`<label class="obplug ${p.enabled?"on":""}"><input type="checkbox" class="obplugsw" data-id="${esc(p.id)}" ${p.enabled?"checked":""}>
+    <span><b>${esc(p.name)}</b>${tag?` <span class="tag">${esc(tag)}</span>`:""}<small>${esc(p.description)}</small></span></label>`;
+  $("#obplugs").innerHTML=mine.map(p=>row(p,t("Suggested for {0}").replace("{0}",cname))).join("")+anywhere.map(p=>row(p,"")).join("")+
+    (others.length?`<details class="obmore"><summary>${esc(t("Boards for other countries"))}</summary>${others.map(p=>row(p,"")).join("")}</details>`:"");
+  $$(".obplugsw").forEach(c=>c.onchange=async()=>{
+    plugins=await post("/api/plugins",{id:c.dataset.id,enabled:c.checked});
+    c.closest(".obplug").classList.toggle("on",c.checked);
+    jobslop.sync(plugins.plugins);drawProfileFields();keys=await get("/api/settings");await loadBoards();
+  });
 }
 function startOnboarding(){
   $("#obcountry").innerHTML=countries.map(c=>`<option value="${c.code}">${esc(c.name)}</option>`).join("");

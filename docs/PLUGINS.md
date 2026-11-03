@@ -17,7 +17,7 @@ Start from [`plugin-template/`](plugin-template/), and look at the plugins that 
 |---|---|
 | `accounting` | add boards, profile fields with autofill, a Progress card, job titles in other languages |
 | `gamedev` | add a board, a server endpoint, a map layer, a tab, a Progress card, and split code over two files |
-| `country-boards` | add boards that need API keys (settings) |
+| `jobs-uk`, `jobs-us`, `adzuna` | add boards that need API keys (settings); `countries` suggests a plugin to people there |
 | `lang-nl`, `lang-es`, `lang-da` | make a language pack (no code at all) |
 
 ## What's in a plugin

@@ -234,13 +234,13 @@ window.addEventListener("load", () => setTimeout(async () => {
     out.tips.shown = $("#tip").classList.contains("on") ? $("#tip").textContent : "";
     setTab("search");
     // 16. plugins: Settings lists them with their key boxes; switching one off takes its boards away
-    plugOpen.add("country-boards");
+    plugOpen.add("jobs-uk"); plugOpen.add("jobs-us"); plugOpen.add("adzuna");
     openSettings("plugins"); await loadPlugins();
     out.settingsTabs = {shown: $$(".setpane > section").filter(s => !s.hidden).map(s => s.dataset.set),
                         nav: $$("#setnav button").map(b => b.textContent)};
     const accChips = () => $$(".sc").map(c => c.value).filter(v => ["ICAEW", "ACCA"].includes(v));
     out.plugins = {cards: $$("#plugs .prow .pname").map(e => e.firstChild.textContent.trim()),
-                   keyBoxes: $$('.prow[data-id="country-boards"] .pset').map(i => i.dataset.key),
+                   keyBoxes: $$('.prow[data-id="jobs-uk"] .pset, .prow[data-id="jobs-us"] .pset, .prow[data-id="adzuna"] .pset').map(i => i.dataset.key),
                    folded: $$(".prow").filter(r => r.querySelector(".pbody").hidden).map(r => r.dataset.id).includes("accounting"),
                    ticks: $$(".prow .plugsw").every(c => c.type === "checkbox")};
     $('.prow[data-id="accounting"] .pfold').click();
@@ -301,6 +301,19 @@ window.addEventListener("load", () => setTimeout(async () => {
     await chooseLanguage("en");
     out.lang.back = {go: $("#go").textContent, placeholder: $("#q").placeholder, tab: $$(".navlinks .tab")[0].textContent};
     await togglePlugin("lang-nl", false);
+    // 19. the welcome tour's plugins step: your country's boards first, nothing ticked for you
+    for (const id of ["jobs-uk", "jobs-dk"]) if (plugins.plugins.find(p => p.id === id).enabled) await togglePlugin(id, false);
+    setCountry("GB"); startOnboarding(); showObStep(3);
+    await until(() => $$(".obplug").length);
+    out.obPlugins = {kick: $("#obkick").textContent, first: $(".obplug b").textContent,
+                     suggested: $(".obplug .tag") ? $(".obplug .tag").textContent : "",
+                     ticked: $$(".obplugsw").filter(c => c.checked).map(c => c.dataset.id),
+                     folded: $$(".obmore .obplugsw").map(c => c.dataset.id), steps: obSteps().length};
+    const dk = $('.obplugsw[data-id="jobs-dk"]'); dk.checked = true; dk.dispatchEvent(new Event("change"));
+    await until(() => plugins.plugins.find(p => p.id === "jobs-dk").enabled);
+    out.obPlugins.dkOn = plugins.plugins.find(p => p.id === "jobs-dk").enabled;
+    await togglePlugin("jobs-dk", false); await togglePlugin("jobs-uk", true);
+    closeModals();
   } catch (e) { out.error = String(e && e.stack || e); }
   out.loadErrors = window.__loadErrors;
   document.getElementById("selftest").textContent = JSON.stringify(out);
@@ -512,7 +525,7 @@ class ScreenTests:
 
     def test_plugins_in_settings(self):
         pl = self.out["plugins"]
-        assert {"Accounting", "Artists", "Country boards", "Game dev", "Remote boards"} <= set(pl["cards"])
+        assert {"Accounting", "Artists", "United Kingdom", "United States", "Adzuna", "Game dev", "Remote boards"} <= set(pl["cards"])
         assert {"reed_key", "adzuna_id", "adzuna_key", "usajobs_key", "usajobs_email"} <= set(pl["keyBoxes"]), "keys sit in their plugin's fold"
         assert pl["folded"] and pl["unfolds"] and pl["ticks"], "rows start folded, open with the arrow, and use tick boxes"
         assert pl["enabledOnly"] and pl["found"] == ["remote-boards"]
@@ -542,3 +555,11 @@ class ScreenTests:
         assert lang["jobTitle"] == lang["englishTitle"] != "", "job titles are never translated"
         assert lang["yesNo"] == ["=—", "Yes=Ja", "No=Nee"], "answers are still saved as Yes / No"
         assert lang["back"] == {"go": "Search jobs", "placeholder": "What job? e.g. data analyst — commas for several", "tab": "Search"}
+
+    def test_welcome_tour_offers_plugins(self):
+        ob = self.out["obPlugins"]
+        assert ob["kick"] == "Step 3 · Job boards & extras" and ob["steps"] == 6
+        assert ob["first"] == "United Kingdom" and ob["suggested"] == "Suggested for United Kingdom"
+        assert "jobs-uk" not in ob["ticked"], "nothing is switched on for you"
+        assert {"jobs-us", "jobs-dk", "jobs-nl"} <= set(ob["folded"]), "other countries' boards are folded away"
+        assert ob["dkOn"], "ticking one switches it on"

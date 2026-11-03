@@ -431,6 +431,13 @@ button.busy{pointer-events:none;opacity:.8}
 }
 /* onboarding */
 .modal .box.ob{padding:0;width:min(620px,100%);overflow:hidden}
+.obplugs{display:flex;flex-direction:column;gap:6px;max-height:330px;overflow:auto;padding-right:4px}
+.obplug{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;border:1px solid var(--line);border-radius:12px;cursor:pointer}
+.obplug.on{border-color:var(--accent);background:var(--accent-soft)}
+.obplug input{margin-top:3px;width:16px;height:16px;accent-color:var(--accent);flex:0 0 auto}
+.obplug small{display:block;color:var(--muted);font-size:12px;line-height:1.4;margin-top:2px}
+.obmore summary{cursor:pointer;font-size:13px;color:var(--muted);padding:6px 2px}
+.obmore .obplug{margin-top:6px}
 .obhero{display:flex;align-items:center;gap:12px;padding:18px 24px;color:#f4efe6;
   background:radial-gradient(320px 160px at 90% 0%,color-mix(in srgb,var(--accent) 45%,transparent),transparent 70%),linear-gradient(160deg,var(--hero2),var(--hero1))}
 .oblogo{width:38px;height:38px}

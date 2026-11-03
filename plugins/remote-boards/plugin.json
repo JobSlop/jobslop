@@ -7,10 +7,10 @@
   "author": "jobslop",
   "homepage": "https://github.com/JobSlop/jobslop-plugin-remote-boards",
   "python": "plugin.py",
-  "enabled_by_default": true,
   "translations": {
     "nl": "lang/nl.json",
     "es": "lang/es.json",
     "da": "lang/da.json"
-  }
+  },
+  "countries": []
 }

@@ -12,13 +12,17 @@ from jobslop.plugins.points import POINTS
 BUILTIN = sorted(p.name for p in (ROOT / "plugins").iterdir() if (p / "plugin.json").exists())
 
 EXPECTED_BOARDS = {
-    "country-boards": {"Reed", "Adzuna", "Jobs2Careers", "USAJOBS", "Jobindex", "Jobbird"},
+    "jobs-uk": {"Reed"},
+    "jobs-us": {"Jobs2Careers", "USAJOBS"},
+    "jobs-dk": {"Jobindex"},
+    "jobs-nl": {"Jobbird"},
+    "adzuna": {"Adzuna"},
     "remote-boards": {"Himalayas", "Jobicy", "Remotive", "RemoteOK", "Arbeitnow"},
     "accounting": {"ICAEW", "ACCA"},
     "artists": {"ArtStation"},
     "gamedev": {"WorkWithIndies"},
 }
-ON_BY_DEFAULT = {"country-boards", "remote-boards"}
+ON_BY_DEFAULT = set()                 # every plugin starts switched off; the welcome tour offers them
 
 
 def test_the_expected_plugins_are_built_in():
