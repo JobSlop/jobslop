@@ -65,3 +65,20 @@ def test_the_extension_is_told_about_plugin_fields():
     PLUGINS.set_enabled("accounting", False)
     assert "acca_number" not in {f["key"] for f in extension_payload()["extra_fields"]}
     PLUGINS.set_enabled("accounting", True)
+
+
+def test_the_plugin_template_works(tmp_path):
+    """docs/plugin-template is what plugin makers start from: it must be valid and start cleanly."""
+    import shutil
+
+    from jobslop.boards.registry import BoardRegistry
+    from jobslop.plugins.manager import PluginManager
+    from jobslop.plugins.points import ExtensionPoints
+    shutil.copytree(ROOT / "docs" / "plugin-template", tmp_path / "installed" / "my-plugin")
+    boards, points = BoardRegistry(), ExtensionPoints()
+    mgr = PluginManager(tmp_path / "builtin", tmp_path / "installed", boards, points)
+    mgr.discover()
+    mgr.set_enabled("my-plugin", True)
+    assert mgr.get("my-plugin").loaded, mgr.get("my-plugin").error
+    assert boards.names() == ["My Board"] and [f.key for f in points.profile_fields] == ["my_plugin_link"]
+    mgr.set_enabled("my-plugin", False)

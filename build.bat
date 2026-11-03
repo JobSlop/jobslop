@@ -11,7 +11,9 @@ set VENV=%TEMP%\jobfinder-venv
 if not exist "%VENV%\Scripts\python.exe" python -m venv "%VENV%" || goto failed
 "%VENV%\Scripts\python.exe" -m pip install --quiet --upgrade pyinstaller pywebview python-jobspy pypdf pdfminer.six phonenumbers pypdfium2 || goto failed
 rem the test tools live in the same environment (run_tests.bat) and must never end up inside the app
-"%VENV%\Scripts\python.exe" -m PyInstaller --noconfirm --onefile --windowed --name jobslop --icon "%~dp0jf.ico" ^
+rem standard modules third-party plugins may use that jobslop itself doesn't (so they're in the .exe)
+set PLUGIN_STDLIB=--hidden-import xml.etree.ElementTree --hidden-import xml.dom.minidom --hidden-import statistics --hidden-import difflib --hidden-import textwrap --hidden-import uuid --hidden-import hmac --hidden-import calendar --hidden-import html.parser --hidden-import email.utils --hidden-import decimal --hidden-import fractions --hidden-import string --hidden-import random --hidden-import itertools --hidden-import functools --hidden-import typing --hidden-import dataclasses --hidden-import sqlite3
+"%VENV%\Scripts\python.exe" -m PyInstaller --noconfirm --onefile %PLUGIN_STDLIB% --windowed --name jobslop --icon "%~dp0jf.ico" ^
   --collect-all jobspy --collect-all curl_cffi --collect-data certifi --collect-data pdfminer --collect-submodules phonenumbers.data --collect-submodules phonenumbers.shortdata --collect-all pypdfium2 --collect-all pypdfium2_raw ^
   --exclude-module pytest --exclude-module _pytest --exclude-module pluggy ^
   --add-data "%~dp0chrome-extension;chrome-extension" --add-data "%~dp0ui;ui" ^
@@ -25,8 +27,10 @@ if not exist jobslop-Tester-Windows mkdir jobslop-Tester-Windows
 copy /y dist\jobslop.exe jobslop-Tester-Windows\ >nul || echo Note: couldn't update jobslop-Tester-Windows\jobslop.exe (is it open?) - the zip still gets the new one.
 copy /y "package\READ ME FIRST.txt" jobslop-Tester-Windows\ >nul
 "%VENV%\Scripts\python.exe" -c "import zipfile; z=zipfile.ZipFile('jobslop-Tester-Windows.zip','w',zipfile.ZIP_DEFLATED); z.write('dist/jobslop.exe','jobslop-Tester-Windows/jobslop.exe'); z.write('package/READ ME FIRST.txt','jobslop-Tester-Windows/READ ME FIRST.txt'); z.close()" || goto failed
+rem source for building the Mac app on a Mac
+"%VENV%\Scripts\python.exe" tools\make_mac_source.py || goto failed
 echo.
-echo Done: dist\jobslop.exe and jobslop-Tester-Windows.zip
+echo Done: dist\jobslop.exe, jobslop-Tester-Windows.zip and jobslop-Mac-Source.zip
 goto end
 
 :failed

@@ -1,6 +1,29 @@
 # jobslop plugins — plan
 
-Decisions made:
+## Status (3 November 2026)
+
+Steps 1–9 are done and committed locally. Step 10 waits for your OK.
+
+| Step | Status |
+|---|---|
+| 1. git | done |
+| 2. backend split into `jobslop/` | done |
+| 3. board registry, `/api/boards` | done |
+| 4. plugin system, Settings → Plugins | done |
+| 5. boards moved into built-in plugins | done |
+| 6. screen split into `ui/`, screen-side plugin API, profile fields + autofill | done |
+| 7. translation, NL/ES/DA packs, local job titles | done |
+| 8. install / update / remove from GitHub links | done |
+| 9. builds bundle `ui/` and `plugins/`, `docs/PLUGINS.md`, `docs/plugin-template/` | done |
+| 10. public plugin repos + jobslop 3.0.0 release | **waiting for your OK** |
+
+Differences from the plan:
+- **Server routes:** most routes are still one handler, `jobslop/server/handler.py`. The plugin routes have their own module (`server/plugin_routes.py`). Splitting the rest by area is a follow-up.
+- **Chrome extension popup:** not translated yet. The screen is.
+- **Translations:** the Dutch, Spanish and Danish texts are mine. A native speaker should check them.
+- **Plugin log:** `api.log()` messages are kept, but nothing on screen shows them yet.
+
+## Decisions made
 - Plugins are full Python, like Blender add-ons. Installing one from a link shows a warning.
 - Language packs translate both the app's text and search terms.
 - Country boards and remote boards become plugins that are on by default.

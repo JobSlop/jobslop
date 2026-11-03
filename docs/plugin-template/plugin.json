@@ -1,0 +1,16 @@
+{
+  "id": "my-plugin",
+  "name": "My plugin",
+  "version": "0.1.0",
+  "api": 1,
+  "description": "What it adds, in a sentence or two — people read this before installing.",
+  "author": "your name",
+  "homepage": "https://github.com/you/jobslop-plugin-my-plugin",
+  "python": "plugin.py",
+  "ui": "ui.js",
+  "profile_fields": [
+    {"key": "my_plugin_link", "label": "Portfolio link", "section": "My plugin", "type": "url",
+     "autofill": ["portfolio (link|url)"]}
+  ],
+  "translations": {"nl": "lang/nl.json"}
+}

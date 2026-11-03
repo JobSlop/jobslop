@@ -1,5 +1,5 @@
-JOB FINDER  -  building the Mac version
-=======================================
+jobslop  -  building the Mac version
+====================================
 
 You need: a Mac (macOS 12 or newer) and Python 3.10+ from
 https://www.python.org/downloads/macos/   (choose the "macOS 64-bit universal2 installer")

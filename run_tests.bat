@@ -1,6 +1,6 @@
 @echo off
-rem Runs all of Job Finder's tests with pytest (about 170, under a minute). No internet needed, and
-rem your own Job Finder data is never touched. Uses the same Python environment as build.bat.
+rem Runs all of jobslop's tests with pytest (about 330, under a minute). No internet needed, and
+rem your own jobslop data is never touched. Uses the same Python environment as build.bat.
 rem Optional: Google Chrome (form-filling + app screen tests) and Node.js (extension logic tests);
 rem those parts are skipped with a note if they're missing.
 rem Extra options go straight to pytest, e.g.  run_tests.bat -k where   or   run_tests.bat tests\test_cv.py

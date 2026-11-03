@@ -24,7 +24,7 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 RES_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
 
 APP_PORT = 47321                       # fixed so the Chrome extension can find the app
-APP_VERSION = "2.3.1"                  # raise this for every release (release.py publishes it on GitHub)
+APP_VERSION = "3.0.0"                 # raise this for every release (release.py publishes it on GitHub)
 # The GitHub repository jobslop's releases are published in ("owner/name"). Empty = update checks are off.
 UPDATE_REPO = os.environ.get("JOBSLOP_UPDATE_REPO", "JobSlop/jobslop")
 FEEDBACK_EMAIL = "jobslop@proton.me"
