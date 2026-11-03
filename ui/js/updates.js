@@ -27,10 +27,10 @@ function drawUpdBar(){
   ic.setAttribute("aria-label",ic.dataset.tip);if(tipFor===ic)showTip(ic);
   pop.innerHTML=`<div class="kicker">${updPhase==="ready"?"Ready to install":"Update available"}</div>
     <h4>jobslop ${esc(upd.version)}</h4>
-    <div class="muted" style="font-size:12.5px">You have ${esc(upd.current)}.${upd.can_install?" Your jobs, profile and settings are kept.":" Get it from the download page."}</div>
+    <div class="muted" style="font-size:12.5px">You have ${esc(upd.current)}. ${upd.can_install?"Your jobs, profile and settings are kept.":upd.how==="source"?"Get the new code from GitHub and run or build it again.":"Download it where you got jobslop (e.g. your Gumroad library) — your jobs, profile and settings are kept."}</div>
     <div class="updprog" id="updprog" ${updPhase==="dl"?"":"hidden"}><i style="width:${updPct}%"></i></div>
     <div class="acts2">${upd.notes?`<button class="pill line sm" id="updnotes">What's new</button>`:""}${updPhase?"":`<button class="pill line sm" id="updskip">Skip</button>`}
-      <button class="pill dark sm" id="updgo" ${updPhase==="dl"?"disabled":""}>${updPhase==="dl"?`<span class="spin"></span> Downloading…`:updPhase==="ready"?"Restart to finish":upd.can_install?"Update now":"Download ↗"}</button></div>`;
+      <button class="pill dark sm" id="updgo" ${updPhase==="dl"?"disabled":""}>${updPhase==="dl"?`<span class="spin"></span> Downloading…`:updPhase==="ready"?"Restart to finish":upd.can_install?"Update now":"Get it ↗"}</button></div>`;
   const on=(id,fn)=>{const e=document.getElementById(id);if(e)e.onclick=fn};
   on("updnotes",()=>{pop.classList.remove("open");showNotes(true)});on("updgo",startUpdate);
   on("updskip",async()=>{upd=await post("/api/update",{action:"skip",version:upd.version});drawUpdBar();toast("Skipped — you'll hear about the next version")});
@@ -42,7 +42,7 @@ function showNotes(offer){$("#wntitle").textContent=`What's new in jobslop ${upd
 $("#wnupdate").onclick=()=>{closeModals();startUpdate()};
 async function startUpdate(){
   if(!upd)return;
-  if(!upd.can_install){openUrl(upd.page);return}
+  if(!upd.can_install){openUrl(upd.get_url||upd.page);return}
   if(updPhase==="ready")return restartToUpdate();
   if(updPhase==="dl")return;
   updPhase="dl";updPct=0;drawUpdBar();

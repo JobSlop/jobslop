@@ -55,7 +55,11 @@ def check_for_update(force=False):
         cache = {"t": time.time(), "info": release_info(rel)}
         update_settings(lambda st: st.__setitem__("update_check", cache))
     info = cache["info"]
-    out.update(info, available=bool(info["version"]) and is_newer(info["version"], config.APP_VERSION),
+    # a ready-made copy (bought) gets new versions from the download page; a copy run from the source
+    # (or built yourself) from GitHub
+    how = "built" if config.FROZEN else "source"
+    out.update(info, how=how, get_url=(config.DOWNLOAD_PAGE if how == "built" else "") or info["page"],
+               available=bool(info["version"]) and is_newer(info["version"], config.APP_VERSION),
                can_install=config.FROZEN and config.IS_WIN and bool(info["asset_url"] and info["sha256_url"]),
                skipped=s.get("update_skip") == info["version"])
     return out

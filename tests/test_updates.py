@@ -267,3 +267,28 @@ class UpdateApiTests(AppTestCase):
 
     def test_phones_cant_update_the_computer(self):
         assert "/api/update" in phone.PHONE_BLOCKED and "/api/update/status" in phone.PHONE_BLOCKED
+
+
+SOURCE_ONLY = {**RELEASE, "assets": []}          # releases now carry the source only, no .exe
+
+
+def test_bought_copies_get_new_versions_from_the_download_page(repo):
+    with mock.patch.object(net, "get_json", return_value=SOURCE_ONLY), mock.patch.object(config, "FROZEN", True), \
+            mock.patch.object(config, "IS_WIN", True), mock.patch.object(config, "DOWNLOAD_PAGE", "https://jobslop.gumroad.com/l/app"):
+        info = updates.check_for_update(force=True)
+    assert info["available"] and not info["can_install"], "no .exe on GitHub: nothing is downloaded in the app"
+    assert (info["how"], info["get_url"]) == ("built", "https://jobslop.gumroad.com/l/app")
+
+
+def test_without_a_download_page_the_release_is_opened(repo):
+    with mock.patch.object(net, "get_json", return_value=SOURCE_ONLY), mock.patch.object(config, "FROZEN", True), \
+            mock.patch.object(config, "DOWNLOAD_PAGE", ""):
+        info = updates.check_for_update(force=True)
+    assert info["get_url"] == RELEASE["html_url"]
+
+
+def test_copies_run_from_the_source_are_sent_to_github(repo):
+    with mock.patch.object(net, "get_json", return_value=SOURCE_ONLY), mock.patch.object(config, "FROZEN", False), \
+            mock.patch.object(config, "DOWNLOAD_PAGE", "https://jobslop.gumroad.com/l/app"):
+        info = updates.check_for_update(force=True)
+    assert (info["how"], info["get_url"]) == ("source", RELEASE["html_url"])

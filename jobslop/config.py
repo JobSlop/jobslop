@@ -28,3 +28,6 @@ APP_VERSION = "3.0.0"                 # raise this for every release (release.py
 # The GitHub repository jobslop's releases are published in ("owner/name"). Empty = update checks are off.
 UPDATE_REPO = os.environ.get("JOBSLOP_UPDATE_REPO", "JobSlop/jobslop")
 FEEDBACK_EMAIL = "jobslop@proton.me"
+# Where people who bought jobslop download new versions (the Gumroad product page). Releases on GitHub
+# carry the source only; when this is empty, "Get it" opens the GitHub release instead.
+DOWNLOAD_PAGE = os.environ.get("JOBSLOP_DOWNLOAD_PAGE", "")

@@ -68,7 +68,7 @@ Releases matter. jobslop installs the **latest GitHub release** of the repositor
 | `api` | The plugin API version it was made for. It's **1** now. jobslop refuses plugins made for a newer API and asks the user to update jobslop. |
 | `python`, `ui` | Files inside the plugin. Leave them out if you don't need them. |
 | `profile_fields` | `type` is one of `text`, `area`, `yn`, `email`, `tel`, `url`. `autofill` holds regular expressions (case-insensitive) for form labels. The Chrome extension fills the field into matching boxes, and checks these before its own rules. |
-| `settings` | Boxes under Settings → Job board keys. `type` is `secret` (hidden, shown masked) or `text`. Read them with `api.setting("my_board_key")`. |
+| `settings` | Shown inside your plugin's row in Settings → Plugins, saved as soon as they change. `type` is `secret` (an API key: hidden, shown masked), `text`, `number`, `toggle` (on/off, read as `"1"` or `""`) or `choice` (needs `options`: `["a", "b"]` or `[["a", "Label A"], …]`). `default` is used until the user changes it. Read them with `api.setting("my_board_key")`. |
 | `translations` | Language code → JSON file of `{"English text": "translation"}` for your own screen text. |
 | `search_terms` | Language code → JSON file of `{"english job title": ["local title", ...]}`. |
 | `language` | Makes this a **language pack**: it appears in the language picker, and its job titles are used for searches in `countries`. |
@@ -109,7 +109,7 @@ def search(query, options):
 | Call | What it does |
 |---|---|
 | `api.add_board(name, search, description="", *, group="specialist", countries=None, country_native=False, location_aware=False, native_types=False, needs=(), slow_without="", cache_seconds=900)` | A job board. `group` is one of `main`, `country`, `specialist`, `remote`. `countries` is `None` for everywhere. `country_native` means its results are already in the chosen country, and `location_aware` that it searches around the town itself. `needs` lists settings that must be filled in. |
-| `api.add_setting(key, label, *, secret=True, help="", link="")` | A settings box, the same as in `plugin.json`. |
+| `api.add_setting(key, label, *, type="secret", help="", link="", options=(), default="")` | A setting, the same as in `plugin.json`. |
 | `api.add_endpoint(name, fn)` | Data for your screen code at `/api/plugin/<id>/<name>`. `fn(params, body)` returns something JSON can hold. Only jobslop's own window can call it, never other websites. |
 | `api.add_search_terms(lang, {"accountant": ["boekhouder"]})` | Job titles in a language. |
 | `api.add_translations(lang, {"Text": "Tekst"})` | Screen text in a language. |
@@ -118,7 +118,7 @@ def search(query, options):
 
 | Name | What it is |
 |---|---|
-| `api.setting(key)` | A setting's value, `""` if empty. |
+| `api.setting(key)` | A setting's value, or its `default` until it's set. |
 | `api.data_dir` | A folder of your own for files you want to keep. |
 | `api.log(message)` | A line for the plugin log. |
 | `api.http.get_json(url, timeout=20, headers=None)`, `api.http.get_text(url, timeout=25)`, `api.http.BROWSER_HEADERS` | Fetching from the web. |
@@ -197,3 +197,7 @@ Put the folder in jobslop's data folder under `plugins/`:
 - **Mac:** `~/Library/Application Support/JobFinder/plugins/my-plugin`
 
 Restart jobslop and switch it on in Settings → Plugins. Errors show on its card.
+
+## Licence
+
+jobslop is GPL-3.0, and so are the plugins that come with it. A plugin runs inside jobslop and uses its API, so the simplest choice for yours is GPL-3.0 too: copy jobslop's `LICENSE` file into your repository.
