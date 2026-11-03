@@ -8,6 +8,7 @@ from jobslop.boards.registry import BOARDS
 from jobslop.geo.cities import REMOTE_RE, job_point, km_between
 from jobslop.geo.countries import COUNTRIES, country_info, local_ok_re
 from jobslop.geo.places import resolve_where
+from jobslop.i18n import LANGUAGES
 from jobslop.search.cache import fetch_cached
 from jobslop.search.contract import INTERN_RE, contract_length
 from jobslop.search.matching import STOPWORDS, find_group, group_score, match_groups, score
@@ -33,13 +34,20 @@ def search(query, sources, opts, fresh=False):
                 expanded.append(t)
                 qgroup[t] = g
     queries = expanded
+    # searching in another language's country: its job titles are searched too, on that country's own boards
+    local_for = {}
+    for q in list(queries):
+        for lt in LANGUAGES.local_terms(q, opts["country"]):
+            if lt.lower() not in (x.lower() for x in queries):
+                queries.append(lt)
+                local_for[lt] = q
     # internships: boards without an "internship" filter get the word added to the search itself
     sent_as = {}
     tasks = []
     for q in queries:
         for name in sources:
             board = BOARDS.get(name)
-            if board is None:
+            if board is None or (q in local_for and not board.country_native):
                 continue
             sq = q
             if opts.get("intern") and not board.native_types and not INTERN_RE.search(q):
@@ -123,4 +131,4 @@ def search(query, sources, opts, fresh=False):
     results.sort(key=lambda j: j["score"], reverse=True)
     for j in results:
         status[j["source"]]["found"] += 1
-    return {"results": results, "status": status, "place": loc}
+    return {"results": results, "status": status, "place": loc, "also_searched": list(local_for)}

@@ -1,0 +1,26 @@
+{
+  "id": "lang-es",
+  "name": "Spanish (Español)",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "jobslop in Spanish: every screen, plus Spanish job titles when you search in ES, MX, AR, CL, CO. Toda la pantalla en español, y las búsquedas en España y Latinoamérica también buscan puestos en español.",
+  "author": "jobslop",
+  "homepage": "https://github.com/JobSlop/jobslop-plugin-lang-es",
+  "language": {
+    "code": "es",
+    "name": "Español",
+    "countries": [
+      "ES",
+      "MX",
+      "AR",
+      "CL",
+      "CO"
+    ]
+  },
+  "translations": {
+    "es": "lang/ui.json"
+  },
+  "search_terms": {
+    "es": "lang/search_terms.json"
+  }
+}

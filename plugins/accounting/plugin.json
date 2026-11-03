@@ -53,5 +53,10 @@
         "\\b(xero|sage|quickbooks)\\b"
       ]
     }
-  ]
+  ],
+  "translations": {
+    "nl": "lang/nl.json",
+    "es": "lang/es.json",
+    "da": "lang/da.json"
+  }
 }

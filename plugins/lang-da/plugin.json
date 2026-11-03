@@ -1,0 +1,22 @@
+{
+  "id": "lang-da",
+  "name": "Danish (Dansk)",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "jobslop in Danish: every screen, plus Danish job titles when you search in DK. Hele skærmen på dansk, og søgninger i Danmark søger også på danske jobtitler.",
+  "author": "jobslop",
+  "homepage": "https://github.com/JobSlop/jobslop-plugin-lang-da",
+  "language": {
+    "code": "da",
+    "name": "Dansk",
+    "countries": [
+      "DK"
+    ]
+  },
+  "translations": {
+    "da": "lang/ui.json"
+  },
+  "search_terms": {
+    "da": "lang/search_terms.json"
+  }
+}

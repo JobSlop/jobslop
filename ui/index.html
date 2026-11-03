@@ -140,7 +140,7 @@
   </div>
   <div class="grid3">
     <div class="panel funnel"><h3>Pipeline</h3><div id="funnel"></div></div>
-    <div class="panel list2"><h3>Top companies</h3><div id="topco"></div></div>
+    <div class="panel list2"><h3>Top companies</h3><div id="topco" translate="no"></div></div>
     <div class="panel list2"><h3>Follow-ups due</h3><div id="followups"></div></div>
   </div>
   <div class="grid3" id="plugcards" style="margin-top:16px" hidden></div>
@@ -199,6 +199,7 @@
   <h3>Settings</h3>
   <div class="psec" style="margin-top:8px">Preferences</div>
   <div class="pgrid">
+    <label class="f" data-tip="The app's language. More languages come as plugins">Language<select class="langsel" id="setlang"></select></label>
     <label class="f">Show salaries in<select class="cursel" id="setcurrency"></select></label>
     <label class="f">Distances in<select id="setunit"><option value="mi">Miles</option><option value="km">Kilometres</option></select></label>
   </div>
@@ -346,6 +347,7 @@
 
   <section class="obstep" data-step="0">
     <h3>Welcome to jobslop</h3>
+    <label class="f" style="max-width:220px;margin:0 0 10px">Language<select class="langsel" id="oblang"></select></label>
     <p>One place to search dozens of job boards, match jobs to your CV, track every application, and fill in application forms for you.</p>
     <ul class="oblist"><li>🔎 <b>Search</b> LinkedIn, Indeed, Glassdoor and many more at once</li><li>✦ <b>Match</b> jobs to your CV and see how well each fits</li><li>📋 <b>Track</b> applications and your progress</li><li>⚡ <b>Easy apply</b> with the Chrome extension filling forms for you</li></ul>
     <p class="muted" style="font-size:12.5px">Takes about a minute, and you can skip any step. Everything stays on this computer — and anything you do can be undone with <span class="kbd">Ctrl</span> <span class="kbd">Z</span>.</p>
@@ -405,6 +407,7 @@
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script src="/ui/js/core.js"></script>
+<script src="/ui/js/i18n.js"></script>
 <script src="/ui/js/nav.js"></script>
 <script src="/ui/js/boards.js"></script>
 <script src="/ui/js/plugins.js"></script>

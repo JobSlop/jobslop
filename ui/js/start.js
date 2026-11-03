@@ -3,6 +3,7 @@
     // preferences saved with the app win over the window's own storage
     try{const sp=await get("/api/prefs");Object.entries(sp).forEach(([k,v])=>pref(k,v))}catch(e){}
     applyTheme();
+    try{await loadLanguage(pref("lang")||"")}catch(e){}             // the chosen language, before anything is drawn
     const curOpts=`<option value="orig">Salaries as listed</option>`+CUR_LIST.map(c=>`<option value="${c}">${c} ${(CUR_SYM[c]||"").trim()}</option>`).join("");
     $$(".cursel").forEach(s=>{s.innerHTML=curOpts;s.onchange=()=>setCurrency(s.value)});
     await Promise.all([loadCountries(),loadRates()]);

@@ -1,0 +1,174 @@
+{
+ "software developer": [
+  "softwareontwikkelaar",
+  "software developer"
+ ],
+ "software engineer": [
+  "software engineer",
+  "softwareontwikkelaar"
+ ],
+ "developer": [
+  "ontwikkelaar"
+ ],
+ "programmer": [
+  "programmeur"
+ ],
+ "web developer": [
+  "webontwikkelaar",
+  "webdeveloper"
+ ],
+ "data analyst": [
+  "data-analist",
+  "data analist"
+ ],
+ "data scientist": [
+  "data scientist"
+ ],
+ "project manager": [
+  "projectmanager",
+  "projectleider"
+ ],
+ "product manager": [
+  "productmanager"
+ ],
+ "manager": [
+  "manager",
+  "leidinggevende"
+ ],
+ "accountant": [
+  "boekhouder",
+  "financieel administrateur"
+ ],
+ "bookkeeper": [
+  "boekhouder"
+ ],
+ "nurse": [
+  "verpleegkundige"
+ ],
+ "doctor": [
+  "arts"
+ ],
+ "teacher": [
+  "leraar",
+  "docent"
+ ],
+ "teaching assistant": [
+  "onderwijsassistent"
+ ],
+ "carer": [
+  "verzorgende",
+  "zorgmedewerker"
+ ],
+ "care assistant": [
+  "zorgmedewerker"
+ ],
+ "cleaner": [
+  "schoonmaker"
+ ],
+ "driver": [
+  "chauffeur"
+ ],
+ "delivery driver": [
+  "bezorger",
+  "koerier"
+ ],
+ "warehouse operative": [
+  "magazijnmedewerker"
+ ],
+ "warehouse": [
+  "magazijnmedewerker"
+ ],
+ "chef": [
+  "kok"
+ ],
+ "kitchen porter": [
+  "afwasser",
+  "keukenhulp"
+ ],
+ "waiter": [
+  "bediening",
+  "ober"
+ ],
+ "barista": [
+  "barista"
+ ],
+ "receptionist": [
+  "receptionist",
+  "receptioniste"
+ ],
+ "administrator": [
+  "administratief medewerker"
+ ],
+ "office assistant": [
+  "administratief medewerker",
+  "office assistant"
+ ],
+ "customer service": [
+  "klantenservice medewerker"
+ ],
+ "sales assistant": [
+  "verkoopmedewerker"
+ ],
+ "sales": [
+  "verkoper",
+  "sales"
+ ],
+ "marketing": [
+  "marketing"
+ ],
+ "communications": [
+  "communicatie",
+  "communicatieadviseur"
+ ],
+ "graphic designer": [
+  "grafisch ontwerper"
+ ],
+ "designer": [
+  "ontwerper",
+  "designer"
+ ],
+ "engineer": [
+  "engineer",
+  "ingenieur"
+ ],
+ "electrician": [
+  "elektricien",
+  "elektromonteur"
+ ],
+ "mechanic": [
+  "monteur",
+  "automonteur"
+ ],
+ "plumber": [
+  "loodgieter"
+ ],
+ "construction worker": [
+  "bouwvakker"
+ ],
+ "hr": [
+  "hr-adviseur",
+  "hr medewerker"
+ ],
+ "recruiter": [
+  "recruiter"
+ ],
+ "lawyer": [
+  "advocaat",
+  "jurist"
+ ],
+ "pharmacist": [
+  "apotheker"
+ ],
+ "intern": [
+  "stagiair"
+ ],
+ "internship": [
+  "stage"
+ ],
+ "student job": [
+  "bijbaan"
+ ],
+ "remote": [
+  "thuiswerken"
+ ]
+}

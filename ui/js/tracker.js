@@ -17,7 +17,7 @@ function drawBoard(){
     return `<div class="col" data-col="${st}"><h4>${st}<span>${cards.length}</span></h4>${cards.map(j=>{const idx=saved.indexOf(j),due=j.follow_up&&j.follow_up<=today&&!["Offer","Rejected"].includes(st);
       return `<div class="card" draggable="true" data-i="${idx}">
         <button class="bin" data-bin="${idx}" title="Remove from tracker">🗑</button>
-        <div class="t">${esc(j.title)}</div><div class="c">${esc(j.company)}${j.location?" · "+esc(j.location):""}</div>
+        <div class="t" translate="no">${esc(j.title)}</div><div class="c" translate="no">${esc(j.company)}${j.location?" · "+esc(j.location):""}</div>
         <div class="d">${j.applied_on?`<span>Applied ${esc(j.applied_on)}</span>`:`<span>Saved ${esc(j.saved_on||"")}</span>`}${j.follow_up?`<span class="${due?"due":""}">${due?"Follow up due":"Follow up"} ${esc(j.follow_up)}</span>`:""}${j.notes?"<span>📝</span>":""}</div>
         <div class="cacts">${nextBtns(st).map(n=>`<button data-move="${idx}" data-to="${n}" data-tip="${esc(MOVE_TIPS[n]||"Move to "+n)}">→ ${n}</button>`).join("")}${st==="Offer"?`<button data-share="${idx}" data-tip="Tell jobslop how you got it (anonymous)">🥂 Share</button>`:""}<button data-edit="${idx}" data-tip="Status, dates, salary, notes and a follow-up reminder">Edit</button>${String(j.url).startsWith("http")?`<button data-href="${esc(j.url)}" data-tip="Open the advert in your browser">Open</button><button data-copy="${esc(j.url)}" class="copylink" data-tip="Copy link">⧉</button>`:""}</div>
       </div>`}).join("")||`<div class="muted" style="font-size:12.5px;padding:8px 4px">Drop cards here</div>`}</div>`}).join("");
@@ -74,7 +74,7 @@ $("#fbcopy").onclick=async()=>{if(await copyText("To: jobslop@proton.me\n\n"+$("
 $("#tsort").value=pref("tsort")||"added";
 $("#tsort").addEventListener("change",()=>{pref("tsort",$("#tsort").value);drawBoard()});
 let editing=null;
-$("#a_status").innerHTML=STAGES.concat("Not interested").map(s=>`<option>${s}</option>`).join("");
+$("#a_status").innerHTML=STAGES.concat("Not interested").map(s=>`<option value="${s}">${s}</option>`).join("");
 function editApp(j){editing=j;$("#addtitle").textContent=j?"Edit application":"Add an application";$("#addsub").textContent=j?(j.source?"From "+j.source:""):"For jobs you applied to outside jobslop.";
   $("#a_title").value=j?j.title:"";$("#a_company").value=j?j.company:"";$("#a_location").value=j?(j.location||""):"";$("#a_salary").value=j?(j.salary||""):"";
   $("#a_status").value=j?(j.status||"Saved"):"Applied";$("#a_applied").value=j?(j.applied_on||""):todayStr();$("#a_follow").value=j?(j.follow_up||""):"";

@@ -23,7 +23,7 @@ function drawProgress(){
     "All time":"Every application on your tracker","Offers":"Jobs that reached the Offer column"};
   const tile=(n,l,sub)=>`<div class="tile" ${TILE_TIPS[l]?`data-tip="${esc(TILE_TIPS[l])}"`:""}><div class="n">${n}</div><div class="l">${l}</div>${sub?`<div class="s">${sub}</div>`:""}</div>`;
   $("#tiles").innerHTML=tile(s.today,"Applied today",s.searches?`${s.searches} search${s.searches>1?"es":""} today`:"")+tile(s.week,"This week",`${s.perweek} a week on average`)+
-    tile(s.month,"This month",new Date().toLocaleDateString(undefined,{month:"long"}))+tile(s.total,"All time",`${s.tracked} jobs tracked`)+
+    tile(s.month,"This month",new Date().toLocaleDateString(LANG,{month:"long"}))+tile(s.total,"All time",`${s.tracked} jobs tracked`)+
     tile(s.streak,"Day streak",s.streak?"Keep it going!":"Apply today to start one")+tile(s.irate+"%","Interview rate",`${s.interviews} interview${s.interviews===1?"":"s"}`)+
     tile(s.rrate+"%","Response rate","interviews + rejections")+tile(s.offers,"Offers",s.offers?"🥂":"Your first is coming");
   // last 30 days
@@ -31,7 +31,7 @@ function drawProgress(){
   const ds=[];for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);ds.push(dayStr(d))}
   const max=Math.max(1,...ds.map(d=>counts[d]||0));
   $("#bars").innerHTML=ds.map(d=>{const n=counts[d]||0;return `<div class="${n?"":"zero"}" style="height:${n?Math.max(6,100*n/max):2}%" title="${d}: ${n} application${n===1?"":"s"}"></div>`}).join("");
-  const fmt=d=>new Date(d).toLocaleDateString(undefined,{day:"numeric",month:"short"});
+  const fmt=d=>new Date(d).toLocaleDateString(LANG,{day:"numeric",month:"short"});
   $("#barlabels").innerHTML=`<span>${fmt(ds[0])}</span><span>${fmt(ds[15])}</span><span>Today</span>`;
   // funnel
   const fun=[["Tracked",s.tracked],["Applied",s.total],["Interview",s.interviews],["Offer",s.offers]],top=Math.max(1,s.tracked);
@@ -42,7 +42,7 @@ function drawProgress(){
   $("#topco").innerHTML=tops.length?tops.map(([c,n])=>`<div class="row"><span>${esc(c)}</span><b>${n}</b></div>`).join(""):`<p class="muted" style="font-size:13px">Apply to a few jobs to see this.</p>`;
   // follow ups
   const today=todayStr(),due=saved.filter(j=>j.follow_up&&!["Offer","Rejected","Not interested"].includes(j.status)).sort((a,b)=>a.follow_up.localeCompare(b.follow_up)).slice(0,6);
-  $("#followups").innerHTML=due.length?due.map(j=>`<div class="row"><span>${esc(j.title)} · ${esc(j.company)}</span><b style="color:${j.follow_up<=today?"var(--warn)":"inherit"}">${esc(j.follow_up)}</b></div>`).join(""):`<p class="muted" style="font-size:13px">Set a follow-up date on an application (Edit) to be reminded here.</p>`;
+  $("#followups").innerHTML=due.length?due.map(j=>`<div class="row"><span translate="no">${esc(j.title)} · ${esc(j.company)}</span><b style="color:${j.follow_up<=today?"var(--warn)":"inherit"}">${esc(j.follow_up)}</b></div>`).join(""):`<p class="muted" style="font-size:13px">Set a follow-up date on an application (Edit) to be reminded here.</p>`;
   drawRing();drawPluginCards();
 }
 function drawRing(){const s=stats(),goal=+(pref("goal")||10);$("#goal").value=goal;const p=Math.min(1,s.week/goal),C=2*Math.PI*50;

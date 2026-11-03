@@ -1,0 +1,165 @@
+{
+ "software developer": [
+  "softwareudvikler",
+  "systemudvikler"
+ ],
+ "software engineer": [
+  "softwareingeniør",
+  "softwareudvikler"
+ ],
+ "developer": [
+  "udvikler"
+ ],
+ "programmer": [
+  "programmør"
+ ],
+ "web developer": [
+  "webudvikler"
+ ],
+ "data analyst": [
+  "dataanalytiker"
+ ],
+ "data scientist": [
+  "data scientist"
+ ],
+ "project manager": [
+  "projektleder"
+ ],
+ "product manager": [
+  "produktchef",
+  "product manager"
+ ],
+ "manager": [
+  "leder",
+  "chef"
+ ],
+ "accountant": [
+  "bogholder",
+  "revisor"
+ ],
+ "bookkeeper": [
+  "bogholder"
+ ],
+ "nurse": [
+  "sygeplejerske"
+ ],
+ "doctor": [
+  "læge"
+ ],
+ "teacher": [
+  "lærer"
+ ],
+ "teaching assistant": [
+  "pædagogmedhjælper"
+ ],
+ "carer": [
+  "social- og sundhedshjælper"
+ ],
+ "care assistant": [
+  "social- og sundhedshjælper"
+ ],
+ "cleaner": [
+  "rengøringsassistent"
+ ],
+ "driver": [
+  "chauffør"
+ ],
+ "delivery driver": [
+  "bud",
+  "chauffør"
+ ],
+ "warehouse operative": [
+  "lagermedarbejder"
+ ],
+ "warehouse": [
+  "lagermedarbejder"
+ ],
+ "chef": [
+  "kok"
+ ],
+ "kitchen porter": [
+  "opvasker",
+  "køkkenmedhjælper"
+ ],
+ "waiter": [
+  "tjener"
+ ],
+ "barista": [
+  "barista"
+ ],
+ "receptionist": [
+  "receptionist"
+ ],
+ "administrator": [
+  "administrativ medarbejder"
+ ],
+ "office assistant": [
+  "kontorassistent"
+ ],
+ "customer service": [
+  "kundeservice"
+ ],
+ "sales assistant": [
+  "butiksassistent",
+  "salgsassistent"
+ ],
+ "sales": [
+  "sælger",
+  "salg"
+ ],
+ "marketing": [
+  "marketing"
+ ],
+ "communications": [
+  "kommunikation",
+  "kommunikationsmedarbejder"
+ ],
+ "graphic designer": [
+  "grafisk designer"
+ ],
+ "designer": [
+  "designer"
+ ],
+ "engineer": [
+  "ingeniør"
+ ],
+ "electrician": [
+  "elektriker"
+ ],
+ "mechanic": [
+  "mekaniker"
+ ],
+ "plumber": [
+  "blikkenslager",
+  "vvs-montør"
+ ],
+ "construction worker": [
+  "bygningsarbejder"
+ ],
+ "hr": [
+  "hr-medarbejder"
+ ],
+ "recruiter": [
+  "rekrutteringskonsulent"
+ ],
+ "lawyer": [
+  "advokat",
+  "jurist"
+ ],
+ "pharmacist": [
+  "farmaceut"
+ ],
+ "intern": [
+  "praktikant"
+ ],
+ "internship": [
+  "praktik"
+ ],
+ "student job": [
+  "studiejob"
+ ],
+ "remote": [
+  "hjemmearbejde",
+  "remote"
+ ]
+}

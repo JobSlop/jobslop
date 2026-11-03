@@ -10,8 +10,8 @@ const CHEERS=["Every application is a step closer — today could be the day.","
 function drawWelcome(){
   const name=(profile.first_name||"").trim();
   $("#hello").innerHTML=name?`Welcome back, ${esc(name)}`:"Find Your Next Role";
-  const where=[profile.city,(countries.find(c=>c.code===$("#country").value)||{}).name].filter(Boolean).join(" · ");
-  $("#herosub").textContent=[where,new Date().toLocaleDateString(undefined,{day:"numeric",month:"long",year:"numeric"})].filter(Boolean).join("  ·  ");
+  const where=[profile.city,t((countries.find(c=>c.code===$("#country").value)||{}).name)].filter(Boolean).join(" · ");
+  $("#herosub").textContent=[where,new Date().toLocaleDateString(LANG,{day:"numeric",month:"long",year:"numeric"})].filter(Boolean).join("  ·  ");
   $("#cheer").textContent=CHEERS[Math.floor(Math.random()*CHEERS.length)];
 }
 
@@ -23,7 +23,7 @@ function setTab(t){const changed=tab!==t;tab=t;$$(".navlinks .tab").forEach(b=>{
   document.querySelector(".hero").classList.toggle("compact",t!=="search");
   $("#strip").style.display=t==="search"||t==="progress"?"":"none";
   const pt=jobslop.tabFor(t);                              // a tab a plugin added
-  document.title=`${TAB_NAMES[t]||(pt&&pt.title)||""} · jobslop`;
+  document.title=`${window.t(TAB_NAMES[t]||(pt&&pt.title)||"")} · jobslop`;
   if(changed&&t!=="search")window.scrollTo({top:0,behavior:"instant"});
   if(t==="profile")loadProfile();if(t==="tracker")drawBoard();if(t==="progress")drawProgress();if(t==="search"){render();drawStarted()}
   if(pt){try{pt.render($("#v-"+t))}catch(e){console.error(e);$("#v-"+t).innerHTML='<p class="muted">This tab couldn’t be shown.</p>'}}}

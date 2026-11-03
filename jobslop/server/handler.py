@@ -22,6 +22,7 @@ from jobslop.geo.cities import city_label, code_for_country_text, geocode_text, 
 from jobslop.geo.countries import COUNTRIES, country_info
 from jobslop.geo.osm import place_summary
 from jobslop.geo.places import resolve_where
+from jobslop.i18n import LANGUAGES
 from jobslop.plugins.points import POINTS
 from jobslop.profile.cvparse import parse_cv
 from jobslop.profile.linkedin_import import linkedin_import
@@ -158,6 +159,9 @@ class Handler(BaseHTTPRequestHandler):
         elif u.path == "/api/countries":
             self.send(json.dumps([{"code": c, "name": v[0], "adzuna": bool(v[2]), "currency": v[5]}
                                   for c, v in sorted(COUNTRIES.items(), key=lambda kv: kv[1][0])]))
+        elif u.path == "/api/i18n":
+            lang = (p.get("lang") or load_settings().get("ui", {}).get("lang") or "en")[:10]
+            self.send(json.dumps({"lang": lang, "words": LANGUAGES.words(lang), "languages": LANGUAGES.available()}))
         elif u.path == "/api/boards":
             s = load_settings()
             self.send(json.dumps([b.describe(s) for b in BOARDS]))

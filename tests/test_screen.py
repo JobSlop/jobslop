@@ -265,6 +265,22 @@ window.addEventListener("load", () => setTimeout(async () => {
                           cards: $$("#plugcards h3").map(h => h.textContent), engines: !!$("#pfields #engines"),
                           style: !!$('style[data-plugin="gamedev"]')};
     setTab("search");
+    // 18. another language: the screen changes, your data and saved answers don't, and English comes back
+    results = real; render();
+    const englishTitle = $("#list h3") ? $("#list h3").textContent : "";
+    await chooseLanguage("nl");
+    out.lang = {go: $("#go").textContent, tabs: $$(".navlinks .tab").map(b => b.textContent).slice(0, 4),
+                placeholder: $("#q").placeholder, title: document.title, picker: $("#setlang").value,
+                jobTitle: $("#list h3") ? $("#list h3").textContent : "", englishTitle};
+    toast("Settings saved"); await new Promise(r => setTimeout(r, 50));
+    out.lang.toast = $("#toast") ? $("#toast").textContent : "";
+    setTab("profile");
+    const yn = $("#right_to_work");
+    out.lang.yesNo = yn ? [...yn.options].map(o => o.value + "=" + o.textContent) : [];
+    setTab("search");
+    await chooseLanguage("en");
+    out.lang.back = {go: $("#go").textContent, placeholder: $("#q").placeholder, tab: $$(".navlinks .tab")[0].textContent};
+    await togglePlugin("lang-nl", false);
   } catch (e) { out.error = String(e && e.stack || e); }
   out.loadErrors = window.__loadErrors;
   document.getElementById("selftest").textContent = JSON.stringify(out);
@@ -490,3 +506,12 @@ class ScreenTests:
         assert "Games" in ui["fields"] and "Accounting" in ui["fields"] and ui["engines"]
         assert ui["after"] == {"tab": False, "section": False, "layer": 0, "cards": ["Accounting applications"],
                                "engines": False, "style": False}, "switching Game dev off takes all of it away"
+
+    def test_another_language(self):
+        lang = self.out["lang"]
+        assert lang["go"] == "Vacatures zoeken" and lang["tabs"] == ["Zoeken", "Tracker", "Voortgang", "Profiel"]
+        assert lang["placeholder"].startswith("Welke baan?") and lang["title"] == "Zoeken · jobslop" and lang["picker"] == "nl"
+        assert lang["toast"] == "Instellingen opgeslagen", "messages shown later are translated too"
+        assert lang["jobTitle"] == lang["englishTitle"] != "", "job titles are never translated"
+        assert lang["yesNo"] == ["=—", "Yes=Ja", "No=Nee"], "answers are still saved as Yes / No"
+        assert lang["back"] == {"go": "Search jobs", "placeholder": "What job? e.g. data analyst — commas for several", "tab": "Search"}

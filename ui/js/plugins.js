@@ -91,7 +91,9 @@ async function togglePlugin(id,on){
   const now=plugins.plugins.find(x=>x.id===id)||{};
   if(on&&now.error)return toast(`${p.name} couldn't start — see the message on its card`);
   keys=await get("/api/settings");await loadBoards();render();
-  toast(`${p.name} ${on?"switched on":"switched off"}`);
+  // a plugin can bring words in other languages; switching off the chosen language's pack goes back to English
+  if(!on&&LANGS.some(l=>l.code===LANG&&l.plugin===id)){savePref("lang","en");await loadLanguage("en")}else await loadLanguage(LANG);
+  toast(t(on?"{0} switched on":"{0} switched off").replace("{0}",p.name));
 }
 // "Save settings" saves everything in the Settings window: keys and job match terms
 $("#savekeys").onclick=()=>withSpinner($("#savekeys"),"Saving…",async()=>{const b={};allKeys().forEach(k=>{const el=$("#"+k);if(!el)return;const v=el.value.trim();if(v)b[k]=v;el.value=""});

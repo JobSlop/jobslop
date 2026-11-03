@@ -1,0 +1,169 @@
+{
+ "software developer": [
+  "desarrollador de software",
+  "programador"
+ ],
+ "software engineer": [
+  "ingeniero de software"
+ ],
+ "developer": [
+  "desarrollador",
+  "programador"
+ ],
+ "programmer": [
+  "programador"
+ ],
+ "web developer": [
+  "desarrollador web"
+ ],
+ "data analyst": [
+  "analista de datos"
+ ],
+ "data scientist": [
+  "científico de datos"
+ ],
+ "project manager": [
+  "jefe de proyecto",
+  "gestor de proyectos"
+ ],
+ "product manager": [
+  "product manager",
+  "jefe de producto"
+ ],
+ "manager": [
+  "gerente",
+  "responsable"
+ ],
+ "accountant": [
+  "contable",
+  "contador"
+ ],
+ "bookkeeper": [
+  "auxiliar contable"
+ ],
+ "nurse": [
+  "enfermero",
+  "enfermera"
+ ],
+ "doctor": [
+  "médico"
+ ],
+ "teacher": [
+  "profesor",
+  "maestro"
+ ],
+ "teaching assistant": [
+  "auxiliar docente"
+ ],
+ "carer": [
+  "cuidador",
+  "auxiliar de enfermería"
+ ],
+ "care assistant": [
+  "auxiliar de cuidados"
+ ],
+ "cleaner": [
+  "limpiador",
+  "personal de limpieza"
+ ],
+ "driver": [
+  "conductor"
+ ],
+ "delivery driver": [
+  "repartidor"
+ ],
+ "warehouse operative": [
+  "mozo de almacén"
+ ],
+ "warehouse": [
+  "mozo de almacén"
+ ],
+ "chef": [
+  "cocinero",
+  "chef"
+ ],
+ "kitchen porter": [
+  "friegaplatos",
+  "ayudante de cocina"
+ ],
+ "waiter": [
+  "camarero"
+ ],
+ "barista": [
+  "barista"
+ ],
+ "receptionist": [
+  "recepcionista"
+ ],
+ "administrator": [
+  "administrativo"
+ ],
+ "office assistant": [
+  "auxiliar administrativo"
+ ],
+ "customer service": [
+  "atención al cliente"
+ ],
+ "sales assistant": [
+  "dependiente",
+  "vendedor"
+ ],
+ "sales": [
+  "comercial",
+  "ventas"
+ ],
+ "marketing": [
+  "marketing"
+ ],
+ "communications": [
+  "comunicación"
+ ],
+ "graphic designer": [
+  "diseñador gráfico"
+ ],
+ "designer": [
+  "diseñador"
+ ],
+ "engineer": [
+  "ingeniero"
+ ],
+ "electrician": [
+  "electricista"
+ ],
+ "mechanic": [
+  "mecánico"
+ ],
+ "plumber": [
+  "fontanero"
+ ],
+ "construction worker": [
+  "peón de obra",
+  "obrero"
+ ],
+ "hr": [
+  "recursos humanos"
+ ],
+ "recruiter": [
+  "reclutador",
+  "técnico de selección"
+ ],
+ "lawyer": [
+  "abogado"
+ ],
+ "pharmacist": [
+  "farmacéutico"
+ ],
+ "intern": [
+  "becario"
+ ],
+ "internship": [
+  "prácticas"
+ ],
+ "student job": [
+  "trabajo para estudiantes"
+ ],
+ "remote": [
+  "teletrabajo",
+  "remoto"
+ ]
+}

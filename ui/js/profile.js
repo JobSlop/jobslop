@@ -10,7 +10,7 @@ function profileSections(){
   return PF.concat(Object.entries(extra))}
 function drawProfileFields(){
   $("#pfields").innerHTML=profileSections().map(([sec,fs])=>`<div class="psec">${esc(sec)}</div><div class="pgrid">${fs.map(([k,l,t])=>
-    t==="yn"?`<label class="f">${esc(l)}<select class="pf" id="${esc(k)}"><option value="">—</option><option>Yes</option><option>No</option></select></label>`:
+    t==="yn"?`<label class="f">${esc(l)}<select class="pf" id="${esc(k)}"><option value="">—</option><option value="Yes">Yes</option><option value="No">No</option></select></label>`:
     t==="area"?`<label class="f wide">${esc(l)}<textarea class="pf" id="${esc(k)}" rows="2"></textarea></label>`:
     `<label class="f">${esc(l)}<input type="${t||"text"}" class="pf" id="${esc(k)}"></label>`).join("")}</div>`).join("");
   $$(".pf").forEach(el=>el.value=profile[el.id]||"")}
@@ -30,7 +30,7 @@ document.addEventListener("input",e=>{const t=e.target;
   if(t.classList.contains("jf")){profile.jobs[+t.dataset.j][t.dataset.f]=t.value;saveSoon()}});
 const JF=[["title","Job title"],["company","Company"],["location","Location"],["start","Start (e.g. Jul 2022)"],["end","End (e.g. Present)"]];
 function drawJobs(){const jobs=profile.jobs||[];
-  $("#jobs").innerHTML=jobs.length?jobs.map((j,i)=>`<div class="jobcard"><div class="jobhead"><span class="serif">${esc(j.title||"New job")}${j.company?" · "+esc(j.company):""}</span>
+  $("#jobs").innerHTML=jobs.length?jobs.map((j,i)=>`<div class="jobcard"><div class="jobhead"><span class="serif" translate="no">${esc(j.title||"New job")}${j.company?" · "+esc(j.company):""}</span>
     <span style="display:flex;gap:4px"><button class="iconbtn" data-mv="${i},-1" ${i?"":"disabled"} title="Move up">↑</button><button class="iconbtn" data-mv="${i},1" ${i<jobs.length-1?"":"disabled"} title="Move down">↓</button><button class="pill line sm" data-rmjob="${i}">Remove</button></span></div>
     <div class="pgrid">${JF.map(([f,l])=>`<label class="f">${l}<input type="text" class="jf" data-j="${i}" data-f="${f}" value="${esc(j[f])}"></label>`).join("")}
     <label class="f wide">What you did<textarea class="jf" data-j="${i}" data-f="description" rows="5">${esc(j.description)}</textarea></label></div></div>`).join(""):`<p class="muted" style="font-size:13.5px">No jobs yet — add one, or use “Fill from my CV”.</p>`;
