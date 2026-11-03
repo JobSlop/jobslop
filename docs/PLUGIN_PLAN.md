@@ -2,7 +2,7 @@
 
 ## Status (3 November 2026)
 
-Steps 1–9 are done and committed locally. Step 10 waits for your OK.
+All 10 steps are done. jobslop 3.0.0 is released, and the 8 plugin repos are public on github.com/JobSlop.
 
 | Step | Status |
 |---|---|
@@ -15,7 +15,7 @@ Steps 1–9 are done and committed locally. Step 10 waits for your OK.
 | 7. translation, NL/ES/DA packs, local job titles | done |
 | 8. install / update / remove from GitHub links | done |
 | 9. builds bundle `ui/` and `plugins/`, `docs/PLUGINS.md`, `docs/plugin-template/` | done |
-| 10. public plugin repos + jobslop 3.0.0 release | **waiting for your OK** |
+| 10. public plugin repos + jobslop 3.0.0 release | done (3 November 2026) |
 
 Differences from the plan:
 - **Server routes:** most routes are still one handler, `jobslop/server/handler.py`. The plugin routes have their own module (`server/plugin_routes.py`). Splitting the rest by area is a follow-up.
