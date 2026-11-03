@@ -56,7 +56,7 @@ class TestBoardsEndpoint:
         reset_data()
         code, data = app_server.get("/api/boards")
         boards = {b["name"]: b for b in data}
-        assert code == 200 and list(boards)[:4] == ["LinkedIn", "Indeed", "Glassdoor", "ZipRecruiter"]
+        assert code == 200 and list(boards)[:3] == ["LinkedIn", "Indeed", "Glassdoor"]
         assert boards["Reed"]["countries"] == ["GB"] and boards["Reed"]["needs_key"]
         assert boards["Himalayas"]["countries"] is None and boards["Himalayas"]["group"] == "remote"
         assert "DE" in boards["Adzuna"]["countries"] and "DK" not in boards["Adzuna"]["countries"]

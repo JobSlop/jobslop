@@ -1,4 +1,4 @@
-"""Draws the jobslop icon: 'js' with a little drip, on a dark rounded square.
+"""Draws the jobslop icon: 'js' on a dark rounded square.
 Makes jf.ico, jf.icns and jf.png for the app, and the Chrome extension's icons.
 Run once after changing it:  python make_icon.py  (needs Pillow)."""
 from pathlib import Path
@@ -30,12 +30,8 @@ def draw():
     text = "js"
     box = d.textbbox((0, 0), text, font=font)
     w, h = box[2] - box[0], box[3] - box[1]
-    d.text(((S - w) / 2 - box[0] - 40, (S - h) / 2 - box[1] + 10), text, font=font, fill=INK)
+    d.text(((S - w) / 2 - box[0], (S - h) / 2 - box[1] + 10), text, font=font, fill=INK)
 
-    # the drip (top right): a round drop with a pointed top
-    cx, cy, r = 790, 300, 78
-    d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=ACCENT)
-    d.polygon([(cx - r * 0.92, cy - r * 0.38), (cx, cy - r * 2.3), (cx + r * 0.92, cy - r * 0.38)], fill=ACCENT)
     return img, font_path
 
 

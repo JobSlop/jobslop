@@ -3,7 +3,7 @@
   "name": "United States",
   "version": "1.0.0",
   "api": 1,
-  "description": "Job boards for the US: Jobs2Careers (a large job search) and USAJOBS (government jobs, needs a free key).",
+  "description": "Job boards for the US: ZipRecruiter, Jobs2Careers (a large job search) and USAJOBS (government jobs, needs a free key).",
   "author": "jobslop",
   "homepage": "https://github.com/JobSlop/jobslop-plugin-jobs-us",
   "python": "plugin.py",

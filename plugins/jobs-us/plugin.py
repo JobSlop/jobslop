@@ -11,6 +11,8 @@ COMMON = {"group": "country", "country_native": True, "location_aware": True}
 def register(_api):
     global api
     api = _api
+    api.add_board("ZipRecruiter", src_ziprecruiter, "ZipRecruiter, searched free with JobSpy", countries={"US", "CA"},
+                  native_types=True, cache_seconds=3 * 3600, **COMMON)
     api.add_board("Jobs2Careers", src_jobs2careers, "Large US job search", countries={"US"}, **COMMON)
     api.add_board("USAJOBS", src_usajobs, "US government jobs", countries={"US"}, needs=("usajobs_key", "usajobs_email"), **COMMON)
 
@@ -93,3 +95,10 @@ def src_usajobs(q, o):
             j["lat"], j["lon"] = locs[0]["Latitude"], locs[0]["Longitude"]
         out.append(j)
     return out
+
+
+def src_ziprecruiter(q, o):
+    """ZipRecruiter - big US/Canada board, searched with JobSpy (it turns away connections from outside)."""
+    if o["country"] not in ("US", "CA"):
+        raise api.jobs.NotHere("US & Canada only")
+    return api.jobs.jobspy("zip_recruiter", q, o, source="ZipRecruiter")

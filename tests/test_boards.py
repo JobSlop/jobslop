@@ -19,7 +19,7 @@ from jobslop import net, settings, text
 from jobslop.boards import base as board_base
 from jobslop.boards import jobspy as jobspy_boards
 from jobslop.boards import linkedin as linkedin_board
-from jobslop.boards import registry, ziprecruiter
+from jobslop.boards import registry
 from jobslop.geo import cities
 
 uk_boards = plugin_module("jobs-uk")
@@ -282,12 +282,12 @@ class CountryBoardTests(BoardTestCase):
 
     def test_ziprecruiter_uk(self):
         with pytest.raises(board_base.NotHere):
-            ziprecruiter.src_ziprecruiter_uk("x", base_opts(country="US"))
+            uk_boards.src_ziprecruiter_uk("x", base_opts(country="US"))
         card = ('<li class="job-listing"><a class="jobList-title" href="https://zip/1">Software Engineer</a>'
                 '<li><i class="fa-building"></i>Tech Ltd</li><li><i class="fa-map-marker-alt"></i>Birmingham</li>'
                 '<div class="jobList-description">Great job</div><div class="jobList-date">3 days ago</div>'
                 '<li><i class="fa-pound-sign"></i>£40,000</li>')
-        jobs = self.html_board(ziprecruiter.src_ziprecruiter_uk, {"ziprecruiter.co.uk": card})
+        jobs = self.html_board(uk_boards.src_ziprecruiter_uk, {"ziprecruiter.co.uk": card})
         assert (jobs[0]["company"], jobs[0]["location"], jobs[0]["date"], jobs[0]["salary"]) == \
                          ("Tech Ltd", "Birmingham", days_ago(3), "£40,000")
 
@@ -381,8 +381,25 @@ class BigBoardTests(BoardTestCase):
         kw = scrape.call_args.kwargs
         assert (kw["location"], kw["job_type"]) == ("Leeds, United Kingdom", "fulltime")
 
+    def test_us_ziprecruiter_through_jobspy(self):
+        """The US plugin's ZipRecruiter goes through JobSpy (api.jobs.jobspy) and shows as ZipRecruiter."""
+        try:
+            import jobspy  # noqa: F401
+            import pandas as pd
+        except ImportError:
+            pytest.skip("JobSpy isn't installed in this Python")
+        df = pd.DataFrame([{"title": "Nurse", "company": "Clinic", "job_url": "https://zip/1", "location": "Austin, TX",
+                            "date_posted": "2026-10-30", "min_amount": None, "max_amount": None, "currency": "USD",
+                            "interval": None, "job_type": None, "description": "x", "is_remote": False}])
+        jobspy_boards.js_state.clear()
+        with mock.patch("jobspy.scrape_jobs", return_value=df) as scrape, mock.patch.object(jobspy_boards, "JS_GAP", 0):
+            jobs = us_boards.src_ziprecruiter("nurse", base_opts(country="US", where="Austin"))
+        assert jobs[0]["source"] == "ZipRecruiter" and scrape.call_args.kwargs["site_name"] == ["zip_recruiter"]
+        with pytest.raises(board_base.NotHere):
+            us_boards.src_ziprecruiter("nurse", base_opts(country="GB"))
+
     def test_every_board_is_registered(self):
-        assert len(registry.BOARDS) == 19
+        assert len(registry.BOARDS) == 20
         for board in registry.BOARDS:
             assert callable(board.search), board.name
             assert board.description, board.name

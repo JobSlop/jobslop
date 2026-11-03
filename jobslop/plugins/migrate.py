@@ -1,8 +1,9 @@
 """One-time changes to which plugins are on, when plugins are split up or their defaults change.
 
 jobslop 3.0 had "Country boards" and "Remote boards" switched on for everyone. From 3.1 every plugin
-starts switched off (new users choose in the welcome tour) and Country boards became one plugin per
-country. People who used 3.0 keep the boards they had.
+starts switched off (new users choose in the welcome tour), Country boards became one plugin per
+country, and ZipRecruiter UK moved from the app into the United Kingdom plugin. People who used 3.0 keep
+the boards they had.
 """
 
 from collections.abc import Callable
@@ -32,6 +33,8 @@ def migrate_choices(s: dict) -> None:
     for pid in WERE_ON_BY_DEFAULT:
         if pid not in SPLIT and pid not in choices and used_before:
             choices[pid] = {"enabled": True}
+    if used_before:                         # ZipRecruiter UK was part of the app itself in 3.0; it's in this one now
+        choices["jobs-uk"] = {"enabled": True}
     s["plugin_defaults"] = VERSION
 
 

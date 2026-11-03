@@ -33,7 +33,7 @@ Differences from the plan:
 
 | Part | Contents | Starts |
 |---|---|---|
-| **Core app** | Search, Tracker, Progress, Profile, CV reading, map, Chrome extension, updates, phone access, plugin manager. Boards: LinkedIn, Indeed, Glassdoor, ZipRecruiter | always |
+| **Core app** | Search, Tracker, Progress, Profile, CV reading, map, Chrome extension, updates, phone access, plugin manager. Boards: LinkedIn, Indeed, Glassdoor (ZipRecruiter later moved to the UK and US plugins) | always |
 | `country-boards` | Reed, Adzuna, Jobs2Careers, USAJOBS, Jobindex, Jobbird (+ their keys in Settings) | **on** |
 | `remote-boards` | Himalayas, Jobicy, Remotive, RemoteOK, Arbeitnow | **on** |
 | `accounting` | ICAEW, ACCA, accounting profile fields (ACCA/ICAEW membership no., qualification stage), "Qualified jobs" stats card | off |

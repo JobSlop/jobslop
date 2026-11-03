@@ -1,10 +1,10 @@
 # United States — a jobslop plugin
 
-Job boards for the US: Jobs2Careers (a large job search) and USAJOBS (government jobs, needs a free key).
+Job boards for the US: ZipRecruiter, Jobs2Careers (a large job search) and USAJOBS (government jobs, needs a free key).
 
 ## What it adds
 
-- **Job boards:** Jobs2Careers (Large US job search), USAJOBS (US government jobs)
+- **Job boards:** ZipRecruiter (ZipRecruiter, searched free with JobSpy), Jobs2Careers (Large US job search), USAJOBS (US government jobs)
 - **Settings** (in its row in Settings → Plugins): USAJOBS API key, Email you registered with
 - **Suggested in the welcome tour for:** US
 - **Its own words in:** da, es, nl

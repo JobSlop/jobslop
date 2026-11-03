@@ -25,7 +25,8 @@ def test_someone_who_used_3_0_keeps_country_and_remote_boards():
 def test_a_choice_made_in_3_0_is_kept():
     s = {"ui": {"onboarded": "1"}, "plugins": {"country-boards": {"enabled": False}, "accounting": {"enabled": True}}}
     migrate_choices(s)
-    assert enabled(s) == {"remote-boards", "accounting"}, "country boards were switched off, so all their countries stay off"
+    assert enabled(s) == {"remote-boards", "accounting", "jobs-uk"}, (
+        "country boards were switched off, so they stay off - except the UK one, which now holds ZipRecruiter UK")
 
 
 def test_it_only_happens_once():

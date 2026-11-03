@@ -1,4 +1,4 @@
-"""Indeed, Glassdoor and ZipRecruiter through JobSpy, with Apify as a backup."""
+"""Indeed and Glassdoor through JobSpy, with Apify as a backup (plugins use JobSpy through api.jobs.jobspy)."""
 
 import json
 import threading
@@ -71,7 +71,7 @@ class _Grab(__import__("logging").Handler):
         self.msgs.append(record.getMessage())
 
 
-def jobspy_run(site, q, o):
+def jobspy_run(site, q, o, source=None):
     """Search one site with JobSpy. Raises RuntimeError if the site refuses or JobSpy isn't available."""
     import logging
     try:
@@ -131,7 +131,7 @@ def jobspy_run(site, q, o):
         sal = money(val(row, "min_amount"), val(row, "max_amount"), val(row, "currency") or country_info(o["country"])[5])
         if sal and val(row, "interval") and val(row, "interval") != "yearly":
             sal += " / " + str(val(row, "interval")).replace("ly", "").replace("dai", "day")
-        out.append(job(site.capitalize(), val(row, "title"), val(row, "company"),
+        out.append(job(source or site.capitalize(), val(row, "title"), val(row, "company"),
                        val(row, "job_url") or val(row, "job_url_direct"), val(row, "location"),
                        to_date(val(row, "date_posted")), sal,
                        str(val(row, "job_type") or "").replace("fulltime", "Full time").replace("parttime", "Part time"),
@@ -178,13 +178,6 @@ def apify_glassdoor(q, o):
                 i.get("location"), rel_date(i.get("date")), i.get("salary"), i.get("job_type") or "",
                 [], "", remote=False)
             for i in items]
-
-
-def src_ziprecruiter(q, o):
-    """ZipRecruiter - big US/Canada board, searched with JobSpy."""
-    if o["country"] not in ("US", "CA"):
-        raise NotHere("US & Canada only")
-    return jobspy_run("zip_recruiter", q, o)
 
 
 BOARDS = [

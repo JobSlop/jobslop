@@ -12,8 +12,8 @@ from jobslop.plugins.points import POINTS
 BUILTIN = sorted(p.name for p in (ROOT / "plugins").iterdir() if (p / "plugin.json").exists())
 
 EXPECTED_BOARDS = {
-    "jobs-uk": {"Reed"},
-    "jobs-us": {"Jobs2Careers", "USAJOBS"},
+    "jobs-uk": {"Reed", "ZipRecruiter UK"},
+    "jobs-us": {"ZipRecruiter", "Jobs2Careers", "USAJOBS"},
     "jobs-dk": {"Jobindex"},
     "jobs-nl": {"Jobbird"},
     "adzuna": {"Adzuna"},

@@ -1,10 +1,10 @@
 # United Kingdom — a jobslop plugin
 
-Job boards for the UK: Reed.co.uk, one of the biggest (needs a free API key).
+Job boards for the UK: Reed.co.uk, one of the biggest (needs a free API key), and ZipRecruiter UK.
 
 ## What it adds
 
-- **Job boards:** Reed (Big UK job board (needs a free key))
+- **Job boards:** Reed (Big UK job board (needs a free key)), ZipRecruiter UK (ZipRecruiter's UK site)
 - **Settings** (in its row in Settings → Plugins): Reed API key
 - **Suggested in the welcome tour for:** GB
 - **Its own words in:** da, es, nl

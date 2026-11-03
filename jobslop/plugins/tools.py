@@ -3,6 +3,7 @@
 These stay the same between jobslop versions with the same plugin API version.
 """
 
+import threading
 from types import SimpleNamespace
 
 from jobslop import net
@@ -55,10 +56,24 @@ def get_text(url: str, timeout: int = 25) -> str:
 
 
 http = SimpleNamespace(get_json=get_json, get_text=get_text, BROWSER_HEADERS=dict(net.BROWSER_UA))
+JOBSPY_SITES = ("zip_recruiter", "indeed", "glassdoor", "google")
+
+
+def jobspy(site: str, query: str, options: dict, source: str) -> list:
+    """Search a site with JobSpy (bundled with jobslop): site is one of JOBSPY_SITES, source the board name
+    the jobs are shown under. Raises RuntimeError when the site refuses (it's then paused for 15 minutes)."""
+    from jobslop.boards import jobspy as js
+    if site not in JOBSPY_SITES:
+        raise ValueError(f"JobSpy site must be one of {', '.join(JOBSPY_SITES)}")
+    js.js_locks.setdefault(site, threading.Lock())
+    return js.jobspy_run(site, query, options, source=source)
+
+
 jobs = SimpleNamespace(
     make=job,                       # make(source, title, company, url, location, date, salary, jtype, tags, desc, remote)
     as_list=as_list,
     km_radius=km_radius,            # search radius in km from the search options
+    jobspy=jobspy,                  # jobspy(site, query, options, source): Indeed/ZipRecruiter/... via JobSpy
     NotHere=NotHere,                # raise when the board doesn't cover the chosen country
     NeedsKey=NeedsKey,              # raise when a setting (API key) is missing
 )
