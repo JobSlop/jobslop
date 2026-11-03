@@ -22,9 +22,11 @@ function setTab(t){const changed=tab!==t;tab=t;$$(".navlinks .tab").forEach(b=>{
   // only Search needs the big header; other tabs get a slim bar so the page starts right away
   document.querySelector(".hero").classList.toggle("compact",t!=="search");
   $("#strip").style.display=t==="search"||t==="progress"?"":"none";
-  document.title=`${TAB_NAMES[t]} · jobslop`;
+  const pt=jobslop.tabFor(t);                              // a tab a plugin added
+  document.title=`${TAB_NAMES[t]||(pt&&pt.title)||""} · jobslop`;
   if(changed&&t!=="search")window.scrollTo({top:0,behavior:"instant"});
-  if(t==="profile")loadProfile();if(t==="tracker")drawBoard();if(t==="progress")drawProgress();if(t==="search"){render();drawStarted()}}
+  if(t==="profile")loadProfile();if(t==="tracker")drawBoard();if(t==="progress")drawProgress();if(t==="search"){render();drawStarted()}
+  if(pt){try{pt.render($("#v-"+t))}catch(e){console.error(e);$("#v-"+t).innerHTML='<p class="muted">This tab couldn’t be shown.</p>'}}}
 $$(".navlinks .tab").forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 $("#strip").onclick=()=>{setTab("progress");$("#v-progress").scrollIntoView({behavior:"smooth"})};
 $("#strip").style.cursor="pointer";

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "jobslop autofill",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Fills job application forms in many languages with your jobslop profile and CV. You always review and submit yourself.",
   "permissions": ["storage", "activeTab"],
   "host_permissions": ["http://127.0.0.1:47321/*"],

@@ -4,10 +4,17 @@ const PF=[["Personal",[["first_name","First name"],["middle_name","Middle name(s
  ["Work",[["years_experience","Years of experience"],["salary","Expected salary"],["notice_period","Notice period"],["skills","Key skills (comma separated)","area"]]],
  ["Education",[["highest_qualification","Highest qualification"],["degree_subject","Subject"],["university","University / college"]]],
  ["Eligibility",[["right_to_work","Right to work in your country?","yn"],["needs_sponsorship","Need visa sponsorship?","yn"],["driving_licence","Full driving licence?","yn"],["over_18","18 or over?","yn"],["willing_to_relocate","Willing to relocate?","yn"],["auto_consent","Let the extension tick privacy / terms boxes?","yn"]]]];
-$("#pfields").innerHTML=PF.map(([sec,fs])=>`<div class="psec">${sec}</div><div class="pgrid">${fs.map(([k,l,t])=>
-  t==="yn"?`<label class="f">${l}<select class="pf" id="${k}"><option value="">—</option><option>Yes</option><option>No</option></select></label>`:
-  t==="area"?`<label class="f wide">${l}<textarea class="pf" id="${k}" rows="2"></textarea></label>`:
-  `<label class="f">${l}<input type="${t||"text"}" class="pf" id="${k}"></label>`).join("")}</div>`).join("");
+// the app's own sections, then the fields switched-on plugins add (grouped by their section)
+function profileSections(){
+  const extra={};(plugins.profile_fields||[]).forEach(f=>{if(!PF.some(([,fs])=>fs.some(([k])=>k===f.key)))(extra[f.section]=extra[f.section]||[]).push([f.key,f.label,f.type==="text"?"":f.type])});
+  return PF.concat(Object.entries(extra))}
+function drawProfileFields(){
+  $("#pfields").innerHTML=profileSections().map(([sec,fs])=>`<div class="psec">${esc(sec)}</div><div class="pgrid">${fs.map(([k,l,t])=>
+    t==="yn"?`<label class="f">${esc(l)}<select class="pf" id="${esc(k)}"><option value="">—</option><option>Yes</option><option>No</option></select></label>`:
+    t==="area"?`<label class="f wide">${esc(l)}<textarea class="pf" id="${esc(k)}" rows="2"></textarea></label>`:
+    `<label class="f">${esc(l)}<input type="${t||"text"}" class="pf" id="${esc(k)}"></label>`).join("")}</div>`).join("");
+  $$(".pf").forEach(el=>el.value=profile[el.id]||"")}
+drawProfileFields();
 let saveTimer=null;
 function saveSoon(){clearTimeout(saveTimer);$("#psaved").textContent="Saving…";saveTimer=setTimeout(async()=>{await post("/api/profile",{profile});$("#psaved").textContent="Saved ✓";drawWelcome()},500)}
 async function loadProfile(){

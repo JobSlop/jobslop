@@ -10,11 +10,11 @@ function setMapPlace(p,fly){mapPlace=p;$("#maplabel").textContent=p.label||`${p.
   const ll=[p.lat,p.lon];mapPin.setLatLng(ll);mapCircle.setLatLng(ll);if(fly)map.fitBounds(mapCircle.getBounds(),{padding:[30,30]})}
 async function pickAt(lat,lon){$("#maplabel").innerHTML='<span class="spin"></span>';
   const r=await get(`/api/reverse?lat=${lat}&lon=${lon}`);setMapPlace(r.error?{lat,lon,label:"",town:"",country_code:""}:{...r,lat,lon},false);
-  if(r.error)toast(r.error);drawStudios()}
+  if(r.error)toast(r.error);drawMapLayers()}
 // Two map styles: the free OpenStreetMap street map (online), and a built-in offline map
 // (country outlines + 70,000 towns that ship with the app). The offline map is always underneath,
 // so the map still works with no internet; it switches over by itself if street tiles can't load.
-let mapStyle=pref("mapstyle")||"street",worldLayer=null,townLayer=null,studioLayer=null,tileErrors=0,tileLoads=0;
+let mapStyle=pref("mapstyle")||"street",worldLayer=null,townLayer=null,tileErrors=0,tileLoads=0;
 const accentColor=()=>getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
 async function addOfflineBase(){
   if(worldLayer)return;
@@ -47,22 +47,31 @@ function setMapStyle(style,quiet){
   drawTowns();
   if(!quiet&&style==="offline")toast("Offline map: country outlines and 70,000 towns built into the app");
 }
-async function drawStudios(){
-  if(!studioLayer)studioLayer=L.layerGroup().addTo(map);
-  studioLayer.clearLayers();
-  if(!$("#mapstudios").checked||!mapPlace){$("#studiolist").innerHTML="";$("#studiolist").hidden=true;return}
+// ---- extra layers plugins add (api.addMapLayer): a tick (and optional choice) each, markers + a list
+function drawMapLayerControls(){
+  const box=$("#maplayers");if(!box)return;
+  box.innerHTML=jobslop.parts.layers.map(l=>`<label class="check" ${l.tip?`data-tip="${esc(l.tip)}"`:""}><input type="checkbox" class="mapl" data-k="${esc(l.key)}" ${pref("ml_"+l.key)==="1"?"checked":""}> ${esc(l.label)}</label>`+
+    (l.options?`<select class="maplopt" data-k="${esc(l.key)}" style="padding:5px 8px;border-radius:999px;font-size:12.5px;width:auto!important;flex:0 0 auto">${l.options.map(([v,n])=>`<option value="${esc(v)}">${esc(n)}</option>`).join("")}</select>`:"")).join("");
+  $$(".maplopt").forEach(s=>{s.value=pref("mlo_"+s.dataset.k)||s.options[0].value;
+    s.onchange=()=>{pref("mlo_"+s.dataset.k,s.value);const c=$(`.mapl[data-k="${s.dataset.k}"]`);if(!c.checked){c.checked=true;pref("ml_"+s.dataset.k,"1")}drawMapLayers()}});
+  $$(".mapl").forEach(c=>c.onchange=()=>{pref("ml_"+c.dataset.k,c.checked?"1":"");drawMapLayers()});
+  if(map)drawMapLayers();
+}
+async function drawMapLayers(){
+  if(!map)return;
   const km=toMiles(+$("#maprad").value,unit())*1.609;
-  $("#studiolist").hidden=false;$("#studiolist").innerHTML='<div class="muted" style="padding:8px"><span class="spin"></span> Finding game studios…</div>';
-  const kind=$("#studiokind").value;
-  const r=await get(`/api/plugin/gamedev/studios?lat=${mapPlace.lat}&lon=${mapPlace.lon}&km=${km}&kind=${kind}`);
-  const icon=L.divIcon({className:"",html:'<div class="studiodot">🎮</div>',iconSize:[22,22],iconAnchor:[11,11]});
-  const indieIcon=L.divIcon({className:"",html:'<div class="studiodot indie">✦</div>',iconSize:[22,22],iconAnchor:[11,11]});
-  r.studios.forEach(s=>L.marker([s.lat+(Math.random()-.5)*.01,s.lon+(Math.random()-.5)*.01],{icon:s.indie?indieIcon:icon}).addTo(studioLayer)
-    .bindPopup(`<b>${esc(s.name)}</b>${s.indie?' <span class="indietag">Indie</span>':""}<br>${esc(s.type)} · ${esc(s.city)}<br><a href="#" data-href="${esc(s.url)}">${s.source==="Wikipedia"?"Read about them ↗":"Visit website ↗"}</a>`));
-  const indieN=r.studios.filter(s=>s.indie).length;
-  $("#studiolist").innerHTML=`<div class="studiohead"><b>${r.studios.length} ${kind==="indie"?"indie ":""}game studio${r.studios.length===1?"":"s"}</b> within ${$("#maprad").value} ${unit()}${kind==="all"&&indieN?` <span class="indietag">${indieN} indie</span>`:""} <span class="muted">· Game Dev Map + Wikipedia</span></div>`+
-    (r.studios.length?r.studios.slice(0,120).map(s=>`<div class="studiorow" data-href="${esc(s.url)}" title="Open ${esc(s.name)}"><span><b>${esc(s.name)}</b>${s.indie?' <span class="indietag">Indie</span>':""} <span class="muted">${esc(s.type)}</span></span><span class="muted">${esc(s.city)} · ${fmtDist(s.dist_km).replace(" away","")}</span></div>`).join("")
-      :`<div class="muted" style="padding:8px">No ${kind==="indie"?"indie ":""}studios listed in this area — try a bigger radius${kind==="indie"?" or All studios":""}.</div>`);
+  for(const l of jobslop.parts.layers){
+    if(!l.group)l.group=L.layerGroup().addTo(map);
+    l.group.clearLayers();
+    let list=$("#ml-"+l.key);
+    if(!list){list=document.createElement("div");list.id="ml-"+l.key;list.className="maplist";$("#maplists").appendChild(list)}
+    const on=($(`.mapl[data-k="${l.key}"]`)||{}).checked;
+    if(!on||!mapPlace){list.innerHTML="";list.hidden=true;continue}
+    list.hidden=false;
+    try{await l.draw({L,map,group:l.group,list,place:mapPlace,km,radiusLabel:`${$("#maprad").value} ${unit()}`,
+                      option:($(`.maplopt[data-k="${l.key}"]`)||{}).value})}
+    catch(e){console.error(e);list.innerHTML='<div class="muted" style="padding:8px">This layer couldn’t be drawn.</div>'}
+  }
 }
 $("#mapbtn").onclick=async()=>{
   openModal("m-map");const u=unit();$("#maprad").max=u==="km"?160:100;$("#maprad").value=Math.round(fromMiles(+$("#miles").value||15,u));drawMapRadius();
@@ -81,17 +90,13 @@ $("#mapbtn").onclick=async()=>{
     await addOfflineBase();}
   mapCircle.setStyle({color:accentColor()});
   setMapStyle(mapStyle,true);
-  setTimeout(()=>{map.invalidateSize();drawMapRadius();setMapPlace(p,true);drawStudios()},120);
+  setTimeout(()=>{map.invalidateSize();drawMapRadius();setMapPlace(p,true);drawMapLayers()},120);
 };
 $$("#mapseg button").forEach(b=>b.onclick=()=>setMapStyle(b.dataset.style));
-$("#mapstudios").onchange=()=>{pref("mapstudios",$("#mapstudios").checked?"1":"");drawStudios()};
-$("#mapstudios").checked=pref("mapstudios")==="1";
-$("#studiokind").value=pref("studiokind")||"all";
-$("#studiokind").onchange=()=>{pref("studiokind",$("#studiokind").value);if(!$("#mapstudios").checked){$("#mapstudios").checked=true;pref("mapstudios","1")}drawStudios()};
 $("#maprad").addEventListener("input",()=>{drawMapRadius()});
-$("#maprad").addEventListener("change",()=>{if(mapCircle)map.fitBounds(mapCircle.getBounds(),{padding:[30,30]});drawStudios()});
+$("#maprad").addEventListener("change",()=>{if(mapCircle)map.fitBounds(mapCircle.getBounds(),{padding:[30,30]});drawMapLayers()});
 $("#mapfind").onclick=()=>withSpinner($("#mapfind"),"",async()=>{const q=$("#mapq").value.trim();if(!q)return;
-  const r=await get("/api/geocode?q="+encodeURIComponent(q));if(r.error)return toast(r.error);setMapPlace(r,true);drawStudios()});
+  const r=await get("/api/geocode?q="+encodeURIComponent(q));if(r.error)return toast(r.error);setMapPlace(r,true);drawMapLayers()});
 $("#mapq").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("#mapfind").click()}});
 $("#mapuse").onclick=()=>{
   if(!mapPlace)return closeModals();

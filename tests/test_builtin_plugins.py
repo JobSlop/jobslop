@@ -55,3 +55,13 @@ def test_profile_fields_from_plugins():
         plugin_module(pid)
     keys = {f.key for f in POINTS.profile_fields}
     assert {"acca_number", "artstation", "showreel", "engines"} <= keys
+
+
+def test_the_extension_is_told_about_plugin_fields():
+    from jobslop.extension import extension_payload
+    plugin_module("accounting")
+    extra = {f["key"]: f for f in extension_payload()["extra_fields"]}
+    assert "acca_number" in extra and extra["acca_number"]["patterns"]
+    PLUGINS.set_enabled("accounting", False)
+    assert "acca_number" not in {f["key"] for f in extension_payload()["extra_fields"]}
+    PLUGINS.set_enabled("accounting", True)

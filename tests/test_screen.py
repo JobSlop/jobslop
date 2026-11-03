@@ -245,6 +245,26 @@ window.addEventListener("load", () => setTimeout(async () => {
     out.plugins.chipsOn = accChips();
     out.plugins.cardOn = $('.plugsw[data-id="accounting"]').checked;
     closeModals();
+    // 17. what plugins add to the screen: a tab, a map layer, a Progress card, profile fields — and all gone when off
+    const until = async (ok) => { for (let i = 0; i < 40 && !ok(); i++) await new Promise(r => setTimeout(r, 100)); return ok(); };
+    await togglePlugin("gamedev", true);
+    const tabBtn = () => $('.navlinks .tab[data-tab="p-gamedev-studios"]');
+    out.pluginUi = {tabShown: !!(await until(tabBtn))};
+    out.pluginUi.tabText = tabBtn() ? tabBtn().textContent : "";
+    setTab("p-gamedev-studios");
+    out.pluginUi.tabTitle = document.title;
+    out.pluginUi.tabHeading = ($("#v-p-gamedev-studios h2") || {}).textContent;
+    out.pluginUi.layer = $$("#maplayers label").map(l => l.textContent.trim());
+    setTab("progress");
+    out.pluginUi.cards = $$("#plugcards h3").map(h => h.textContent);
+    setTab("profile");
+    out.pluginUi.fields = $$("#pfields .psec").map(s => s.textContent);
+    out.pluginUi.engines = !!$("#pfields #engines");
+    await togglePlugin("gamedev", false);
+    out.pluginUi.after = {tab: !!tabBtn(), section: !!$("#v-p-gamedev-studios"), layer: $$("#maplayers label").length,
+                          cards: $$("#plugcards h3").map(h => h.textContent), engines: !!$("#pfields #engines"),
+                          style: !!$('style[data-plugin="gamedev"]')};
+    setTab("search");
   } catch (e) { out.error = String(e && e.stack || e); }
   out.loadErrors = window.__loadErrors;
   document.getElementById("selftest").textContent = JSON.stringify(out);
@@ -289,7 +309,7 @@ class ScreenTests:
                     mock.patch.object(net, "get_json", side_effect=OSError("offline")), \
                     mock.patch.object(handler, "open_in_chrome", return_value=True) as open_chrome, \
                     mock.patch.object(os, "startfile", create=True) as startfile, \
-                    mock.patch.object(webbrowser, "open") as browser:
+                    mock.patch.object(webbrowser, "open") as browser,                     mock.patch("urllib.request.urlopen", side_effect=OSError("no internet in tests")):
                 proc = subprocess.run([chrome, "--headless=new", "--disable-gpu", "--no-first-run",
                                        "--no-default-browser-check", f"--user-data-dir={Path(TMP) / 'chrome-screen'}",
                                        "--window-size=1300,900", "--virtual-time-budget=120000", "--dump-dom",
@@ -460,3 +480,13 @@ class ScreenTests:
         assert {"reed_key", "adzuna_id", "adzuna_key", "usajobs_key", "usajobs_email"} <= set(pl["keyBoxes"])
         assert pl["chipsOff"] == [] and pl["cardOff"] is False, "switching Accounting off removes its boards"
         assert pl["chipsOn"] == ["ICAEW", "ACCA"] and pl["cardOn"], "and switching it on brings them back"
+
+    def test_what_plugins_add_to_the_screen(self):
+        ui = self.out["pluginUi"]
+        assert ui["tabShown"] and ui["tabText"] == "🎮 Studios"
+        assert ui["tabTitle"] == "Studios · jobslop" and ui["tabHeading"] == "Studios Near You"
+        assert ui["layer"] == ["🎮 Game studios"], "the map gets the studios layer"
+        assert "Games applications" in ui["cards"] and "Accounting applications" in ui["cards"]
+        assert "Games" in ui["fields"] and "Accounting" in ui["fields"] and ui["engines"]
+        assert ui["after"] == {"tab": False, "section": False, "layer": 0, "cards": ["Accounting applications"],
+                               "engines": False, "style": False}, "switching Game dev off takes all of it away"

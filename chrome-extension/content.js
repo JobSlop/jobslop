@@ -105,6 +105,15 @@
     "email": "email", "phone-number": "phone", "phonenumber": "phone",
   };
 
+  // fields switched-on jobslop plugins add to the profile (e.g. "ACCA membership number"), with label patterns
+  let EXTRA = [];
+  function setExtraFields(list) {
+    EXTRA = [];
+    for (const f of list || []) for (const p of f.patterns || []) {
+      try { EXTRA.push([f.key, new RegExp(p, "i")]); } catch (e) { /* a bad pattern is skipped */ }
+    }
+  }
+
   function keyFor(el, desc) {
     const nm = (el.getAttribute("name") || "").toLowerCase();
     if (NAME_MAP[nm]) return NAME_MAP[nm];
@@ -116,6 +125,7 @@
     }
     if (OVER_18.test(desc)) return "over_18";
     if (SKIP.test(desc)) return null;
+    for (const [k, re] of EXTRA) if (re.test(desc)) return k;        // plugin fields are more specific than the rules
     for (const [k, re] of RULES) if (re.test(desc)) return k;
     return null;
   }
@@ -464,6 +474,7 @@
     const resp = await send({ type: "getData" });
     if (!resp || !resp.profile) return { n: 0, cv: false, error: resp && resp.error };
     const data = { ...resp.profile, full_name: resp.full_name, cover_letter: resp.cover_letter };
+    setExtraFields(resp.extra_fields);
     const jobs = Array.isArray(data.jobs) ? data.jobs : [];
     data.current_title = data.current_title || (jobs[0] || {}).title || "";       // most recent job doubles as "current"
     data.current_company = data.current_company || (jobs[0] || {}).company || "";
@@ -846,7 +857,7 @@
   if (TOP && /(^|\.)linkedin\.com$/.test(location.hostname)) setTimeout(liCheck, 1200);
 
   // Expose for testing in a page without the extension
-  window.__jobFinderTest = { describe, keyFor, fields, fill, undoFill, looksLikeApplication, scrapeLinkedIn,
+  window.__jobFinderTest = { describe, keyFor, setExtraFields, fields, fill, undoFill, looksLikeApplication, scrapeLinkedIn,
     // pure helpers, used by the automated tests (tests/extension.test.js)
     clean, optionScore, bestChoice, choiceKey, alternatives, days, range, jobFieldKey, dateFor };
 })();

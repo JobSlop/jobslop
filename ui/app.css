@@ -228,7 +228,7 @@ code{background:var(--surface2);border:1px solid var(--line);border-radius:6px;p
 .swatches button{width:30px;height:30px;border-radius:50%;border:2px solid transparent;outline:1px solid var(--line2)}
 .swatches button.on{border-color:var(--surface);outline:2px solid var(--text)}
 /* ---------- interaction polish: hover, press, focus, tooltips ---------- */
-button,[data-href],[data-copy],.chip,.studiorow{cursor:pointer}
+button,[data-href],[data-copy],.chip,.maplistrow{cursor:pointer}
 .pill,.iconbtn,.navchip,.chip,.tab,.card,.tile,.jobrow,.cacts button{transition:background .15s,border-color .15s,color .15s,transform .12s,box-shadow .2s,opacity .15s}
 .pill:active,.iconbtn:active,.navchip:active,.chip:active,.cacts button:active{transform:scale(.96)}
 .pill.line:hover{background:var(--surface)}
@@ -347,6 +347,13 @@ button.busy{pointer-events:none;opacity:.8}
 .phone .pc-only{display:none!important}
 .phone .jobrow .acts .pill.line[data-href]{display:none}   /* on a phone the title and "Apply" already open the job */
 /* ---------- phone layout ---------- */
+/* medium windows: plugin tabs make the header busier, so it tightens up instead of breaking onto two lines */
+@media (min-width:641px) and (max-width:1080px){
+  .navlinks{gap:4px;flex-wrap:nowrap}
+  .navlinks button.tab{padding:7px 9px;flex:0 0 auto}
+  .navlinks .navchip{display:none}
+  .navlinks .navsel{max-width:130px}
+}
 @media (max-width:640px){
   .wrap{padding:0 14px}
   nav.top{padding:14px 0;gap:8px}
@@ -405,14 +412,10 @@ button.busy{pointer-events:none;opacity:.8}
 .townlabel:before{display:none}
 .mappin{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--accent);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);transition:transform .15s}
 .mappin:hover{transform:rotate(-45deg) scale(1.15)}
-.studiodot{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:var(--surface2);border:1.5px solid var(--accent);font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:transform .15s}
-.studiodot:hover{transform:scale(1.25)}
-.studiodot.indie{background:var(--accent);color:#fff;border-color:#fff;font-weight:700}
-.indietag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:1px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
-.studiolist{margin-top:12px;max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:14px}
-.studiohead{padding:9px 12px;border-bottom:1px solid var(--line);font-size:13px;position:sticky;top:0;background:var(--surface)}
-.studiorow{display:flex;justify-content:space-between;gap:10px;padding:8px 12px;font-size:13px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .15s}
-.studiorow:hover{background:var(--accent-soft)}
+.maplist{margin-top:12px;max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:14px}
+.maplisthead{padding:9px 12px;border-bottom:1px solid var(--line);font-size:13px;position:sticky;top:0;background:var(--surface)}
+.maplistrow{display:flex;justify-content:space-between;gap:10px;padding:8px 12px;font-size:13px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .15s}
+.maplistrow:hover{background:var(--accent-soft)}
 .navchip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:6px 12px;font-size:12.5px;font-family:Consolas,monospace;letter-spacing:.06em}
 .navchip:hover{background:rgba(255,255,255,.16)}
 .extdot{width:7px;height:7px;border-radius:50%;background:#a39d91}

@@ -43,7 +43,7 @@ function drawProgress(){
   // follow ups
   const today=todayStr(),due=saved.filter(j=>j.follow_up&&!["Offer","Rejected","Not interested"].includes(j.status)).sort((a,b)=>a.follow_up.localeCompare(b.follow_up)).slice(0,6);
   $("#followups").innerHTML=due.length?due.map(j=>`<div class="row"><span>${esc(j.title)} · ${esc(j.company)}</span><b style="color:${j.follow_up<=today?"var(--warn)":"inherit"}">${esc(j.follow_up)}</b></div>`).join(""):`<p class="muted" style="font-size:13px">Set a follow-up date on an application (Edit) to be reminded here.</p>`;
-  drawRing();
+  drawRing();drawPluginCards();
 }
 function drawRing(){const s=stats(),goal=+(pref("goal")||10);$("#goal").value=goal;const p=Math.min(1,s.week/goal),C=2*Math.PI*50;
   $("#ring").innerHTML=`<circle cx="60" cy="60" r="50" fill="none" stroke="var(--line)" stroke-width="10"/><circle cx="60" cy="60" r="50" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C*p} ${C}" transform="rotate(-90 60 60)"/><text x="60" y="68" text-anchor="middle" font-size="24" fill="var(--text)" font-family="Italiana,serif">${Math.round(p*100)}%</text>`;

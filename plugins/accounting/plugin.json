@@ -7,16 +7,51 @@
   "author": "jobslop",
   "homepage": "https://github.com/JobSlop/jobslop-plugin-accounting",
   "python": "plugin.py",
+  "ui": "ui.js",
   "profile_fields": [
-    {"key": "accounting_qualification", "label": "Accounting qualification (ACA, ACCA, CIMA, AAT…)", "section": "Accounting",
-     "autofill": ["(professional|accounting|accountancy) qualification", "qualified (accountant|status)"]},
-    {"key": "accounting_stage", "label": "Exam stage / level reached", "section": "Accounting",
-     "autofill": ["exam (stage|level)", "(papers|exams) (passed|completed)", "part[- ]qualified"]},
-    {"key": "acca_number", "label": "ACCA membership number", "section": "Accounting",
-     "autofill": ["acca.{0,30}(membership|registration|student).{0,10}(number|no\\b|id)"]},
-    {"key": "icaew_number", "label": "ICAEW membership number", "section": "Accounting",
-     "autofill": ["icaew.{0,30}(membership|registration|student).{0,10}(number|no\\b|id)"]},
-    {"key": "practice_software", "label": "Accounting software you use (Xero, Sage, SAP…)", "section": "Accounting",
-     "autofill": ["accounting (software|systems|packages)", "\\b(xero|sage|quickbooks)\\b"]}
+    {
+      "key": "accounting_qualification",
+      "label": "Accounting qualification (ACA, ACCA, CIMA, AAT…)",
+      "section": "Accounting",
+      "autofill": [
+        "(professional|accounting|accountancy) qualification",
+        "qualified (accountant|status)"
+      ]
+    },
+    {
+      "key": "accounting_stage",
+      "label": "Exam stage / level reached",
+      "section": "Accounting",
+      "autofill": [
+        "exam (stage|level)",
+        "(papers|exams) (passed|completed)",
+        "part[- ]qualified"
+      ]
+    },
+    {
+      "key": "acca_number",
+      "label": "ACCA membership number",
+      "section": "Accounting",
+      "autofill": [
+        "acca.{0,30}(membership|registration|student).{0,10}(number|no\\b|id)"
+      ]
+    },
+    {
+      "key": "icaew_number",
+      "label": "ICAEW membership number",
+      "section": "Accounting",
+      "autofill": [
+        "icaew.{0,30}(membership|registration|student).{0,10}(number|no\\b|id)"
+      ]
+    },
+    {
+      "key": "practice_software",
+      "label": "Accounting software you use (Xero, Sage, SAP…)",
+      "section": "Accounting",
+      "autofill": [
+        "accounting (software|systems|packages)",
+        "\\b(xero|sage|quickbooks)\\b"
+      ]
+    }
   ]
 }

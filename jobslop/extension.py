@@ -12,6 +12,7 @@ from pathlib import Path
 
 from jobslop import config
 from jobslop.config import APP_PORT, RES_DIR
+from jobslop.plugins.points import POINTS
 from jobslop.profile.store import ACTIVE_MINUTES, EXT_DIR, cv_file, load_profile
 from jobslop.runtime import state
 from jobslop.settings import load_settings, update_settings
@@ -58,7 +59,10 @@ def extension_payload():
             "full_name": " ".join(x for x in (p.get("first_name"), p.get("last_name")) if x),
             "cover_letter": render_letter(p.get("cover_letter_template", ""), p, job),
             "active": {"title": job["title"], "company": job["company"], "url": job["url"]} if job else None,
-            "cv_name": cv.name if cv else ""}
+            "cv_name": cv.name if cv else "",
+            # profile fields from switched-on plugins, with the form labels they answer
+            "extra_fields": [{"key": f.key, "label": f.label, "patterns": list(f.autofill)}
+                             for f in POINTS.profile_fields if f.autofill]}
 
 
 def install_extension():

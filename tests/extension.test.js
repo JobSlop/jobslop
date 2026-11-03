@@ -163,3 +163,14 @@ test("the app screen's scripts have no syntax errors", () => {
     assert.doesNotThrow(() => new vm.Script(fs.readFileSync(path.join(__dirname, "..", "chrome-extension", f), "utf8")), f);
   }
 });
+
+test("profile fields from plugins fill their own questions", () => {
+  ext.setExtraFields([{ key: "acca_number", patterns: ["acca.{0,30}(membership|registration).{0,10}(number|no\b|id)"] },
+                      { key: "showreel", patterns: ["(show|demo)[- ]?reel"] }, { key: "bad", patterns: ["("] }]);
+  assert.equal(keyOf("ACCA membership number"), "acca_number");
+  assert.equal(keyOf("Link to your showreel"), "showreel");
+  assert.equal(keyOf("First name"), "first_name", "the normal fields still work");
+  assert.equal(keyOf("Gender"), null, "personal questions are still left for you");
+  ext.setExtraFields([]);
+  assert.equal(keyOf("ACCA membership number"), null, "without the plugin the box is left alone");
+});

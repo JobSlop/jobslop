@@ -17,14 +17,22 @@ def register(_api):
 
 
 def studios_endpoint(params, body):
-    """Studios around a point, for the map: ?lat=&lon=&km=&kind=all|indie"""
+    """Studios around a point (?lat=&lon=) or a town (?town=&country=), within ?km=, ?kind=all|indie"""
+    place = None
     try:
-        lat, lon = float(params["lat"]), float(params["lon"])
         km = max(1.0, min(500.0, float(params.get("km", 40))))
+        if params.get("lat") is not None or not params.get("town"):
+            lat, lon = float(params["lat"]), float(params["lon"])
+        else:
+            place = api.geo.place_town(params["town"], api.geo.country_code(params.get("country", "")))
+            if not place:
+                return {"studios": [], "total": 0, "error": f"Couldn't find {params['town'][:60]}"}
+            lat, lon = place["lat"], place["lon"]
     except (KeyError, ValueError):
         return {"studios": [], "total": 0}
     return {"studios": studios.near(lat, lon, km, indie_only=params.get("kind") == "indie"),
-            "total": len(studios.all()), "source": "Game Dev Map + Wikipedia"}
+            "total": len(studios.all()), "source": "Game Dev Map + Wikipedia",
+            "place": place["name"] if place else ""}
 
 
 def src_workwithindies(q, o):
