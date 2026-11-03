@@ -75,9 +75,13 @@ function drawPlugins(){
     ${p.description?`<div class="pd">${esc(p.description)}</div>`:""}
     ${p.adds.length?`<div class="pa">${p.adds.map(a=>`<span>${esc(a)}</span>`).join("")}</div>`:""}
     ${p.error?`<div class="perr">⚠ ${esc(p.error)}</div>`:""}
-    ${p.homepage?`<span class="linkish" style="font-size:12px" data-href="${esc(p.homepage)}">Website ↗</span>`:""}</div>`).join("")
+    <div class="pbtns">${p.homepage?`<span class="linkish" style="font-size:12px" data-href="${esc(p.homepage)}">Website ↗</span>`:""}
+      ${pluginUpdates[p.id]?`<button class="pill dark sm plugupd" data-link="${esc(pluginUpdates[p.id].link)}">Update to ${esc(pluginUpdates[p.id].latest)}</button>`:""}
+      ${!p.builtin?`<button class="pill line sm plugrm" data-id="${esc(p.id)}" data-tip="Remove this plugin from jobslop">Remove</button>`:""}</div></div>`).join("")
     ||`<p class="muted" style="font-size:13px">No plugins yet.</p>`;
   $$(".plugsw").forEach(c=>c.onchange=()=>togglePlugin(c.dataset.id,c.checked));
+  $$(".plugrm").forEach(b=>b.onclick=()=>removePlugin(b.dataset.id));
+  $$(".plugupd").forEach(b=>b.onclick=()=>previewPlugin(b.dataset.link,b));
   // boxes plugins add to Settings (API keys and the like), saved with "Save settings"
   const bySec={};plugins.settings.forEach(s=>{const n=(plugins.plugins.find(p=>p.id===s.plugin)||{}).name||s.plugin;(bySec[n]=bySec[n]||[]).push(s)});
   $("#plugsettings").innerHTML=Object.entries(bySec).map(([n,ss])=>`<div class="psec" style="margin-top:12px">${esc(n)}</div><div class="pgrid">${ss.map(s=>
@@ -95,6 +99,45 @@ async function togglePlugin(id,on){
   if(!on&&LANGS.some(l=>l.code===LANG&&l.plugin===id)){savePref("lang","en");await loadLanguage("en")}else await loadLanguage(LANG);
   toast(t(on?"{0} switched on":"{0} switched off").replace("{0}",p.name));
 }
+// ---- install from a GitHub link: download and show what it is first, install only when the user says yes
+let pluginUpdates={},pendingPlugin=null;
+async function previewPlugin(link,btn){
+  link=(link||"").trim();if(!link){$("#plugmsg").textContent=t("Paste the GitHub link of a plugin first");return}
+  await withSpinner(btn||$("#plugget"),t("Checking…"),async()=>{
+    const r=await post("/api/plugins/install",{link});
+    if(r.error){$("#plugmsg").textContent=r.error;return}
+    const p=pendingPlugin=r.preview;$("#plugmsg").textContent="";
+    $("#pititle").textContent=p.replaces?t("Update {0}?").replace("{0}",p.name):t("Install {0}?").replace("{0}",p.name);
+    $("#pibody").innerHTML=`<div class="pimeta">v${esc(p.version)}${p.author?" · "+esc(p.author):""}${p.replaces?" · "+esc(t("you have {0}").replace("{0}",p.replaces)):""} · <span class="linkish" data-href="${esc(p.source)}">${esc(p.source.replace("https://",""))}</span></div>
+      ${p.description?`<p style="margin:0 0 10px">${esc(p.description)}</p>`:""}
+      ${p.adds.length?`<div class="plug" style="border:0;padding:0;background:none"><div class="pa">${p.adds.map(a=>`<span>${esc(a)}</span>`).join("")}</div></div>`:""}`;
+    $("#piwarn").hidden=!p.runs_code;$("#pigo").textContent=p.replaces?t("Update"):t("Install");
+    openModal("m-plugin")});
+}
+$("#plugget").onclick=()=>previewPlugin($("#pluglink").value);
+$("#pluglink").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("#plugget").click()}});
+$("#pigo").onclick=()=>withSpinner($("#pigo"),t("Installing…"),async()=>{
+  if(!pendingPlugin)return;
+  const r=await post("/api/plugins/install",{token:pendingPlugin.token});pendingPlugin=null;closeModals();
+  if(r.error)return toast(r.error);
+  plugins=r;delete pluginUpdates[r.installed];drawPlugins();jobslop.sync(plugins.plugins);drawProfileFields();$("#pluglink").value="";
+  keys=await get("/api/settings");await loadBoards();await loadLanguage(LANG);render();
+  const p=plugins.plugins.find(x=>x.id===r.installed)||{name:r.installed};
+  toast(p.error?t("{0} couldn't start — see the message on its card").replace("{0}",p.name):t("{0} installed").replace("{0}",p.name));
+});
+async function removePlugin(id){
+  const p=plugins.plugins.find(x=>x.id===id)||{name:id};
+  if(!confirm(t("Remove {0}? You can install it again from its link.").replace("{0}",p.name)))return;
+  const r=await post("/api/plugins/remove",{id});if(r.error)return toast(r.error);
+  plugins=r;jobslop.sync(plugins.plugins);drawPlugins();drawProfileFields();keys=await get("/api/settings");await loadBoards();await loadLanguage(LANG);render();
+  toast(t("{0} removed").replace("{0}",p.name));
+}
+$("#plugcheck").onclick=()=>withSpinner($("#plugcheck"),t("Checking…"),async()=>{
+  const r=await post("/api/plugins/check",{});
+  pluginUpdates={};(r.updates||[]).forEach(u=>pluginUpdates[u.id]=u);drawPlugins();
+  $("#plugmsg").textContent=r.updates&&r.updates.length?t("{0} plugin update(s) available").replace("{0}",r.updates.length):t("Your plugins are up to date");
+});
+
 // "Save settings" saves everything in the Settings window: keys and job match terms
 $("#savekeys").onclick=()=>withSpinner($("#savekeys"),"Saving…",async()=>{const b={};allKeys().forEach(k=>{const el=$("#"+k);if(!el)return;const v=el.value.trim();if(v)b[k]=v;el.value=""});
   await post("/api/settings",b);

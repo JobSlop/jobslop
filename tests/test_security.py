@@ -94,8 +94,12 @@ class PhoneTests:
         _, cookie = self.login(self.pin)
         for path in ("/api/settings", "/api/phone", "/api/prefs"):
             assert self.phone.get(path, headers={"Cookie": cookie})[0] == 403, path
-        for path in ("/api/open", "/api/apply", "/api/export", "/api/copy", "/api/settings"):
+        for path in ("/api/open", "/api/apply", "/api/export", "/api/copy", "/api/settings", "/api/plugins",
+                     "/api/plugins/install", "/api/plugins/remove", "/api/plugins/check"):
             assert self.phone.post(path, {}, headers={"Cookie": cookie})[0] == 403, path
+        assert self.phone.get("/api/plugins", headers={"Cookie": cookie})[0] == 200, "the phone can see which are on"
+        code, page, _ = self.phone.request("/ui/js/core.js", headers={"Cookie": cookie})
+        assert code == 200 and "function" in page, "the screen's own files load on the phone"
         assert self.phone.get("/ext/profile", headers={"Cookie": cookie, "X-JobFinder-Key": extension.pairing_code()})[0] == 403
 
     def test_wrong_pin_and_lockout(self):

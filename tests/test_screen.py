@@ -244,6 +244,10 @@ window.addEventListener("load", () => setTimeout(async () => {
     await togglePlugin("accounting", true);
     out.plugins.chipsOn = accChips();
     out.plugins.cardOn = $('.plugsw[data-id="accounting"]').checked;
+    await previewPlugin("https://gitlab.com/someone/plugin");
+    out.plugins.badLink = $("#plugmsg").textContent;
+    out.plugins.installOpen = $("#m-plugin").classList.contains("open");
+    out.plugins.removable = $$(".plugrm").length;
     closeModals();
     // 17. what plugins add to the screen: a tab, a map layer, a Progress card, profile fields — and all gone when off
     const until = async (ok) => { for (let i = 0; i < 40 && !ok(); i++) await new Promise(r => setTimeout(r, 100)); return ok(); };
@@ -496,6 +500,8 @@ class ScreenTests:
         assert {"reed_key", "adzuna_id", "adzuna_key", "usajobs_key", "usajobs_email"} <= set(pl["keyBoxes"])
         assert pl["chipsOff"] == [] and pl["cardOff"] is False, "switching Accounting off removes its boards"
         assert pl["chipsOn"] == ["ICAEW", "ACCA"] and pl["cardOn"], "and switching it on brings them back"
+        assert pl["badLink"].startswith("That isn't a GitHub link") and not pl["installOpen"]
+        assert pl["removable"] == 0, "built-in plugins can be switched off, not removed"
 
     def test_what_plugins_add_to_the_screen(self):
         ui = self.out["pluginUi"]

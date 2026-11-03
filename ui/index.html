@@ -231,6 +231,12 @@
   <p class="muted" style="font-size:12.5px;margin:-4px 0 10px">Extra job boards, fields and languages. Switch on what's useful to you — changes apply straight away.</p>
   <div class="plugs" id="plugs"></div>
   <div class="pc-only">
+    <div class="lirow" style="margin-top:12px"><input type="text" id="pluglink" placeholder="github.com/someone/their-plugin" autocomplete="off" aria-label="GitHub link of a plugin">
+      <button class="pill dark sm" id="plugget" data-tip="Download the plugin and show what it adds — nothing is installed until you say so">Install from link</button>
+      <button class="pill line sm" id="plugcheck" data-tip="Ask GitHub whether your plugins have newer versions">Check for plugin updates</button></div>
+    <p class="muted" id="plugmsg" style="font-size:12.5px;min-height:16px;margin:6px 0 0"></p>
+  </div>
+  <div class="pc-only">
   <div class="psec">Job board keys</div>
   <p class="muted" style="font-size:13px;margin:-4px 0 8px">All optional. Keys are stored only on this computer.</p>
   <div id="plugsettings"></div>
@@ -254,6 +260,13 @@
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="pill line sm" id="feedback">✉ Send feedback</button><button class="pill line sm" id="gsshow">Show the getting-started list</button></div>
   <div class="row"><button class="pill line" id="retour" style="margin-right:auto" data-tip="Show the welcome tour again">↺ Take the tour again</button><button class="pill line" data-close>Close</button><button class="pill dark" id="savekeys">Save settings</button></div>
+</div></div>
+
+<div class="modal" id="m-plugin"><div class="box">
+  <h3 id="pititle">Install this plugin?</h3>
+  <div id="pibody"></div>
+  <p class="piwarn" id="piwarn">⚠ This plugin can run code on your computer. Only install plugins from people you trust.</p>
+  <div class="row"><button class="pill line" data-close>Cancel</button><button class="pill dark" id="pigo">Install</button></div>
 </div></div>
 
 <div class="modal" id="m-clear"><div class="box">

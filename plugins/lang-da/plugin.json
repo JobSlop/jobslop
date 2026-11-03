@@ -3,7 +3,7 @@
   "name": "Danish (Dansk)",
   "version": "1.0.0",
   "api": 1,
-  "description": "jobslop in Danish: every screen, plus Danish job titles when you search in DK. Hele skærmen på dansk, og søgninger i Danmark søger også på danske jobtitler.",
+  "description": "jobslop in Danish: every screen, plus Danish job titles when you search in Denmark.",
   "author": "jobslop",
   "homepage": "https://github.com/JobSlop/jobslop-plugin-lang-da",
   "language": {

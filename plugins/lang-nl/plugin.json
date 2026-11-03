@@ -3,7 +3,7 @@
   "name": "Dutch (Nederlands)",
   "version": "1.0.0",
   "api": 1,
-  "description": "jobslop in Dutch: every screen, plus Dutch job titles when you search in NL, BE. Het hele scherm in het Nederlands, en zoekopdrachten in Nederland en België zoeken ook op Nederlandse functietitels.",
+  "description": "jobslop in Dutch: every screen, plus Dutch job titles when you search in the Netherlands and Belgium.",
   "author": "jobslop",
   "homepage": "https://github.com/JobSlop/jobslop-plugin-lang-nl",
   "language": {

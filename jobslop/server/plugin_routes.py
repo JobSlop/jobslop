@@ -2,6 +2,9 @@
 
 GET  /api/plugins                    every plugin, plus the profile fields and settings enabled plugins add
 POST /api/plugins                    {"id", "enabled"}: switch one on or off
+POST /api/plugins/install            {"link"}: download and check a plugin -> {"preview"}; then {"token"}: install it
+POST /api/plugins/remove             {"id"}: remove a plugin installed from a link
+POST /api/plugins/check              newer releases of plugins -> {"updates"}
 GET  /api/plugin/<id>/<name>         a plugin's own endpoint (api.add_endpoint); POST sends JSON to it
 GET  /plugins/<id>/<file>            a file of an enabled plugin (its screen code, styles, data)
 """
@@ -10,6 +13,7 @@ import json
 import re
 from dataclasses import asdict
 
+from jobslop.plugins.installer import INSTALLER, Installer, InstallError
 from jobslop.plugins.manager import PLUGINS, PluginManager
 from jobslop.plugins.points import POINTS, ExtensionPoints
 
@@ -20,8 +24,9 @@ FILE_RE = re.compile(r"/plugins/([a-z0-9-]{2,40})/((?:[\w-]+/)*[\w.-]+\.(\w+))")
 
 
 class PluginRoutes:
-    def __init__(self, plugins: PluginManager = PLUGINS, points: ExtensionPoints = POINTS) -> None:
-        self.plugins, self.points = plugins, points
+    def __init__(self, plugins: PluginManager = PLUGINS, points: ExtensionPoints = POINTS,
+                 installer: Installer = INSTALLER) -> None:
+        self.plugins, self.points, self.installer = plugins, points, installer
 
     def overview(self) -> dict:
         return {"plugins": [self.plugins.describe(p) for p in self.plugins.all()],
@@ -45,6 +50,12 @@ class PluginRoutes:
         return False
 
     def post(self, req, path: str, body: dict) -> bool:
+        if path in ("/api/plugins/install", "/api/plugins/remove", "/api/plugins/check"):
+            try:
+                req.send(json.dumps(self._manage(path, body)))
+            except InstallError as e:
+                req.send(json.dumps({"error": str(e)}), code=400)
+            return True
         if path == "/api/plugins":
             try:
                 self.plugins.set_enabled(str(body.get("id", "")), bool(body.get("enabled")))
@@ -58,6 +69,17 @@ class PluginRoutes:
             self._call(req, m[1], m[2], {}, body)
             return True
         return False
+
+    def _manage(self, path: str, body: dict) -> dict:
+        if path == "/api/plugins/check":
+            return {"updates": self.installer.check_updates()}
+        if path == "/api/plugins/remove":
+            self.installer.remove(str(body.get("id", "")))
+            return self.overview()
+        if body.get("token"):                                   # step 2: the user said yes
+            pid = self.installer.confirm(str(body["token"]))
+            return {**self.overview(), "installed": pid}
+        return {"preview": self.installer.prepare(str(body.get("link", ""))[:300])}   # step 1: what is it?
 
     def _call(self, req, pid, name, params, body):
         fn = self.points.endpoint(pid, name)
