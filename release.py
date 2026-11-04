@@ -35,7 +35,9 @@ def setting(name):
 
 
 def git(*args, check=True):
-    r = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
+    # on Windows, check GitHub's certificate with Windows' own store (git's bundled one can be out of date)
+    tls = ["-c", "http.sslBackend=schannel"] if sys.platform.startswith("win") else []
+    r = subprocess.run(["git", *tls, *args], cwd=ROOT, capture_output=True, text=True)
     if check and r.returncode:
         sys.exit(f"git {' '.join(args)} failed:\n{r.stderr.strip()}")
     return r.stdout.strip()
