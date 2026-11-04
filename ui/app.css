@@ -220,6 +220,9 @@ code{background:var(--surface2);border:1px solid var(--line);border-radius:6px;p
 .modal.open{display:grid}
 .modal .box{background:var(--surface);color:var(--text);border-radius:20px;padding:24px;width:min(560px,100%);max-height:88vh;overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,.35)}
 .modal .box.wide{width:min(880px,100%);padding:28px 32px}
+/* maps (Leaflet) give their layers z-index 400-1000: keep each map in its own layer so windows, pop-ups
+   and the header always stay on top of it */
+.leaflet-container{isolation:isolate;z-index:0}
 /* Settings: a side menu of sections, one shown at a time */
 .modal .box.settings{width:min(1120px,100%);height:min(780px,92vh);padding:0;display:flex;flex-direction:column;overflow:hidden}
 .sethead{padding:22px 28px 10px;border-bottom:1px solid var(--line)}
