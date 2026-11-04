@@ -37,7 +37,7 @@ from jobslop.server.phone import PHONE_PORT, new_pin, phone_settings, phone_stat
 from jobslop.settings import KEY_NAMES, load_settings, public_settings, save_settings, update_settings
 from jobslop.system import copy_to_clipboard, export_csv, open_path
 from jobslop.tracker import APPLIED_STAGES, load_saved, lock, set_status, today, write_saved
-from jobslop.updates import UPDATE_DIR, check_for_update, download_update, install_update, update_state
+from jobslop.updates import UPDATE_DIR, check_for_update, download_update, install_update, set_licence, update_state
 
 # ---------------------------------------------------------------- web server
 
@@ -318,7 +318,10 @@ class Handler(BaseHTTPRequestHandler):
                     return self.send('{"started":true}')
                 if act == "install":
                     install_update()
-                    return self.send('{"closing":true}')
+                    return self.send('{"restarting":true}')
+                if act == "licence":
+                    ok, msg = set_licence(str(body.get("key", ""))[:100])
+                    return self.send(json.dumps({**check_for_update(), "licence_ok": ok, "licence_message": msg}))
             except Exception as e:
                 return self.send(json.dumps({"error": str(e)[:160]}), code=400)
             return self.send('{"error":"unknown action"}', code=400)

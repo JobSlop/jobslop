@@ -1,12 +1,15 @@
-"""Publish a new jobslop version: the source goes to GitHub, the ready-made .exe goes to Gumroad.
+"""Publish a new jobslop version: the source goes to GitHub, the ready-made builds to the builds repository.
 
 jobslop works like Aseprite: the code is open (GPL-3.0) and anyone can build it themselves, while
-ready-made builds are sold. GitHub releases therefore carry the source only - never an .exe.
+ready-made builds are sold. The main repository's releases carry the source only. The ready-made .exe
+files go to the builds repository (BUILDS_REPO) so they can update themselves: the Gumroad build only
+after its licence key is checked, the personal build (testers, friends and family) without one.
 
 One-time setup:
   1. Install the GitHub CLI (https://cli.github.com) and sign in once:   gh auth login
   2. This folder is a git repository with the GitHub repository as "origin" (see README.md).
-  3. Put your Gumroad product page in jobslop/config.py:  DOWNLOAD_PAGE = os.environ.get(..., "https://…")
+  3. Put your Gumroad product page and product ID in jobslop/config.py (DOWNLOAD_PAGE, GUMROAD_PRODUCT_ID)
+  4. The builds repository exists (BUILDS_REPO, e.g. JobSlop/jobslop-builds)
 
 Every release:
   1. Raise APP_VERSION in jobslop/config.py (e.g. 3.0.0 -> 3.1.0) and commit your changes
@@ -14,8 +17,9 @@ Every release:
      (or use PyCharm's "Release" run configuration and type the notes when asked)
   3. Upload dist/jobslop.exe to your Gumroad product (and jobslop-Mac.zip if you built one on a Mac)
 
-Step 2 builds jobslop.exe (for Gumroad), pushes the code and a "v3.1.0" tag to GitHub and creates the
-release with your notes. Open apps see the new version within 12 hours, or straight away with
+Step 2 builds dist/jobslop.exe (Gumroad) and dist/jobslop-personal.exe (personal), pushes the code and a
+"v3.1.0" tag to GitHub, creates the source release with your notes, and puts both builds (with their
+checksums) in the builds repository's "v3.1.0" release. Open apps see the new version within 12 hours, or straight away with
 Settings -> Updates -> Check for updates; "Get it" opens the Gumroad page (bought copies) or GitHub.
 """
 import re
@@ -60,9 +64,13 @@ def main():
     if subprocess.run([gh, "release", "view", tag, "--repo", repo], capture_output=True).returncode == 0:
         sys.exit(f"{tag} is already released - raise APP_VERSION in jobslop/config.py first")
 
-    print(f"Building jobslop {version} (for Gumroad)...")
-    if sys.platform.startswith("win") and subprocess.run(["cmd", "/c", str(ROOT / "build.bat"), "nopause"], cwd=ROOT).returncode:
-        sys.exit("The build failed - nothing was released")
+    builds = setting("BUILDS_REPO")
+    windows = sys.platform.startswith("win")
+    if windows:
+        for kind in ("gumroad", "personal"):
+            print(f"Building jobslop {version} ({kind})...")
+            if subprocess.run(["cmd", "/c", str(ROOT / "build.bat"), kind, "nopause"], cwd=ROOT).returncode:
+                sys.exit("The build failed - nothing was released")
 
     print(f"Publishing the source of {tag} to github.com/{repo}...")
     git("tag", "-a", tag, "-m", f"jobslop {version}")
@@ -75,6 +83,14 @@ def main():
     if r.returncode:
         sys.exit("GitHub didn't accept the release - see the message above")
     print(f"Done: https://github.com/{repo}/releases/tag/{tag}")
+    if windows and builds:
+        files = [str(ROOT / "dist" / f) for f in ("jobslop.exe", "jobslop.exe.sha256", "jobslop-personal.exe",
+                                                   "jobslop-personal.exe.sha256")]
+        print(f"Uploading the ready-made builds to github.com/{builds}...")
+        r = subprocess.run([gh, "release", "create", tag, *files, "--repo", builds, "--title", f"jobslop {version} builds",
+                            "--notes", f"Ready-made builds of jobslop {version}, used by the app to update itself."])
+        if r.returncode:
+            sys.exit(f"The builds couldn't be uploaded to {builds} - the source release is out; upload them by hand")
     print("Now upload dist/jobslop.exe to your Gumroad product.")
 
 

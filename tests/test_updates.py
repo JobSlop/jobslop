@@ -2,12 +2,15 @@
 release script's settings. GitHub is never contacted: its answers are made up here."""
 import hashlib
 import io
+import json
 import os
 import shutil
 import subprocess
 import sys
 import threading
 import time
+import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from unittest import mock
@@ -46,7 +49,8 @@ def fake_urlopen(files):
 @pytest.fixture
 def repo(clean_data):
     with mock.patch.object(config, "UPDATE_REPO", "me/jobslop"), mock.patch.object(updates, "UPDATE_ASSET", "jobslop.exe"), \
-            mock.patch.object(config, "APP_VERSION", "9.0.0"):
+            mock.patch.object(config, "APP_VERSION", "9.0.0"), mock.patch.object(config, "BUILD_KIND", "personal"), \
+            mock.patch.object(updates, "PERSONAL_ASSET", "jobslop.exe"), mock.patch.object(config, "BUILDS_REPO", "me/jobslop-builds"):
         updates.update_state.update(done=0, total=0, busy=False, ready="", error="", updated_from="")
         yield
 
@@ -108,8 +112,11 @@ def test_skip_this_version(repo):
 
 def test_install_is_only_offered_for_the_windows_app(repo):
     with mock.patch.object(net, "get_json", return_value=RELEASE):
-        with mock.patch.object(config, "FROZEN", False):
+        with mock.patch.object(config, "FROZEN", False), mock.patch.object(config, "BUILD_KIND", "source"):
             assert updates.check_for_update(force=True)["can_install"] is False, "running from source: download page"
+        with mock.patch.object(config, "FROZEN", True), mock.patch.object(config, "IS_WIN", True), \
+                mock.patch.object(config, "BUILD_KIND", "self"):
+            assert updates.check_for_update(force=True)["can_install"] is False, "built by someone themselves: GitHub"
         with mock.patch.object(config, "FROZEN", True), mock.patch.object(config, "IS_WIN", True):
             assert updates.check_for_update()["can_install"] is True
         no_sha = {**RELEASE, "assets": RELEASE["assets"][:1]}
@@ -193,7 +200,7 @@ def test_install_needs_a_finished_download(repo):
     popen.assert_not_called()
 
 
-def test_install_swaps_and_closes_without_reopening(repo, tmp_path):
+def test_install_swaps_starts_the_new_version_and_closes(repo, tmp_path):
     updates.UPDATE_DIR.mkdir(parents=True, exist_ok=True)
     new = updates.UPDATE_DIR / "jobslop-new.exe"
     new.write_bytes(NEW_EXE)
@@ -204,8 +211,7 @@ def test_install_swaps_and_closes_without_reopening(repo, tmp_path):
             mock.patch.object(sys, "executable", str(exe)), \
             mock.patch.object(subprocess, "Popen") as popen, mock.patch.object(threading, "Timer") as timer:
         updates.install_update()
-    assert exe.read_bytes() == NEW_EXE
-    popen.assert_not_called()                                   # the user opens the new version themselves
+    assert exe.read_bytes() == NEW_EXE and popen.call_args.args[0] == [str(exe)], "the new version is started"
     timer.return_value.start.assert_called_once()
     assert updates.update_state["ready"] == ""
 
@@ -260,12 +266,13 @@ class UpdateApiTests(AppTestCase):
 SOURCE_ONLY = {**RELEASE, "assets": []}          # releases now carry the source only, no .exe
 
 
-def test_bought_copies_get_new_versions_from_the_download_page(repo):
-    with mock.patch.object(net, "get_json", return_value=SOURCE_ONLY), mock.patch.object(config, "FROZEN", True), \
-            mock.patch.object(config, "IS_WIN", True), mock.patch.object(config, "DOWNLOAD_PAGE", "https://jobslop.gumroad.com/l/app"):
+def test_a_gumroad_copy_without_a_licence_is_sent_to_the_download_page(repo):
+    with mock.patch.object(net, "get_json", return_value=RELEASE), mock.patch.object(config, "FROZEN", True), \
+            mock.patch.object(config, "IS_WIN", True), mock.patch.object(config, "BUILD_KIND", "gumroad"), \
+            mock.patch.object(config, "DOWNLOAD_PAGE", "https://jobslop.gumroad.com/l/app"):
         info = updates.check_for_update(force=True)
-    assert info["available"] and not info["can_install"], "no .exe on GitHub: nothing is downloaded in the app"
-    assert (info["how"], info["get_url"]) == ("built", "https://jobslop.gumroad.com/l/app")
+    assert info["available"] and not info["can_install"] and info["licence"] == "needed"
+    assert (info["how"], info["get_url"]) == ("gumroad", "https://jobslop.gumroad.com/l/app")
 
 
 def test_without_a_download_page_the_release_is_opened(repo):
@@ -277,6 +284,75 @@ def test_without_a_download_page_the_release_is_opened(repo):
 
 def test_copies_run_from_the_source_are_sent_to_github(repo):
     with mock.patch.object(net, "get_json", return_value=SOURCE_ONLY), mock.patch.object(config, "FROZEN", False), \
+            mock.patch.object(config, "BUILD_KIND", "source"), \
             mock.patch.object(config, "DOWNLOAD_PAGE", "https://jobslop.gumroad.com/l/app"):
         info = updates.check_for_update(force=True)
     assert (info["how"], info["get_url"]) == ("source", RELEASE["html_url"])
+
+
+# ---------------------------------------------------------------- Gumroad licences
+class FakeGumroad(io.BytesIO):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False
+
+
+def gumroad(answer=None, status=200):
+    """urlopen standing in for Gumroad's licence check (records what was sent)."""
+    sent = []
+
+    def opener(req, timeout=None):
+        sent.append(dict(urllib.parse.parse_qsl(req.data.decode())))
+        if status != 200:
+            raise urllib.error.HTTPError(req.full_url, status, "nope", {}, None)
+        return FakeGumroad(json.dumps(answer).encode())
+    return opener, sent
+
+
+GOOD = {"success": True, "purchase": {"refunded": False, "chargebacked": False}}
+
+
+def test_a_licence_is_checked_with_gumroad(repo):
+    opener, sent = gumroad(GOOD)
+    with mock.patch.object(config, "BUILD_KIND", "gumroad"), mock.patch.object(config, "GUMROAD_PRODUCT_ID", "prod123"), \
+            mock.patch("urllib.request.urlopen", side_effect=opener):
+        ok, msg = updates.set_licence(" KEY-1 ")
+        assert ok and updates.licence_state() == "ok"
+    assert sent == [{"product_id": "prod123", "license_key": "KEY-1", "increment_uses_count": "false"}]
+
+
+@pytest.mark.parametrize("answer, status, message", [
+    ({"success": False}, 200, "doesn't know"),
+    (None, 404, "doesn't know"),
+    ({"success": True, "purchase": {"refunded": True}}, 200, "refunded"),
+    (None, 500, "Couldn't reach Gumroad"),
+])
+def test_bad_or_refunded_licences(repo, answer, status, message):
+    opener, _ = gumroad(answer, status)
+    with mock.patch.object(config, "BUILD_KIND", "gumroad"), mock.patch.object(config, "GUMROAD_PRODUCT_ID", "prod123"), \
+            mock.patch("urllib.request.urlopen", side_effect=opener):
+        ok, msg = updates.set_licence("KEY")
+        assert not ok and message in msg and updates.licence_state() == "invalid"
+
+
+def test_personal_builds_need_no_licence(repo):
+    with mock.patch.object(net, "get_json", return_value=RELEASE), mock.patch.object(config, "FROZEN", True), \
+            mock.patch.object(config, "IS_WIN", True):
+        info = updates.check_for_update(force=True)
+    assert info["licence"] == "not_needed" and info["can_install"] and info["how"] == "personal"
+
+
+def test_a_gumroad_copy_with_a_licence_updates_itself_and_checks_again_before_downloading(repo):
+    opener, sent = gumroad(GOOD)
+    with mock.patch.object(config, "BUILD_KIND", "gumroad"), mock.patch.object(config, "GUMROAD_PRODUCT_ID", "prod123"), \
+            mock.patch.object(net, "get_json", return_value=RELEASE), mock.patch.object(config, "FROZEN", True), \
+            mock.patch.object(config, "IS_WIN", True):
+        with mock.patch("urllib.request.urlopen", side_effect=opener):
+            updates.set_licence("KEY")
+        assert updates.check_for_update(force=True)["can_install"]
+        refunded, _ = gumroad({"success": True, "purchase": {"refunded": True}})
+        with mock.patch("urllib.request.urlopen", side_effect=refunded):
+            updates.download_update()
+    assert "refunded" in updates.update_state["error"], "a refund after the key was saved stops the download"

@@ -522,7 +522,7 @@ class ScreenTests:
         assert "Update available" in u["text"] and "jobslop 2.1.0" in u["text"] and "You have 2.0.0" in u["text"]
         assert u["buttons"] == ["Update now", "What's new", "Skip"]
         assert self.out["updDownloading"] == [True, "Downloading jobslop 2.1.0… 40%", True], "the icon fills up while downloading"
-        assert self.out["updReady"] == [True, "↻", "Install and close"]
+        assert self.out["updReady"] == [True, "↻", "Restart to finish"]
         assert self.out["updClosedOutside"], "clicking elsewhere closes the panel"
         assert self.out["updNotes"] == ["What's new in jobslop 2.1.0", "New things", True]
 

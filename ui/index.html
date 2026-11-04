@@ -265,6 +265,11 @@
       <section data-set="updates" class="pc-only" hidden>
         <div class="psec" style="margin-top:0">Updates</div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span id="updinfo" class="muted" style="font-size:13px;flex:1;min-width:200px"></span><button class="pill line sm" id="updcheck">Check for updates</button></div>
+        <div id="licbox" hidden style="margin:12px 0 4px">
+          <div class="lirow"><input type="password" id="lickey" placeholder="Gumroad licence key" autocomplete="off" aria-label="Gumroad licence key">
+            <button class="pill dark sm" id="licsave">Check key</button></div>
+          <p class="muted" id="licmsg" style="font-size:12.5px;margin:6px 0 0"></p>
+        </div>
         <label class="check" style="margin-top:8px"><input type="checkbox" id="updoff"> Don't receive any updates</label>
         <p class="muted" style="font-size:12px;margin:4px 0 0 22px">When ticked, jobslop never checks for new versions. Otherwise it asks GitHub twice a day — nothing about you is sent.</p>
       </section>

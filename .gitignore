@@ -13,3 +13,5 @@ __pycache__/
 .claude/
 .idea/workspace.xml
 .idea/shelf/
+# written by build.bat for Gumroad / personal builds
+jobslop/build_info.py

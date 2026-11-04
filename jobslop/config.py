@@ -31,3 +31,22 @@ FEEDBACK_EMAIL = "jobslop@proton.me"
 # Where people who bought jobslop download new versions (the Gumroad product page). Releases on GitHub
 # carry the source only; when this is empty, "Get it" opens the GitHub release instead.
 DOWNLOAD_PAGE = os.environ.get("JOBSLOP_DOWNLOAD_PAGE", "")
+# Ready-made builds: their .exe for each release is in this repository's release of the same version,
+# so the app can update itself. Gumroad builds check the buyer's licence first; personal builds don't.
+BUILDS_REPO = os.environ.get("JOBSLOP_BUILDS_REPO", "JobSlop/jobslop-builds")
+GUMROAD_PRODUCT_ID = os.environ.get("JOBSLOP_GUMROAD_PRODUCT_ID", "")    # from the product's page on Gumroad
+
+
+def _build_kind() -> str:
+    """'gumroad' (sold), 'personal' (test builds and ones you give away), 'self' (built by someone from the
+    source) or 'source' (run from the source). build.bat writes jobslop/build_info.py for the first two."""
+    try:
+        from jobslop import build_info
+        if build_info.KIND in ("gumroad", "personal"):
+            return build_info.KIND
+    except ImportError:
+        pass
+    return "self" if FROZEN else "source"
+
+
+BUILD_KIND = _build_kind()
