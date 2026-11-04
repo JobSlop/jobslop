@@ -11,7 +11,7 @@ from jobslop.geo.places import resolve_where
 from jobslop.i18n import LANGUAGES
 from jobslop.search.cache import fetch_cached
 from jobslop.search.contract import INTERN_RE, contract_length
-from jobslop.search.matching import STOPWORDS, find_group, group_score, match_groups, score
+from jobslop.search.matching import find_group, group_score, match, match_groups, query_words
 
 
 def search(query, sources, opts, fresh=False):
@@ -114,9 +114,10 @@ def search(query, sources, opts, fresh=False):
             sc = group_score(j, g)
             j["title_match"] = sc >= 40
         else:
-            words = [w for w in re.findall(r"[a-z0-9+#.]+", q.lower()) if w not in STOPWORDS] if q else []
-            sc = score(j, words, q.lower(), False)
-            j["title_match"] = score(j, words, q.lower(), True) > 0
+            m = match(j, query_words(q), (q or "").lower().strip())
+            sc, j["title_match"] = m["score"], m["title_match"]
+            if m["snippet"]:
+                j["found_in"] = m["snippet"]          # the bit of the advert that mentions the search
         if sc <= 0 or not j["url"]:
             continue
         j["duration"], j["duration_m"] = contract_length(j)

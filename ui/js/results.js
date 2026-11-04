@@ -118,6 +118,12 @@ function visible(list,isSaved){
   else out.sort((a,b)=>(b.score||0)-(a.score||0)||(b.date||"").localeCompare(a.date||""));
   return out;
 }
+// the search words in bold inside a bit of advert text (".net" also lights up in "ASP.NET")
+function markWords(text,q){
+  const ws=((q||"").toLowerCase().match(/[a-z0-9+#.]+/g)||[]).filter(w=>w.replace(/\./g,"").length>1);
+  if(!ws.length)return esc(text);
+  const re=new RegExp("("+ws.map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|")+")","gi");
+  return esc(text).split(/(&[a-z#0-9]+;)/i).map(part=>part.startsWith("&")?part:part.replace(re,"<mark>$1</mark>")).join("")}
 function fmtDist(km){const u=unit(),v=u==="km"?km:km/1.609;return v<1?`under 1 ${u} away`:`${v<10?v.toFixed(1):Math.round(v)} ${u} away`}
 function ago(d){if(!d)return"";const n=Math.round((Date.now()-new Date(d))/864e5);return n<=0?"today":n===1?"1 day ago":n+" days ago"}
 function tracked(url){return saved.find(s=>s.url===url)}
@@ -152,7 +158,8 @@ function render(){
   $("#list").innerHTML=items.map((j,i)=>{const t=tracked(j.url);return `<li class="jobrow">
     <div class="num">${String(start+i+1).padStart(2,"0")}.</div>
     <div><h3 data-href="${esc(j.url)}" translate="no">${esc(j.title)}</h3>
-      <div class="meta"><b translate="no">${esc(j.company)}</b><span translate="no">${esc(j.location)}</span>${j.dist_km!=null?`<span class="dist" title="Distance from ${esc($("#where").value)}">📍 ${fmtDist(j.dist_km)}</span>`:""}${j.salary?`<span class="sal">${salaryHtml(j)}</span>`:""}${j.duration?`<span class="dur" title="How long the job lasts, from the advert">⏳ ${esc(j.duration)}</span>`:""}${j.type?`<span>${esc(j.type)}</span>`:""}<span>${esc(ago(j.date))}</span><span class="tag">${esc(j.source)}</span>${j._m!=null&&(j._m>=20||$("#sort").value==="cv")?`<span class="match" title="How well this fits your CV">${j._m}% match</span>`:""}${t?`<span class="tag" style="border-color:var(--accent);color:var(--accent)">${esc(t.status)}</span>`:""}</div></div>
+      <div class="meta"><b translate="no">${esc(j.company)}</b><span translate="no">${esc(j.location)}</span>${j.dist_km!=null?`<span class="dist" title="Distance from ${esc($("#where").value)}">📍 ${fmtDist(j.dist_km)}</span>`:""}${j.salary?`<span class="sal">${salaryHtml(j)}</span>`:""}${j.duration?`<span class="dur" title="How long the job lasts, from the advert">⏳ ${esc(j.duration)}</span>`:""}${j.type?`<span>${esc(j.type)}</span>`:""}<span>${esc(ago(j.date))}</span><span class="tag">${esc(j.source)}</span>${j._m!=null&&(j._m>=20||$("#sort").value==="cv")?`<span class="match" title="How well this fits your CV">${j._m}% match</span>`:""}${t?`<span class="tag" style="border-color:var(--accent);color:var(--accent)">${esc(t.status)}</span>`:""}</div>
+      ${j.found_in?`<div class="found"><span class="lbl">In the advert</span><span translate="no">${markWords(j.found_in,j.matched)}</span></div>`:""}</div>
     <div class="acts">
       ${t?`<button class="pill line sm on" data-unsave="${i}" title="On your tracker — click to remove it">★ Saved</button>`:`<button class="pill line sm" data-save="${i}" title="Add to your tracker">☆ Save</button>`}
       ${t&&APPLIED.includes(t.status)?`<button class="pill line sm on" data-unapply="${i}" title="Click if you haven't applied after all — it goes back to Saved">✓ ${esc(t.status)}</button>`:`<button class="pill line sm" data-applied="${i}" title="Add to your tracker as applied">✓ Mark applied</button>`}

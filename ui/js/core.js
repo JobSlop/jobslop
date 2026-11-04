@@ -133,12 +133,26 @@ function applyTheme(){const m=pref("mode")||"auto",p=pref("palette")||"sand";
   document.documentElement.dataset.theme=m;document.documentElement.dataset.palette=p;
   $$("#modeseg button").forEach(b=>b.classList.toggle("on",b.dataset.mode===m));
   $$("#swatches button").forEach(b=>b.classList.toggle("on",b.dataset.p===p));
-  drawRing();}
+  const lf=pref("listfont")||"clear";document.documentElement.dataset.listfont=lf;
+  $$("#fontseg button").forEach(b=>b.classList.toggle("on",b.dataset.font===lf));
+  applyZoom();drawRing();}
+// ---- text size of the job list and tracker (80% to 160%), kept like the theme
+const ZOOMS=[.8,.9,1,1.1,1.2,1.35,1.5,1.6];
+function listZoom(){const z=+pref("listzoom")||1;return ZOOMS.includes(z)?z:1}
+function applyZoom(){const z=listZoom();document.documentElement.style.setProperty("--lz",z);
+  const v=$("#zoomval");if(v)v.textContent=Math.round(z*100)+"%";
+  const o=$("#zoomout"),i=$("#zoomin");if(o)o.disabled=z<=ZOOMS[0];if(i)i.disabled=z>=ZOOMS[ZOOMS.length-1]}
+function stepZoom(d){const at=ZOOMS.indexOf(listZoom()),z=d?ZOOMS[Math.max(0,Math.min(ZOOMS.length-1,at+d))]:1;savePref("listzoom",String(z));applyZoom()}
 $("#swatches").innerHTML=Object.entries(PALETTES).map(([k,c])=>`<button data-p="${k}" title="${k[0].toUpperCase()+k.slice(1)}" style="background:${c}"></button>`).join("");
 // appearance is also saved with the app's settings, so it survives restarts
 const savePref=(k,v)=>{pref(k,v);post("/api/prefs",{[k]:v}).catch(()=>{})};
 $$("#swatches button").forEach(b=>b.onclick=()=>{savePref("palette",b.dataset.p);applyTheme()});
 $$("#modeseg button").forEach(b=>b.onclick=()=>{savePref("mode",b.dataset.mode);applyTheme()});
+$$("#fontseg button").forEach(b=>b.onclick=()=>{savePref("listfont",b.dataset.font);applyTheme()});
+$("#zoomin").onclick=()=>stepZoom(1);$("#zoomout").onclick=()=>stepZoom(-1);$("#zoomval").onclick=()=>stepZoom(0);
+// Ctrl + / Ctrl − / Ctrl 0 size the list text (the rest of the screen stays as it is)
+document.addEventListener("keydown",e=>{if(!(e.ctrlKey||e.metaKey)||e.altKey)return;
+  if(e.key==="="||e.key==="+"){e.preventDefault();stepZoom(1)}else if(e.key==="-"){e.preventDefault();stepZoom(-1)}else if(e.key==="0"){e.preventDefault();stepZoom(0)}});
 $("#reloadbtn").onclick=reloadApp;
 $("#undobtn").onclick=()=>undoLast();
 $("#home").onclick=e=>{e.preventDefault();setTab("search");window.scrollTo({top:0,behavior:"smooth"});setTimeout(()=>{if(!$("#q").disabled)$("#q").focus({preventScroll:true})},250)};
