@@ -26,12 +26,16 @@ function drawUpdBar(){
   ic.textContent=updPhase==="ready"?"↻":"⬇";
   ic.dataset.tip=updPhase==="ready"?"Install the update — jobslop closes, then open it again":updPhase==="dl"?`Downloading jobslop ${upd.version}… ${Math.round(updPct)}%`:`Update available — jobslop ${upd.version}`;
   ic.setAttribute("aria-label",ic.dataset.tip);if(tipFor===ic)showTip(ic);
-  pop.innerHTML=`<div class="kicker">${updPhase==="ready"?"Ready to install":"Update available"}</div>
-    <h4>jobslop ${esc(upd.version)}</h4>
-    <div class="muted" style="font-size:12.5px">You have ${esc(upd.current)}. ${upd.can_install?"Your jobs, profile and settings are kept.":upd.how==="source"?"Get the new code from GitHub and run or build it again.":"Download it where you got jobslop (e.g. your Gumroad library) — your jobs, profile and settings are kept."}</div>
-    <div class="updprog" id="updprog" ${updPhase==="dl"?"":"hidden"}><i style="width:${updPct}%"></i></div>
-    <div class="acts2">${upd.notes?`<button class="pill line sm" id="updnotes">What's new</button>`:""}${updPhase?"":`<button class="pill line sm" id="updskip">Skip</button>`}
-      <button class="pill dark sm" id="updgo" ${updPhase==="dl"?"disabled":""}>${updPhase==="dl"?`<span class="spin"></span> Downloading…`:updPhase==="ready"?"Install and close":upd.can_install?"Update now":"Get it ↗"}</button></div>`;
+  // a square card: icon, version, one line of help, then the main button and two small ones side by side
+  const note=upd.can_install?"Your jobs, profile and settings are kept.":upd.how==="source"?"Get the new code from GitHub and run or build it again."
+    :"Download it where you got jobslop (e.g. your Gumroad library) — your jobs, profile and settings are kept.";
+  pop.innerHTML=`<div class="uhead"><div class="ubadge ${updPhase}">${updPhase==="ready"?"↻":"⬇"}</div>
+      <div class="kicker">${updPhase==="ready"?"Ready to install":"Update available"}</div>
+      <h4>jobslop ${esc(upd.version)}</h4><div class="uwas">You have ${esc(upd.current)}</div></div>
+    <div class="ubody"><p class="unote">${note}</p>
+      <div class="updprog" id="updprog" ${updPhase==="dl"?"":"hidden"}><i style="width:${updPct}%"></i></div>
+      <button class="pill dark uprim" id="updgo" ${updPhase==="dl"?"disabled":""}>${updPhase==="dl"?`<span class="spin"></span> Downloading…`:updPhase==="ready"?"Install and close":upd.can_install?"Update now":"Get it ↗"}</button>
+      <div class="usec">${upd.notes?`<button class="pill line sm" id="updnotes">What's new</button>`:""}${updPhase?"":`<button class="pill line sm" id="updskip">Skip</button>`}</div></div>`;
   const on=(id,fn)=>{const e=document.getElementById(id);if(e)e.onclick=fn};
   on("updnotes",()=>{pop.classList.remove("open");showNotes(true)});on("updgo",startUpdate);
   on("updskip",async()=>{upd=await post("/api/update",{action:"skip",version:upd.version});drawUpdBar();toast("Skipped — you'll hear about the next version")});

@@ -1,0 +1,19 @@
+{
+ "Jobs map": "Mapa de empleos",
+ "Your search results on a map: a Jobs map tab with your search radius and a list, and a layer on the Search area map.": "Tus resultados en un mapa: una pestaña Mapa de empleos con tu radio de búsqueda y una lista, y una capa en el mapa de la zona de búsqueda.",
+ "Your search": "Tu búsqueda",
+ "Jobs Map": "Mapa de empleos",
+ "Search for jobs first — they appear here on the map.": "Busca empleos primero — aparecerán aquí en el mapa.",
+ "within {0} of {1}": "a menos de {0} de {1}",
+ "on the map": "en el mapa",
+ "of your {0} results": "de tus {0} resultados",
+ "{0} remote (not on the map)": "{0} en remoto (no están en el mapa)",
+ "{0} without a place we could find": "{0} sin un lugar que pudiéramos encontrar",
+ "Tip: fill in “Where?” to see your search radius.": "Consejo: rellena “¿Dónde?” para ver tu radio de búsqueda.",
+ "None of these jobs are in this area.": "Ninguno de estos empleos está en esta zona.",
+ "Your search results on a map": "Tus resultados de búsqueda en un mapa",
+ "Jobs from your search": "Empleos de tu búsqueda",
+ "Show the jobs from your last search on this map": "Mostrar en este mapa los empleos de tu última búsqueda",
+ "jobs from your search within {0}": "empleos de tu búsqueda a menos de {0}",
+ "Search for jobs first, or pick a bigger radius.": "Busca empleos primero o elige un radio mayor."
+}

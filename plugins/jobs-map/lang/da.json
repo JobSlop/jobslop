@@ -1,0 +1,19 @@
+{
+ "Jobs map": "Jobkort",
+ "Your search results on a map: a Jobs map tab with your search radius and a list, and a layer on the Search area map.": "Dine søgeresultater på et kort: en fane Jobkort med din søgeradius og en liste, og et lag på kortet over søgeområdet.",
+ "Your search": "Din søgning",
+ "Jobs Map": "Jobkort",
+ "Search for jobs first — they appear here on the map.": "Søg efter job først — de vises så her på kortet.",
+ "within {0} of {1}": "inden for {0} af {1}",
+ "on the map": "på kortet",
+ "of your {0} results": "af dine {0} resultater",
+ "{0} remote (not on the map)": "{0} remote (ikke på kortet)",
+ "{0} without a place we could find": "{0} uden et sted, vi kunne finde",
+ "Tip: fill in “Where?” to see your search radius.": "Tip: udfyld “Hvor?” for at se din søgeradius.",
+ "None of these jobs are in this area.": "Ingen af disse job ligger i dette område.",
+ "Your search results on a map": "Dine søgeresultater på et kort",
+ "Jobs from your search": "Job fra din søgning",
+ "Show the jobs from your last search on this map": "Vis job fra din seneste søgning på dette kort",
+ "jobs from your search within {0}": "job fra din søgning inden for {0}",
+ "Search for jobs first, or pick a bigger radius.": "Søg efter job først, eller vælg en større radius."
+}

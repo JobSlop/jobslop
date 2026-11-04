@@ -22,7 +22,7 @@ EXPECTED_BOARDS = {
     "artists": {"ArtStation"},
     "gamedev": {"WorkWithIndies"},
 }
-ON_BY_DEFAULT = set()                 # every plugin starts switched off; the welcome tour offers them
+ON_BY_DEFAULT = {"jobs-map"}          # only the jobs map; the welcome tour offers the rest
 
 
 def test_the_expected_plugins_are_built_in():

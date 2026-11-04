@@ -98,8 +98,10 @@ def search(query, sources, opts, fresh=False):
         native = bool(board and board.country_native)
         j["local_ok"] = native or bool(local_re.search(j["location"]))
         # how far away is it? (offline town list; exact coordinates when the board gives them)
-        pt = job_point(j, opts["country"]) if center else None
-        j["dist_km"] = round(km_between(center[1], center[2], pt[0], pt[1]), 1) if pt else None
+        pt = job_point(j, opts["country"])
+        if pt:                                             # where it is, for the jobs map (and distances)
+            j["lat"], j["lon"] = round(pt[0], 5), round(pt[1], 5)
+        j["dist_km"] = round(km_between(center[1], center[2], pt[0], pt[1]), 1) if pt and center else None
         # a town was given: on-site jobs from the worldwide boards must be within the radius
         if town and not (board and board.location_aware) and not REMOTE_RE.search(j["location"]):
             if j["dist_km"] is not None:

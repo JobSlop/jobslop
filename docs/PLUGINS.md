@@ -17,6 +17,7 @@ Start from [`plugin-template/`](plugin-template/), and look at the plugins that 
 |---|---|
 | `accounting` | add boards, profile fields with autofill, a Progress card, job titles in other languages |
 | `gamedev` | add a board, a server endpoint, a map layer, a tab, a Progress card, and split code over two files |
+| `jobs-map` | a screen-only plugin (no Python): a tab with its own map, and a map layer, from the search results |
 | `jobs-uk`, `jobs-us`, `adzuna` | add boards that need API keys (settings); `countries` suggests a plugin to people there |
 | `lang-nl`, `lang-es`, `lang-da` | make a language pack (no code at all) |
 
@@ -123,6 +124,7 @@ def search(query, options):
 | `api.log(message)` | A line for the plugin log. |
 | `api.http.get_json(url, timeout=20, headers=None)`, `api.http.get_text(url, timeout=25)`, `api.http.BROWSER_HEADERS` | Fetching from the web. |
 | `api.jobs.make(source, title, company, url, location="", date="", salary="", jtype="", tags=None, desc="", remote=True)` | One job, the way jobslop shows it. |
+| `api.jobs.jobspy(site, query, options, source)` | Search a site through JobSpy (bundled): `zip_recruiter`, `indeed`, `glassdoor` or `google`. |
 | `api.jobs.NotHere`, `api.jobs.NeedsKey` | Raise these from `search` and jobslop shows "not available here" or "needs key" next to the board. Any other error shows as the board's error, and other boards keep working. |
 | `api.jobs.km_radius(options)` | The search radius in km. |
 | `api.text.strip_html`, `to_date`, `rel_date` ("3 days ago"), `short_date`, `money(lo, hi, currency)` | Turning raw text into jobslop's formats. |
@@ -167,6 +169,10 @@ jobslop.plugin("my-plugin", api => {
 | `api.addStyle(css)` | Your styles. Use jobslop's colour variables (`--accent`, `--surface`, `--line`, `--muted`…) so light and dark modes both work. |
 | `api.call(name, params)`, `api.send(name, body)` | Your plugin's endpoints. |
 | `api.saved()`, `api.profile()` | Copies of the saved jobs and the profile. |
+| `api.results()` | The search results the user can see now (after their filters). Jobs with a known place have `lat` and `lon`. |
+| `api.searchArea()` | `{place: {lat, lon, label} or null, km, radiusLabel}`: the "Where?" place and radius. |
+| `api.onResults(fn)` | Call `fn` when the results change (a new search, or the filters). |
+| `api.leaflet()` | A promise of the map library (Leaflet), loaded on first use, for maps of your own. |
 | `api.pref(key, value?)` | A small remembered setting for your screen. |
 | `api.t(text)`, `api.esc(text)`, `api.toast(text)`, `api.openUrl(url)`, `api.unit()` | Translation, safe HTML, a short message, opening a link, and "mi"/"km". |
 

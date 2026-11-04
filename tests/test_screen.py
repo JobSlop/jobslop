@@ -274,14 +274,14 @@ window.addEventListener("load", () => setTimeout(async () => {
     setTab("p-gamedev-studios");
     out.pluginUi.tabTitle = document.title;
     out.pluginUi.tabHeading = ($("#v-p-gamedev-studios h2") || {}).textContent;
-    out.pluginUi.layer = $$("#maplayers label").map(l => l.textContent.trim());
+    out.pluginUi.layer = $$("#maplayers label").map(l => l.textContent.trim()).filter(x => x.includes("studios"));
     setTab("progress");
     out.pluginUi.cards = $$("#plugcards h3").map(h => h.textContent);
     setTab("profile");
     out.pluginUi.fields = $$("#pfields .psec").map(s => s.textContent);
     out.pluginUi.engines = !!$("#pfields #engines");
     await togglePlugin("gamedev", false);
-    out.pluginUi.after = {tab: !!tabBtn(), section: !!$("#v-p-gamedev-studios"), layer: $$("#maplayers label").length,
+    out.pluginUi.after = {tab: !!tabBtn(), section: !!$("#v-p-gamedev-studios"), layer: $$("#maplayers label").filter(l => l.textContent.includes("studios")).length,
                           cards: $$("#plugcards h3").map(h => h.textContent), engines: !!$("#pfields #engines"),
                           style: !!$('style[data-plugin="gamedev"]')};
     setTab("search");
@@ -301,6 +301,17 @@ window.addEventListener("load", () => setTimeout(async () => {
     await chooseLanguage("en");
     out.lang.back = {go: $("#go").textContent, placeholder: $("#q").placeholder, tab: $$(".navlinks .tab")[0].textContent};
     await togglePlugin("lang-nl", false);
+    // 20. the jobs map: results with a place get a pin; remote ones are counted
+    if (!plugins.plugins.find(p => p.id === "jobs-map").enabled) await togglePlugin("jobs-map", true);
+    results = real; render();
+    const mapTab = () => $('.navlinks .tab[data-tab="p-jobs-map-map"]');
+    await until(mapTab);
+    setTab("p-jobs-map-map");
+    await until(() => $$(".jm-pin").length);
+    await new Promise(r => setTimeout(r, 300));
+    out.jobsMap = {tab: mapTab() ? mapTab().textContent : "", summary: $("#jm-sum").textContent, pins: $$(".jm-pin").map(p => +p.textContent),
+                   rows: $$(".jm-row").length, layer: $$("#maplayers label").map(l => l.textContent.trim()).filter(x => x.includes("Jobs"))};
+    setTab("search");
     // 19. the welcome tour's plugins step: your country's boards first, nothing ticked for you
     for (const id of ["jobs-uk", "jobs-dk"]) if (plugins.plugins.find(p => p.id === id).enabled) await togglePlugin(id, false);
     setCountry("GB"); startOnboarding(); showObStep(3);
@@ -508,8 +519,8 @@ class ScreenTests:
     def test_update_bar(self):
         u = self.out["updBar"]
         assert u["shown"] and u["open"] and u["tip"] == "Update available — jobslop 2.1.0"
-        assert "Update available" in u["text"] and "jobslop 2.1.0" in u["text"] and "You have 2.0.0." in u["text"]
-        assert u["buttons"] == ["What's new", "Skip", "Update now"]
+        assert "Update available" in u["text"] and "jobslop 2.1.0" in u["text"] and "You have 2.0.0" in u["text"]
+        assert u["buttons"] == ["Update now", "What's new", "Skip"]
         assert self.out["updDownloading"] == [True, "Downloading jobslop 2.1.0… 40%", True], "the icon fills up while downloading"
         assert self.out["updReady"] == [True, "↻", "Install and close"]
         assert self.out["updClosedOutside"], "clicking elsewhere closes the panel"
@@ -563,3 +574,9 @@ class ScreenTests:
         assert "jobs-uk" not in ob["ticked"], "nothing is switched on for you"
         assert {"jobs-us", "jobs-dk", "jobs-nl"} <= set(ob["folded"]), "other countries' boards are folded away"
         assert ob["dkOn"], "ticking one switches it on"
+
+    def test_jobs_map(self):
+        jm = self.out["jobsMap"]
+        assert jm["tab"] == "🗺 Jobs map" and jm["layer"] == ["💼 Jobs from your search"]
+        assert jm["pins"] and sum(jm["pins"]) == jm["rows"], "every listed job has a pin (towns share one)"
+        assert "of your" in jm["summary"] and "results" in jm["summary"]

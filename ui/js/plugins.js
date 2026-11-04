@@ -3,7 +3,7 @@
 //   jobslop.plugin("its-id", api => { api.addTab({...}); api.addMapLayer({...}); api.addStatCard({...}) })
 // Everything it adds is remembered under its id and taken away again when it is switched off.
 const jobslop=(()=>{
-  const parts={tabs:[],layers:[],cards:[]};
+  const parts={tabs:[],layers:[],cards:[],listeners:[]};
   const scripts={};                                       // plugin id -> the ui.js url that's running
   function plugin(id,setup){
     remove(id,true);
@@ -21,6 +21,12 @@ const jobslop=(()=>{
       call(name,params){return get(`/api/plugin/${id}/${name}?`+new URLSearchParams(params||{}))},
       send(name,body){return post(`/api/plugin/${id}/${name}`,body||{})},
       saved:()=>JSON.parse(JSON.stringify(saved)),profile:()=>JSON.parse(JSON.stringify(profile)),
+      // the search results you can see right now (after the filters), and where you're searching
+      results:()=>JSON.parse(JSON.stringify(visible(results,false))),
+      searchArea:()=>({place:whereLoc&&whereLoc.lat!=null?{lat:whereLoc.lat,lon:whereLoc.lon,label:whereLoc.label||whereLoc.town||""}:null,
+                       km:toMiles(+$("#miles").value||15,"mi")*1.609,radiusLabel:fmtRadius()}),
+      onResults(fn){parts.listeners.push({plugin:id,event:"results",fn})},       // new results or changed filters
+      leaflet:()=>loadLeaflet().then(()=>window.L),                              // the map library, loaded on first use
       pref:(k,v)=>pref(`plug_${id}_${k}`,v),
       t:s=>t(s),esc,toast,openUrl,unit:()=>unit(),
     };
@@ -41,9 +47,12 @@ const jobslop=(()=>{
       if(!p.loaded&&scripts[p.id]){delete scripts[p.id];remove(p.id)}});
   }
   const tabFor=key=>parts.tabs.find(x=>x.key===key);
-  return {plugin,remove,sync,parts,tabFor};
+  function emit(event){parts.listeners.filter(l=>l.event===event).forEach(l=>{try{l.fn()}catch(e){console.error(e)}})}
+  return {plugin,remove,sync,parts,tabFor,emit};
 })();
 
+// "+15 mi" / "+25 km": the search radius as the screen shows it
+function fmtRadius(){const o=$("#miles").selectedOptions[0];return o?o.textContent.replace(/^\+/,""):""}
 function drawPluginTabs(){
   const nav=$(".navlinks");
   jobslop.parts.tabs.forEach(x=>{

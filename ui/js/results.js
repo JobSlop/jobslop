@@ -137,6 +137,7 @@ function drawPager(total){
 }
 function goPage(p){page=p;render();$("#restitle").scrollIntoView({behavior:"smooth",block:"start"})}
 function render(){
+  jobslop.emit("results");                                // plugins that show results (the jobs map) redraw too
   if(tab!=="search")return;
   const all=visible(results,false),size=perPage();
   const pages=size?Math.max(1,Math.ceil(all.length/size)):1;page=Math.max(1,Math.min(page,pages));

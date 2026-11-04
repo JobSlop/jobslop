@@ -1,0 +1,16 @@
+{
+  "id": "jobs-map",
+  "name": "Jobs map",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Your search results on a map: a Jobs map tab with your search radius and a list, and a layer on the Search area map.",
+  "author": "jobslop",
+  "homepage": "https://github.com/JobSlop/jobslop-plugin-jobs-map",
+  "ui": "ui.js",
+  "enabled_by_default": true,
+  "translations": {
+    "nl": "lang/nl.json",
+    "es": "lang/es.json",
+    "da": "lang/da.json"
+  }
+}
