@@ -289,6 +289,9 @@ button,[data-href],[data-copy],.chip,.maplistrow{cursor:pointer}
 .strip>div:hover{background:var(--surface)}
 .navlinks button.tab:not(.on):hover{background:rgba(255,255,255,.08)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* the round header buttons sit close together: their focus ring goes inside, so it never overlaps a neighbour */
+.navlinks .iconbtn:focus-visible,.navlinks .navchip:focus-visible{outline-offset:-3px}
+.navlinks .updicon:focus-visible{outline-color:#fff}
 input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
 /* hover / keyboard-focus labels: one floating label above everything, kept inside the window */
 #tip{position:fixed;top:0;left:0;z-index:1000;width:max-content;max-width:min(300px,calc(100vw - 12px));background:var(--text);color:var(--bg);font:500 12px/1.4 var(--body);
