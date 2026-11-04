@@ -13,8 +13,10 @@ One-time setup:
 
 Every release:
   1. Raise APP_VERSION in jobslop/config.py (e.g. 3.0.0 -> 3.1.0) and commit your changes
-  2. Run:   python release.py "What's new: one line per change"
-     (or use PyCharm's "Release" run configuration and type the notes when asked)
+  2. Run:   python release.py
+     (or PyCharm's "Release" run configuration). "What's new" is drafted from the commit messages since
+     the last release (version bumps and test/tool-only commits left out): press Enter to use it, "e" to
+     edit it in Notepad first, or type your own. Or pass the notes:  python release.py "What's new..."
   3. Upload dist/jobslop.exe to your Gumroad product (and jobslop-Mac.zip if you built one on a Mac)
 
 Step 2 builds dist/jobslop.exe (Gumroad) and dist/jobslop-personal.exe (personal), pushes the code and a
@@ -47,6 +49,47 @@ def git(*args, check=True):
     return r.stdout.strip()
 
 
+# commits people using the app don't need to hear about
+SKIP_SUBJECT = re.compile(r"^(update version|bump|merge|release|version \d|pycharm:|wip\b)", re.I)
+DEV_ONLY = ("tests/", "tools/", "docs/", ".idea/", ".claude/", ".github/", "release.py", "build.bat",
+            "run_tests.bat", ".gitignore", "README.md", "package/")
+
+
+def draft_notes():
+    """What's new since the last release, one line per commit (newest first), from the git history."""
+    last = git("describe", "--tags", "--abbrev=0", "--match", "v*", check=False)
+    log = git("log", "--no-merges", "--format=%x00%s", "--name-only", f"{last}..HEAD" if last else "-30")
+    lines = []
+    for entry in log.split("\0")[1:]:
+        subject, *files = [x for x in entry.strip().splitlines() if x.strip()]
+        if SKIP_SUBJECT.match(subject) or (files and all(f.startswith(DEV_ONLY) for f in files)):
+            continue
+        line = "- " + subject.strip().rstrip(".")
+        if line not in lines:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def ask_notes(version):
+    """Offer the notes drafted from the commits: Enter keeps them, "e" edits them, or type your own."""
+    draft = draft_notes()
+    if not draft:
+        return input(f"What's new in {version}? ").strip() or f"jobslop {version}"
+    print(f"\nWhat's new in {version} (from the commits since the last release):\n\n{draft}\n")
+    answer = input('Enter = use these, "e" = edit them first, or type your own notes: ').strip()
+    if answer.lower() != "e":
+        return answer or draft
+    path = ROOT / "dist" / "release-notes.txt"
+    path.parent.mkdir(exist_ok=True)
+    path.write_text(draft + "\n", encoding="utf-8")
+    editor = shutil.which("notepad") if sys.platform.startswith("win") else (shutil.which("nano") or shutil.which("vi"))
+    if editor:
+        subprocess.run([editor, str(path)])                  # waits until the editor is closed
+    else:
+        input(f"Edit {path}, save it, then press Enter... ")
+    return path.read_text(encoding="utf-8").strip() or draft
+
+
 def main():
     version = setting("APP_VERSION")
     repo = setting("UPDATE_REPO")
@@ -59,7 +102,7 @@ def main():
         sys.exit("Install the GitHub CLI first (https://cli.github.com), then run:  gh auth login")
     if git("status", "--porcelain"):
         sys.exit("Commit your changes first - a release is made from what's committed")
-    notes = " ".join(sys.argv[1:]).strip() or input(f"What's new in {version}? ").strip() or f"jobslop {version}"
+    notes = " ".join(sys.argv[1:]).strip() or ask_notes(version)
     tag = "v" + version
     if subprocess.run([gh, "release", "view", tag, "--repo", repo], capture_output=True).returncode == 0:
         sys.exit(f"{tag} is already released - raise APP_VERSION in jobslop/config.py first")
