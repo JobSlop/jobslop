@@ -126,12 +126,14 @@ section.view.on{display:block}
 .statusline{font-size:12.5px;color:var(--muted);margin:10px 0 4px;min-height:18px}
 .statusline .warn{color:var(--warn)}
 
+
 /* job rows - numbered list like the reference */
-/* sizes are in em so the list's A-/A+ (--lz) scales them all; the title font is picked under the theme button */
+/* sizes are in em so the list's A-/A+ (--lz) scales them all; the font is picked under the theme button
+   ("Extra clear" switches the whole app to Verdana). Zoomed in, the page grows wider on big screens. */
 :root{--lz:1;--listfont:var(--body)}
-:root[data-listfont="legible"]{--listfont:Verdana,Tahoma,"Segoe UI",sans-serif}
+:root[data-listfont="legible"]{--body:Verdana,Tahoma,"Segoe UI",sans-serif;--listfont:var(--body)}
+main.wrap{max-width:max(1180px,min(calc(1180px * var(--lz)),94vw))}
 .jobs{list-style:none;margin:0;padding:0;font-size:calc(15px * var(--lz))}
-:root[data-listfont="legible"] .jobs{font-family:var(--listfont)}
 .jobrow{display:grid;grid-template-columns:3.6em 1fr auto;gap:6px 18px;padding:1.2em 4px;border-bottom:1px solid var(--line);align-items:start;transition:background .15s}
 .jobrow:hover{background:color-mix(in srgb,var(--surface) 70%,transparent)}
 .jobrow .num{font-size:.8em;color:var(--muted);padding-top:.6em;letter-spacing:.06em}

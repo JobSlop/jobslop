@@ -122,6 +122,12 @@ $("#matchbtn").onclick=async()=>{
   cvMode=true;$("#sort").value="cv";runSearch();
 };
 
+// Like other search tools: searching again while a search runs cancels it and starts over with what's in
+// the boxes now; Stop (or Esc) ends it and keeps the jobs found so far.
+let searchRun=0,searchAbort=null,searchStopped=false;
+function stopSearch(){if(!searching||!searchAbort)return;searchStopped=true;searchAbort.abort()}
+$("#stopbtn").onclick=stopSearch;
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&searching&&!document.querySelector(".modal.open"))stopSearch()});
 async function runSearch(){
   const q=$("#q").value.trim();if(!q&&!anyMode){toast("Type a job, or switch on “Any job”");return}
   ["q","where","miles","exclude"].forEach(id=>pref("f_"+id,$("#"+id).value));
@@ -130,25 +136,35 @@ async function runSearch(){
   if(!profile.first_name&&!profile.skills){try{profile=(await get("/api/profile")).profile||{}}catch(e){}}
   followWhereCountry(await readWhere());
   setTab("search");$("#v-search").scrollIntoView({behavior:"smooth"});
-  searching=true;$("#go").classList.add("busy");$("#go").innerHTML='<span class="spin"></span> Searching…';
-  $("#matchbtn").disabled=true;results=[];page=1;render();
+  if(searchAbort)searchAbort.abort();                  // a search still running is replaced by this one
+  const run=++searchRun,abort=searchAbort=new AbortController();searchStopped=false;
+  searching=true;$("#go").innerHTML='<span class="spin"></span> Searching…';$("#go").dataset.tip="Start over with what's in the boxes now";
+  $("#stopbtn").hidden=false;results=[];page=1;render();
   $("#restitle").textContent=cvMode?"Matched to Your CV":anyMode?"Every Job Nearby":"Search Results";
   const st={};srcs.forEach(s=>st[s]=null);
   const drawStatus=()=>{const left=srcs.filter(s=>st[s]===null).length;
-    $("#status").innerHTML=srcs.map(s=>st[s]===null?`<span class="srcstat"><span class="spin"></span>${s}</span>`:`<span class="srcstat done">${s}: ${st[s]}</span>`).join("")+
-      (left?`<span class="muted"> — waiting for ${left} site${left>1?"s":""}…</span>`:`<span class="muted"> — done, ${results.length} jobs</span>`)};drawStatus();
+    $("#status").innerHTML=srcs.map(s=>st[s]===null?(abort.signal.aborted?`<span class="srcstat muted">${s}: stopped</span>`:`<span class="srcstat"><span class="spin"></span>${s}</span>`):`<span class="srcstat done">${s}: ${st[s]}</span>`).join("")+
+      (left&&!abort.signal.aborted?`<span class="muted"> — waiting for ${left} site${left>1?"s":""}…</span>`:left?`<span class="muted"> — stopped, ${results.length} jobs</span>`:`<span class="muted"> — done, ${results.length} jobs</span>`)};drawStatus();
   // only "what" and "where" go to the job boards; the filters below the results just hide jobs (see visible())
   const base={q,where:$("#where").value.trim(),miles:$("#miles").value,country:$("#country").value,
     fresh:$("#fresh").checked?1:0,any:anyMode?1:0,intern:internMode?1:0};
   const keyOf=j=>(j.title+"|"+j.company).toLowerCase().replace(/[^a-z0-9|]/g,"");
   await Promise.all(srcs.map(async s=>{
-    try{const r=await get("/api/search?"+new URLSearchParams({...base,sources:s}));const v=r.status[s]||{found:0};
+    busy(1);
+    try{const r=await fetch("/api/search?"+new URLSearchParams({...base,sources:s}),{signal:abort.signal}).then(x=>x.json());
+      if(run!==searchRun||abort.signal.aborted)return;
+      const v=r.status[s]||{found:0};
       const have=new Map(results.map(j=>[keyOf(j),j]));r.results.forEach(j=>{const k=keyOf(j),o=have.get(k);if(!o||o.score<j.score)have.set(k,j)});
       results=[...have.values()];
       st[s]=v.error&&!v.found?`<span class="warn">${esc(v.error)}</span>`:`${v.found}${v.cached?" (saved)":""}`;
-    }catch(err){st[s]=`<span class="warn">failed</span>`}
-    drawStatus();render();}));
-  searching=false;$("#fresh").checked=false;$("#go").classList.remove("busy");$("#go").textContent="Search jobs";$("#matchbtn").disabled=false;
-  drawStatus();render();toast(results.length?`Found ${results.length} jobs`:"No jobs found — try a wider area or fewer filters");
+    }catch(err){if(abort.signal.aborted)return;st[s]=`<span class="warn">failed</span>`}
+    finally{busy(-1)}
+    if(run===searchRun){drawStatus();render()}}));
+  if(run!==searchRun)return;                            // a newer search took over
+  searching=false;searchAbort=null;$("#fresh").checked=false;$("#go").textContent="Search jobs";delete $("#go").dataset.tip;
+  $("#stopbtn").hidden=true;
+  drawStatus();render();
+  if(searchStopped){toast(`Search stopped — ${results.length} job${results.length===1?"":"s"} found so far`);return}
+  toast(results.length?`Found ${results.length} jobs`:"No jobs found — try a wider area or fewer filters");
   pref("searches_"+todayStr(),String(+(pref("searches_"+todayStr())||0)+1));savePref("searched","1");drawStarted();
 }

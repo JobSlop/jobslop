@@ -50,8 +50,11 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(code)
         self.send_header("Content-Type", ctype + "; charset=utf-8")
         self.send_header("Content-Length", str(len(data)))
-        self.end_headers()
-        self.wfile.write(data)
+        try:
+            self.end_headers()
+            self.wfile.write(data)
+        except (ConnectionError, OSError):
+            pass        # the screen stopped waiting (a search was stopped or started over): nothing to do
 
     # ---- security: only this app's own page and the paired Chrome extension may use the server
     def host_ok(self):
