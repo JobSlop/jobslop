@@ -34,7 +34,21 @@ DOWNLOAD_PAGE = os.environ.get("JOBSLOP_DOWNLOAD_PAGE", "")
 # Ready-made builds: their .exe for each release is in this repository's release of the same version,
 # so the app can update itself. Gumroad builds check the buyer's licence first; personal builds don't.
 BUILDS_REPO = os.environ.get("JOBSLOP_BUILDS_REPO", "JobSlop/jobslop-builds")
-GUMROAD_PRODUCT_ID = os.environ.get("JOBSLOP_GUMROAD_PRODUCT_ID", "")    # from the product's page on Gumroad
+
+
+def _from_build(name: str, default: str = "") -> str:
+    """A value build.bat put in jobslop/build_info.py (that file only exists while a Gumroad or personal
+    build is being made, and is never committed)."""
+    try:
+        from jobslop import build_info
+        return str(getattr(build_info, name, "") or default)
+    except ImportError:
+        return default
+
+
+# The Gumroad product whose licence keys unlock in-app updates. Kept out of the source: build.bat reads it
+# from local/gumroad_product_id.txt (ignored by git) and puts it only into the Gumroad build.
+GUMROAD_PRODUCT_ID = os.environ.get("JOBSLOP_GUMROAD_PRODUCT_ID") or _from_build("GUMROAD_PRODUCT_ID")
 
 
 def _build_kind() -> str:

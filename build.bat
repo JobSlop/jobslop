@@ -25,6 +25,13 @@ if not exist "%VENV%\Scripts\python.exe" python -m venv "%VENV%" || goto failed
 rem which kind of build this is goes inside the app (jobslop\build_info.py, only while building)
 if exist jobslop\build_info.py del jobslop\build_info.py
 if not "%KIND%"=="self" (echo KIND = "%KIND%"> jobslop\build_info.py)
+rem the Gumroad build gets the product ID from local\gumroad_product_id.txt (kept out of git, never shown)
+if not "%KIND%"=="gumroad" goto noid
+set GUMROAD_ID=
+if exist local\gumroad_product_id.txt set /p GUMROAD_ID=<local\gumroad_product_id.txt
+if "%GUMROAD_ID%"=="" (echo Put the Gumroad product ID in local\gumroad_product_id.txt first & goto failed)
+(echo GUMROAD_PRODUCT_ID = "%GUMROAD_ID%")>> jobslop\build_info.py
+:noid
 rem the test tools live in the same environment (run_tests.bat) and must never end up inside the app
 rem standard modules third-party plugins may use that jobslop itself doesn't (so they're in the .exe)
 set PLUGIN_STDLIB=--hidden-import xml.etree.ElementTree --hidden-import xml.dom.minidom --hidden-import statistics --hidden-import difflib --hidden-import textwrap --hidden-import uuid --hidden-import hmac --hidden-import calendar --hidden-import html.parser --hidden-import email.utils --hidden-import decimal --hidden-import fractions --hidden-import string --hidden-import random --hidden-import itertools --hidden-import functools --hidden-import typing --hidden-import dataclasses --hidden-import sqlite3

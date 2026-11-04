@@ -15,3 +15,6 @@ __pycache__/
 .idea/shelf/
 # written by build.bat for Gumroad / personal builds
 jobslop/build_info.py
+
+# local secrets for builds (e.g. the Gumroad product ID) - never committed
+local/
