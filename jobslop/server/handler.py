@@ -30,7 +30,7 @@ from jobslop.profile.linkedin_link import li_link, linkedin_from_page, linkedin_
 from jobslop.profile.store import CV_DIR, EXT_DIR, PROFILE_FILE, cv_file, load_profile, save_cv, save_profile
 from jobslop.rates import get_rates
 from jobslop.runtime import state
-from jobslop.search.engine import search
+from jobslop.search.engine import cancel_run, run_event, search
 from jobslop.search.matching import match_groups
 from jobslop.server import plugin_routes
 from jobslop.server.phone import PHONE_PORT, new_pin, phone_settings, phone_status, start_phone_server, stop_phone_server
@@ -241,6 +241,9 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(data)
         elif u.path == "/api/prefs":
             self.send(json.dumps(load_settings().get("ui", {})))
+        elif u.path == "/api/search/stop":
+            cancel_run(p.get("run", ""))
+            self.send('{"ok":true}')
         elif u.path == "/api/search":
             q = p.get("q", "")[:300]
             country = p.get("country", "GB").upper()
@@ -254,12 +257,18 @@ class Handler(BaseHTTPRequestHandler):
                     "jtype": p.get("jtype", "") if p.get("jtype") in ("fulltime", "parttime", "contract", "internship") else "",
                     "remote": p.get("remote", "") if p.get("remote") in ("remote", "hybrid", "onsite") else "",
                     "salary_min": num("salary_min", 0, 0, 10_000_000)}
+            opts["cancel"] = run_event(p.get("run", "")[:64])
             srcs = p.get("sources", ",".join(BOARDS.names())).split(",")
             fresh = p.get("fresh", "0") == "1"
             any_job = p.get("any", "0") == "1"
             if not q.strip() and not any_job:
                 return self.send(json.dumps({"results": [], "status": {}}))
-            self.send(json.dumps(search("" if any_job else q, srcs, opts, fresh)))
+            try:
+                out = search("" if any_job else q, srcs, opts, fresh)
+            except Exception as e:      # never leave the screen without an answer: say what went wrong
+                msg = f"search went wrong ({type(e).__name__}: {str(e)[:80]})"
+                out = {"results": [], "status": {s: {"found": 0, "error": msg, "cached": False} for s in srcs}}
+            self.send(json.dumps(out))
         elif u.path == "/api/saved":
             self.send(json.dumps(load_saved()))
         elif u.path == "/api/settings":

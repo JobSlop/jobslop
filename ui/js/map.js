@@ -124,8 +124,10 @@ $("#matchbtn").onclick=async()=>{
 
 // Like other search tools: searching again while a search runs cancels it and starts over with what's in
 // the boxes now; Stop (or Esc) ends it and keeps the jobs found so far.
-let searchRun=0,searchAbort=null,searchStopped=false;
-function stopSearch(){if(!searching||!searchAbort)return;searchStopped=true;searchAbort.abort()}
+let searchRun=0,searchAbort=null,searchStopped=false,searchId="";
+// also tells the app to stop the requests still waiting their turn at a job site
+const tellStop=id=>{if(id)fetch("/api/search/stop?"+new URLSearchParams({run:id})).catch(()=>{})};
+function stopSearch(){if(!searching||!searchAbort)return;searchStopped=true;searchAbort.abort();tellStop(searchId)}
 $("#stopbtn").onclick=stopSearch;
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&searching&&!document.querySelector(".modal.open"))stopSearch()});
 async function runSearch(){
@@ -133,21 +135,27 @@ async function runSearch(){
   ["q","where","miles","exclude"].forEach(id=>pref("f_"+id,$("#"+id).value));
   ["posted","jtype","remote","salmin","sort"].forEach(id=>pref("f_"+id,$("#"+id).value));
   const srcs=$$(".sc:checked").map(c=>c.value);if(!srcs.length){toast("Pick at least one source");return}
-  if(!profile.first_name&&!profile.skills){try{profile=(await get("/api/profile")).profile||{}}catch(e){}}
-  followWhereCountry(await readWhere());
-  setTab("search");$("#v-search").scrollIntoView({behavior:"smooth"});
-  if(searchAbort)searchAbort.abort();                  // a search still running is replaced by this one
+  // the button shows "Searching…" straight away, even while the place is still being looked up
+  if(searchAbort){searchAbort.abort();tellStop(searchId)}  // a search still running is replaced by this one
   const run=++searchRun,abort=searchAbort=new AbortController();searchStopped=false;
+  const id=searchId=Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+  const cv=cvMode,intern=internMode;                    // this search's kind, whatever later clicks do
   searching=true;$("#go").innerHTML='<span class="spin"></span> Searching…';$("#go").dataset.tip="Start over with what's in the boxes now";
-  $("#stopbtn").hidden=false;results=[];page=1;render();
-  $("#restitle").textContent=cvMode?"Matched to Your CV":anyMode?"Every Job Nearby":"Search Results";
+  $("#stopbtn").hidden=false;
+  if(!profile.first_name&&!profile.skills){try{profile=(await get("/api/profile")).profile||{}}catch(e){}}
+  try{followWhereCountry(await readWhere())}catch(e){}
+  if(run!==searchRun)return;                            // a newer search started meanwhile
+  if(abort.signal.aborted){endSearch(run,true,0);return}   // stopped before any site was asked
+  setTab("search");$("#v-search").scrollIntoView({behavior:"smooth"});
+  results=[];page=1;render();
+  $("#restitle").textContent=cv?"Matched to Your CV":anyMode?"Every Job Nearby":"Search Results";
   const st={};srcs.forEach(s=>st[s]=null);
   const drawStatus=()=>{const left=srcs.filter(s=>st[s]===null).length;
     $("#status").innerHTML=srcs.map(s=>st[s]===null?(abort.signal.aborted?`<span class="srcstat muted">${s}: stopped</span>`:`<span class="srcstat"><span class="spin"></span>${s}</span>`):`<span class="srcstat done">${s}: ${st[s]}</span>`).join("")+
       (left&&!abort.signal.aborted?`<span class="muted"> — waiting for ${left} site${left>1?"s":""}…</span>`:left?`<span class="muted"> — stopped, ${results.length} jobs</span>`:`<span class="muted"> — done, ${results.length} jobs</span>`)};drawStatus();
   // only "what" and "where" go to the job boards; the filters below the results just hide jobs (see visible())
   const base={q,where:$("#where").value.trim(),miles:$("#miles").value,country:$("#country").value,
-    fresh:$("#fresh").checked?1:0,any:anyMode?1:0,intern:internMode?1:0};
+    fresh:$("#fresh").checked?1:0,any:anyMode?1:0,intern:intern?1:0,run:id};
   const keyOf=j=>(j.title+"|"+j.company).toLowerCase().replace(/[^a-z0-9|]/g,"");
   await Promise.all(srcs.map(async s=>{
     busy(1);
@@ -161,10 +169,13 @@ async function runSearch(){
     finally{busy(-1)}
     if(run===searchRun){drawStatus();render()}}));
   if(run!==searchRun)return;                            // a newer search took over
+  drawStatus();endSearch(run,searchStopped,results.length);
+}
+function endSearch(run,stopped,n){
+  if(run!==searchRun)return;
   searching=false;searchAbort=null;$("#fresh").checked=false;$("#go").textContent="Search jobs";delete $("#go").dataset.tip;
-  $("#stopbtn").hidden=true;
-  drawStatus();render();
-  if(searchStopped){toast(`Search stopped — ${results.length} job${results.length===1?"":"s"} found so far`);return}
-  toast(results.length?`Found ${results.length} jobs`:"No jobs found — try a wider area or fewer filters");
+  $("#stopbtn").hidden=true;render();
+  if(stopped){toast(`Search stopped — ${n} job${n===1?"":"s"} found so far`);return}
+  toast(n?`Found ${n} jobs`:"No jobs found — try a wider area or fewer filters");
   pref("searches_"+todayStr(),String(+(pref("searches_"+todayStr())||0)+1));savePref("searched","1");drawStarted();
 }

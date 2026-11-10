@@ -1,9 +1,11 @@
 """Running a search across the boards and putting the results in order."""
 
 import re
+import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 
-from jobslop.boards.base import NeedsKey, NotHere
+from jobslop.boards.base import Cancelled, NeedsKey, NotHere, clean_job
 from jobslop.boards.registry import BOARDS
 from jobslop.geo.cities import REMOTE_RE, job_point, km_between
 from jobslop.geo.countries import COUNTRIES, country_info, local_ok_re
@@ -12,6 +14,31 @@ from jobslop.i18n import LANGUAGES
 from jobslop.search.cache import fetch_cached
 from jobslop.search.contract import INTERN_RE, contract_length
 from jobslop.search.matching import find_group, group_score, match, match_groups, query_words
+
+
+# ---- stopping a search: the screen gives each search an id; stopping it (or starting a newer one) wakes
+# up its requests that are still waiting for a board's turn, so they don't hold up the next search
+_runs: dict[str, tuple[threading.Event, float]] = {}
+_runs_lock = threading.Lock()
+
+
+def run_event(run_id):
+    """The stop signal for one search (shared by its requests, one per board)."""
+    if not run_id:
+        return None
+    with _runs_lock:
+        now = time.time()
+        for k in [k for k, (_, t) in _runs.items() if now - t > 1800]:
+            del _runs[k]
+        ev, _ = _runs.get(run_id) or (threading.Event(), now)
+        _runs[run_id] = (ev, now)
+        return ev
+
+
+def cancel_run(run_id):
+    ev = run_event(str(run_id)[:64])
+    if ev is not None:
+        ev.set()
 
 
 def search(query, sources, opts, fresh=False):
@@ -44,30 +71,39 @@ def search(query, sources, opts, fresh=False):
     # internships: boards without an "internship" filter get the word added to the search itself
     sent_as = {}
     tasks = []
+    status = {}
     for q in queries:
         for name in sources:
             board = BOARDS.get(name)
-            if board is None or (q in local_for and not board.country_native):
+            if board is None:
+                status[name] = {"found": 0, "error": "switched off - turn it on in Settings → Plugins", "cached": False}
+                continue
+            if q in local_for and not board.country_native:
                 continue
             sq = q
             if opts.get("intern") and not board.native_types and not INTERN_RE.search(q):
                 sq = (q + " internship").strip()
             sent_as[(name, sq)] = q
             tasks.append((name, sq))
-    status = {}
     raw = []
 
     def run(name, q):
         try:
             jobs, cached = fetch_cached(name, q, opts, fresh)
-            return name, q, [dict(j) for j in jobs], None, cached
+            if not isinstance(jobs, (list, tuple)):
+                return name, q, [], "the site's answer couldn't be read", cached
+            # every job made safe first: one odd job from a board or plugin must not sink the whole search
+            return name, q, [c for c in (clean_job(j, name) for j in jobs) if c], None, cached
+        except Cancelled:
+            return name, q, [], "stopped", False
         except NeedsKey:
             return name, q, [], "needs key", False
         except NotHere as e:
             return name, q, [], str(e) or "not available here", False
         except Exception as e:
-            msg = str(e)[:140]
-            if ("401" in msg or "403" in msg) and BOARDS.get(name).needs:
+            msg = str(e)[:140].strip() or f"stopped unexpectedly ({type(e).__name__})"
+            board = BOARDS.get(name)
+            if ("401" in msg or "403" in msg) and board and board.needs:
                 msg = "key rejected - check Settings"
             elif "401" in msg or "403" in msg or "429" in msg:
                 msg = "the site turned the search away - try again later"
@@ -94,7 +130,7 @@ def search(query, sources, opts, fresh=False):
     seen = {}
     for j in raw:
         q = j.pop("_q")
-        board = BOARDS.get(j["source"])
+        board = BOARDS.get(j["board"])
         native = bool(board and board.country_native)
         j["local_ok"] = native or bool(local_re.search(j["location"]))
         # how far away is it? (offline town list; exact coordinates when the board gives them)
@@ -133,5 +169,5 @@ def search(query, sources, opts, fresh=False):
     results = sorted(seen.values(), key=lambda j: j["date"] or "", reverse=True)
     results.sort(key=lambda j: j["score"], reverse=True)
     for j in results:
-        status[j["source"]]["found"] += 1
+        status[j.pop("board")]["found"] += 1
     return {"results": results, "status": status, "place": loc, "also_searched": list(local_for)}

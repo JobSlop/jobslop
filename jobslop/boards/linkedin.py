@@ -7,7 +7,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from jobslop.boards.base import Board, as_list, job
+from jobslop.boards.base import Board, Cancelled, as_list, job, pause, take_turn
 from jobslop.boards.jobspy import LI_COOLDOWN, LI_GAP, apify_run, li_lock, li_state
 from jobslop.geo.countries import is_country_name
 from jobslop.geo.places import place
@@ -41,35 +41,16 @@ def src_linkedin(q, o):
                     i.get("employmentType"), as_list(i.get("industries")), i.get("descriptionText"), remote=False)
                 for i in items]
 
-    # Direct, no login: at most 2 pages (about 20 jobs), spaced out, with back-off.
+    # Direct, no login: at most 2 pages (about 20 jobs), spaced out, with back-off. If the second page
+    # can't be had (stopped, slowed down, a hiccup), the first page's jobs are still kept.
     out = []
     for start in (0, 10):
-        with li_lock:
-            wait_left = li_state["blocked_until"] - time.time()
-            if wait_left > 0:
-                if out:
-                    break
-                raise RuntimeError(f"LinkedIn asked us to slow down - try again in {int(wait_left // 60) + 1} min "
-                                   "(or add an Apify token)")
-            gap = LI_GAP - (time.time() - li_state["last"])
-            if gap > 0:
-                time.sleep(gap)
-            li_state["last"] = time.time()
-            try:
-                req = urllib.request.Request(
-                    linkedin_search_url(q, o, guest=True) + f"&start={start}",
-                    headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                                           "(KHTML, like Gecko) Chrome/130.0 Safari/537.36",
-                             "Accept-Language": "en-GB,en;q=0.9"})
-                with urllib.request.urlopen(req, timeout=20) as r:
-                    page = r.read().decode("utf-8", "replace")
-            except urllib.error.HTTPError as e:
-                if e.code in (429, 999):
-                    li_state["blocked_until"] = time.time() + LI_COOLDOWN
-                    if out:
-                        break
-                    raise RuntimeError("LinkedIn asked us to slow down - paused for 15 min (or add an Apify token)")
-                raise
+        try:
+            page = _guest_page(q, o, start)
+        except (Cancelled, RuntimeError, OSError):
+            if out:
+                break
+            raise
         cards = page.split("<li>")[1:]
         for c in cards:
             def grab(pattern):
@@ -88,6 +69,30 @@ def src_linkedin(q, o):
         if len(cards) < 10:
             break
     return out
+
+
+def _guest_page(q, o, start):
+    """One page (10 jobs) of LinkedIn's public listings, waiting LinkedIn's turn first."""
+    with take_turn(li_lock, o):
+        wait_left = li_state["blocked_until"] - time.time()
+        if wait_left > 0:
+            raise RuntimeError(f"LinkedIn asked us to slow down - try again in {int(wait_left // 60) + 1} min "
+                               "(or add an Apify token)")
+        pause(LI_GAP - (time.time() - li_state["last"]), o)
+        li_state["last"] = time.time()
+        try:
+            req = urllib.request.Request(
+                linkedin_search_url(q, o, guest=True) + f"&start={start}",
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                                       "(KHTML, like Gecko) Chrome/130.0 Safari/537.36",
+                         "Accept-Language": "en-GB,en;q=0.9"})
+            with urllib.request.urlopen(req, timeout=20) as r:
+                return r.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError as e:
+            if e.code in (429, 999):
+                li_state["blocked_until"] = time.time() + LI_COOLDOWN
+                raise RuntimeError("LinkedIn asked us to slow down - paused for 15 min (or add an Apify token)")
+            raise
 
 
 BOARDS = [

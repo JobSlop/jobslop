@@ -6,7 +6,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-from jobslop.boards.base import Board, NeedsKey, NotHere, as_list, job
+from jobslop.boards.base import Board, Cancelled, NeedsKey, NotHere, as_list, job, pause, take_turn
 from jobslop.config import DATA_DIR
 from jobslop.geo.countries import country_info, is_country_name
 from jobslop.geo.places import place
@@ -81,13 +81,11 @@ def jobspy_run(site, q, o, source=None):
         raise RuntimeError("JobSpy not installed")
     country = Country[country_info(o["country"])[1]]
     st = js_state.setdefault(site, {"last": 0.0, "blocked_until": 0.0})
-    with js_locks[site]:
+    with take_turn(js_locks[site], o):
         left = st["blocked_until"] - time.time()
         if left > 0:
             raise RuntimeError(f"{site.capitalize()} paused for {int(left // 60) + 1} more min after refusing")
-        gap = JS_GAP - (time.time() - st["last"])
-        if gap > 0:
-            time.sleep(gap)
+        pause(JS_GAP - (time.time() - st["last"]), o)
         st["last"] = time.time()
         specific = not is_country_name(o["where"], o["country"])
         kw = dict(site_name=[site], search_term=q or None,
@@ -135,7 +133,7 @@ def jobspy_run(site, q, o, source=None):
                        val(row, "job_url") or val(row, "job_url_direct"), val(row, "location"),
                        to_date(val(row, "date_posted")), sal,
                        str(val(row, "job_type") or "").replace("fulltime", "Full time").replace("parttime", "Part time"),
-                       [], str(val(row, "description") or "")[:2000], remote=bool(val(row, "is_remote"))))
+                       [], str(val(row, "description") or "")[:6000], remote=bool(val(row, "is_remote"))))
     return out
 
 
@@ -143,6 +141,8 @@ def with_backup(site, q, o, apify_fn):
     """Try JobSpy first; if the site refuses, fall back to Apify when a token is set."""
     try:
         return jobspy_run(site, q, o)
+    except Cancelled:
+        raise
     except RuntimeError as e:
         if load_settings().get("apify_token"):
             return apify_fn(q, o)

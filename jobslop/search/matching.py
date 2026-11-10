@@ -1,5 +1,6 @@
 """Scoring how well a job matches a search, and the user's job match terms."""
 
+import functools
 import re
 
 from jobslop.settings import load_settings
@@ -8,7 +9,7 @@ STOPWORDS = {"a", "an", "the", "and", "or", "of", "for", "in", "to", "job", "job
 
 
 # Other ways adverts write the same thing, so ".net" also finds "ASP.NET" and "dotnet", and "dev"
-# finds "developer". One way only: a search for "developer" shouldn't turn up every "engineer".
+# finds "developer". (Each list is one way: what a word may also be written as.)
 SYNONYMS = {
     ".net": ["dotnet", "asp.net", "net core"], "dotnet": [".net"], "c#": ["csharp", "c sharp"],
     "js": ["javascript"], "javascript": ["js"], "ts": ["typescript"], "typescript": ["ts"],
@@ -22,6 +23,10 @@ SYNONYMS = {
     "fullstack": ["full-stack", "full stack"], "devops": ["dev ops", "site reliability"],
     "admin": ["administrator", "administration"], "mgr": ["manager"],
 }
+# Job words that stand in for each other once the search names the field: ".net developer" also finds
+# "Software Engineer" whose advert asks for .NET. A search for just "developer" stays as typed.
+ROLE_WORDS = ("developer", "engineer", "programmer", "dev")
+LEVEL_WORDS = {"senior", "sr", "junior", "jr", "lead", "principal", "staff", "head", "graduate", "mid", "entry", "level"}
 W_TITLE, W_TITLE_ALT, W_TAG, W_DESC = 10, 8, 5, 3
 
 
@@ -35,17 +40,21 @@ def query_words(q):
     return out
 
 
+@functools.lru_cache(maxsize=2048)
 def _pattern(w):
     # ".net" may follow letters (ASP.NET, VB.NET); other words need a word edge. Plurals count.
     before = "" if w.startswith(".") else r"(?<![a-z0-9])"
     plural = "(?:s|es)?" if re.fullmatch(r"[a-z]{3,}", w) else ""
-    return before + re.escape(w).replace(r"\ ", r"[\s-]") + plural + r"(?![a-z0-9#+])"
+    return re.compile(before + re.escape(w).replace(r"\ ", r"[\s-]") + plural + r"(?![a-z0-9#+])")
 
 
-def _find(text, w, alts=True):
+def _find(text, w, alts=True, roles=False):
     """Where w (or another way of writing it) first shows up in text: (start, end, exact) or None."""
-    for i, form in enumerate([w] + (SYNONYMS.get(w, []) if alts else [])):
-        m = re.search(_pattern(form), text)
+    forms = [w] + (SYNONYMS.get(w, []) if alts else [])
+    if roles and w in ROLE_WORDS:
+        forms += [r for r in ROLE_WORDS if r not in forms]
+    for i, form in enumerate(forms):
+        m = _pattern(form).search(text)
         if m:
             return m.start(), m.end(), i == 0
     return None
@@ -67,19 +76,21 @@ def match(j, words, phrase):
         return {"score": 1, "title_match": True, "where": "", "snippet": ""}
     title, tags, desc_raw = j["title"].lower(), " ".join(j["tags"]).lower(), j["desc"] or ""
     desc = desc_raw.lower()
-    total, in_title, found, first_desc = 0, 0, 0, None
+    roles = any(w not in ROLE_WORDS and w not in LEVEL_WORDS for w in words)     # the field is named too
+    total, in_title, exact_title, found, first_desc = 0, 0, 0, 0, None
     for w in words:
-        t = _find(title, w)
+        t = _find(title, w, roles=roles)
         if t:
             in_title += 1
+            exact_title += 1 if not roles or _find(title, w) else 0      # "Title must match" stays strict
             found += 1
             total += W_TITLE if t[2] else W_TITLE_ALT
             continue
-        if _find(tags, w):
+        if _find(tags, w, roles=roles):
             found += 1
             total += W_TAG
             continue
-        d = _find(desc, w)
+        d = _find(desc, w, roles=roles)
         if d:
             found += 1
             total += W_DESC
@@ -97,7 +108,7 @@ def match(j, words, phrase):
         total += 4
     where = "title" if in_title == len(words) else ("desc" if first_desc else "title")
     snippet = _snippet(desc_raw, first_desc) if first_desc and in_title < len(words) else ""
-    return {"score": total, "title_match": in_title == len(words), "where": where, "snippet": snippet}
+    return {"score": total, "title_match": exact_title == len(words), "where": where, "snippet": snippet}
 
 
 def score(j, words, phrase, strict):

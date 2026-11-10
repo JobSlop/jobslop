@@ -9,10 +9,13 @@ screen need (which countries it covers, which keys it needs, how long its result
     remote ("", remote, hybrid, onsite), salary_min (yearly, local currency, 0 = any), intern
 """
 
+import re
+import time
 from collections.abc import Callable, Mapping
+from contextlib import contextmanager
 from dataclasses import dataclass
 
-from jobslop.text import strip_html
+from jobslop.text import strip_html, to_date
 
 Job = dict            # one job: see job() for its fields
 SearchFn = Callable[[str, dict], list[Job]]
@@ -28,6 +31,34 @@ class NotHere(Exception):
 
 class NeedsKey(Exception):
     """This board needs a key (set in Settings) that hasn't been given."""
+
+
+class Cancelled(Exception):
+    """The search this request belongs to was stopped or replaced by a newer one."""
+
+
+@contextmanager
+def take_turn(lock, o):
+    """Wait for a board's turn (boards that must be asked one at a time), unless the search is stopped."""
+    cancel = o.get("cancel")
+    while not lock.acquire(timeout=0.25):
+        if cancel is not None and cancel.is_set():
+            raise Cancelled()
+    try:
+        if cancel is not None and cancel.is_set():
+            raise Cancelled()
+        yield
+    finally:
+        lock.release()
+
+
+def pause(seconds, o):
+    """Sleep between requests to a site, waking straight away when the search is stopped."""
+    cancel = o.get("cancel")
+    if cancel is None:
+        time.sleep(max(0, seconds))
+    elif cancel.wait(max(0, seconds)):
+        raise Cancelled()
 
 
 @dataclass(frozen=True)
@@ -85,9 +116,41 @@ def job(source, title, company, url, location="", date="", salary="", jtype="", 
         "salary": salary or "",
         "type": jtype or "",
         "tags": [t for t in (tags or []) if t][:8],
-        "desc": strip_html(desc),
+        "desc": strip_html(desc, DESC_LIMIT),
         "remote": remote,
     }
+
+
+DESC_LIMIT = 4000          # enough of the advert to search in (and to preview)
+_DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
+
+
+def clean_job(j, board_name):
+    """A job as a board (or a plugin, or an old cache) gave it, made safe for the search: every field
+    there and of the right kind. Returns None for something that isn't a job at all."""
+    if not isinstance(j, Mapping):
+        return None
+    out = dict(j)
+
+    def text(k, limit):
+        v = out.get(k)
+        return strip_html(v, limit) if v not in (None, False) and not isinstance(v, (dict, list, tuple, set)) else ""
+    out["title"] = text("title", 200)
+    out["company"] = text("company", 120)
+    out["location"] = text("location", 160) or "Not listed"
+    out["salary"] = text("salary", 120)
+    out["type"] = text("type", 80)
+    out["desc"] = text("desc", DESC_LIMIT)
+    url = out.get("url")
+    out["url"] = url.strip() if isinstance(url, str) else ""
+    date = to_date(out.get("date")) if out.get("date") not in (None, "") else ""
+    out["date"] = date if _DATE_RE.fullmatch(date or "") else ""
+    tags = out.get("tags")
+    out["tags"] = [strip_html(t, 60) for t in tags if t not in (None, "")][:8] if isinstance(tags, (list, tuple)) else []
+    out["remote"] = bool(out.get("remote"))
+    out["source"] = text("source", 60) or board_name
+    out["board"] = board_name
+    return out if out["title"] else None
 
 
 def km_radius(o):
