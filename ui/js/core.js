@@ -150,9 +150,7 @@ $$("#swatches button").forEach(b=>b.onclick=()=>{savePref("palette",b.dataset.p)
 $$("#modeseg button").forEach(b=>b.onclick=()=>{savePref("mode",b.dataset.mode);applyTheme()});
 $$("#fontseg button").forEach(b=>b.onclick=()=>{savePref("listfont",b.dataset.font);applyTheme()});
 $("#zoomin").onclick=()=>stepZoom(1);$("#zoomout").onclick=()=>stepZoom(-1);$("#zoomval").onclick=()=>stepZoom(0);
-// Ctrl + / Ctrl − / Ctrl 0 size the list text (the rest of the screen stays as it is)
-document.addEventListener("keydown",e=>{if(!(e.ctrlKey||e.metaKey)||e.altKey)return;
-  if(e.key==="="||e.key==="+"){e.preventDefault();stepZoom(1)}else if(e.key==="-"){e.preventDefault();stepZoom(-1)}else if(e.key==="0"){e.preventDefault();stepZoom(0)}});
+// (Ctrl + / Ctrl − / Ctrl 0 are left to the app window: they zoom the whole screen)
 $("#reloadbtn").onclick=reloadApp;
 $("#undobtn").onclick=()=>undoLast();
 $("#home").onclick=e=>{e.preventDefault();setTab("search");window.scrollTo({top:0,behavior:"smooth"});setTimeout(()=>{if(!$("#q").disabled)$("#q").focus({preventScroll:true})},250)};
