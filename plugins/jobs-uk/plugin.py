@@ -3,6 +3,7 @@
 import base64
 import html
 import re
+import urllib.error
 import urllib.parse
 
 api = None                                     # set by register()
@@ -55,7 +56,14 @@ def src_ziprecruiter_uk(q, o):
         params = {"q": q, "page": page}
         if not api.geo.is_country_name(o["where"], "GB"):
             params.update(l=o["where"], d=o["miles"])
-        h = api.http.get_text("https://www.ziprecruiter.co.uk/jobs/search?" + urllib.parse.urlencode(params))
+        try:
+            h = api.http.get_text("https://www.ziprecruiter.co.uk/jobs/search?" + urllib.parse.urlencode(params))
+        except urllib.error.HTTPError as e:
+            if out:                            # keep the jobs from the pages already read
+                break
+            if e.code in (403, 429):
+                raise RuntimeError("ZipRecruiter UK is turning away automated searches right now - try again later")
+            raise
         cards = re.split(r'<li class="job-listing', h)[1:]
         for c in cards:
             link = re.search(r'class="jobList-title[^"]*"[^>]*href="([^"]+)"[^>]*>(.*?)</a>', c, re.S)

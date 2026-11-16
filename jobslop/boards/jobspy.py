@@ -1,6 +1,7 @@
 """Indeed and Glassdoor through JobSpy, with Apify as a backup (plugins use JobSpy through api.jobs.jobspy)."""
 
 import json
+import re
 import threading
 import time
 import urllib.request
@@ -60,6 +61,7 @@ JS_GAP = 4                    # seconds between JobSpy searches on the same site
 JS_COOLDOWN = 15 * 60         # pause a site after it refuses us
 js_locks = {"indeed": threading.Lock(), "glassdoor": threading.Lock(), "zip_recruiter": threading.Lock()}
 js_state = {}                 # site -> {"last": t, "blocked_until": t}
+SITE_NAMES = {"zip_recruiter": "ZipRecruiter", "indeed": "Indeed", "glassdoor": "Glassdoor", "google": "Google Jobs"}
 
 
 class _Grab(__import__("logging").Handler):
@@ -84,7 +86,8 @@ def jobspy_run(site, q, o, source=None):
     with take_turn(js_locks[site], o):
         left = st["blocked_until"] - time.time()
         if left > 0:
-            raise RuntimeError(f"{site.capitalize()} paused for {int(left // 60) + 1} more min after refusing")
+            raise RuntimeError(f"{SITE_NAMES.get(site, site.capitalize())} paused for {int(left // 60) + 1} more min "
+                               "after refusing")
         pause(JS_GAP - (time.time() - st["last"]), o)
         st["last"] = time.time()
         specific = not is_country_name(o["where"], o["country"])
@@ -100,7 +103,7 @@ def jobspy_run(site, q, o, source=None):
                 kw["job_type"] = o["jtype"]
             if o["remote"] == "remote":
                 kw["is_remote"] = True
-        log = logging.getLogger(f"jobspy.{site}")
+        log = logging.getLogger("jobspy." + site.replace("_", ""))      # JobSpy logs as jobspy.ziprecruiter etc.
         grab = _Grab()
         log.addHandler(grab)
         try:
@@ -111,9 +114,11 @@ def jobspy_run(site, q, o, source=None):
             log.removeHandler(grab)
         errors = " ".join(grab.msgs)
         if len(df) == 0 and errors:
-            if any(c in errors for c in ("403", "429", "blocked")):
+            # 403/429, or a redirect (ZipRecruiter sends searches it won't answer elsewhere): turned away
+            if any(c in errors for c in ("403", "429", "blocked")) or re.search(r"status code 30\d", errors):
                 st["blocked_until"] = time.time() + JS_COOLDOWN
-                raise RuntimeError(f"{site.capitalize()} refused the search (paused 15 min)")
+                raise RuntimeError(f"{SITE_NAMES.get(site, site.capitalize())} is turning away automated searches "
+                                   "right now (paused 15 min)")
             raise RuntimeError(errors[:140])
 
     def val(row, k):

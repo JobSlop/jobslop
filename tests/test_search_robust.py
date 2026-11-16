@@ -200,3 +200,17 @@ def test_settings_save_while_searches_read_them():
         t.join()
     assert not errors, errors[:2]
     assert settings.load_settings()["ui"] == {"k0": "59", "k1": "59", "k2": "59"}
+
+
+def test_one_title_a_board_could_not_do_does_not_fail_the_board():
+    # a CV match asks each board once per job title; one refused title used to show the board as failed
+    def board(q, o):
+        if q == "barista":
+            raise RuntimeError("HTTP Error 429: Too Many Requests")
+        return [make_job("Jobicy", f"{q} developer")]
+    with with_board(board, name="Jobicy"):
+        out = engine.search("python, barista", ["Jobicy"], base_opts(), fresh=True)
+    assert out["status"]["Jobicy"]["error"] is None and out["status"]["Jobicy"]["found"] == 1
+    with with_board(lambda q, o: (_ for _ in ()).throw(RuntimeError("HTTP Error 429")), name="Jobicy"):
+        out = engine.search("python, barista", ["Jobicy"], base_opts(), fresh=True)
+    assert out["status"]["Jobicy"]["error"]              # nothing worked: still says so

@@ -127,6 +127,8 @@ def search(query, options):
 | `api.jobs.jobspy(site, query, options, source)` | Search a site through JobSpy (bundled): `zip_recruiter`, `indeed`, `glassdoor` or `google`. |
 | `api.jobs.NotHere`, `api.jobs.NeedsKey` | Raise these from `search` and jobslop shows "not available here" or "needs key" next to the board. Any other error shows as the board's error, and other boards keep working. |
 | `api.jobs.km_radius(options)` | The search radius in km. |
+| `with api.jobs.take_turn(name, options):` | Ask a site one request at a time (a search with several job titles asks every board once per title, all at the same time). Stopping the search wakes up the requests still waiting. |
+| `api.jobs.pause(seconds, options)` | Wait between requests to a site; ends straight away when the search is stopped. |
 | `api.text.strip_html`, `to_date`, `rel_date` ("3 days ago"), `short_date`, `money(lo, hi, currency)` | Turning raw text into jobslop's formats. |
 | `api.geo.find_town(name, country=None)`, `place_town(text, country=None)`, `nearest_town(lat, lon)` | jobslop's offline list of ~70,000 towns. Each returns `{"name", "lat", "lon", "country", "region", "population"}` or `None`. |
 | `api.geo.km_between`, `town_at_end(text, country)`, `country(code)`, `country_code(text)`, `is_country_name(text, code)`, `normalise(text)` | Distances, countries and place names. |

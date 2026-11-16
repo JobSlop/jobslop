@@ -113,16 +113,24 @@ def search(query, sources, opts, fresh=False):
                 msg = "took too long - try again"
             return name, q, [], msg, False
 
+    answered = set()                  # boards that answered at least one of the searches
     with ThreadPoolExecutor(max_workers=12) as ex:
         for name, q, res, err, cached in ex.map(lambda t: run(*t), tasks):
             s = status.setdefault(name, {"found": 0, "error": None, "cached": False})
             if err:
-                s["error"] = err
+                s["error"] = s["error"] or err
+            else:
+                answered.add(name)
             s["cached"] = s["cached"] or cached
             for j in res:
                 j["_q"] = sent_as.get((name, q), q)
             raw.extend(res)
 
+    # a search with several job titles (CV match) asks each board once per title: a board that answered
+    # some of them worked - one title it couldn't do isn't shown as the board failing
+    for name in answered:
+        if status[name]["error"] != "stopped":
+            status[name]["error"] = None
     local_re = local_ok_re(opts["country"])
     town = (loc["town"] if loc else "").lower()
     center = (None, loc["lat"], loc["lon"]) if loc and loc["lat"] is not None else None

@@ -1,6 +1,8 @@
 """Remote-job boards: Himalayas, Jobicy, Remotive, RemoteOK, Arbeitnow (no keys needed)."""
 
 import re
+import time
+import urllib.error
 import urllib.parse
 
 api = None                                     # set by register()
@@ -51,15 +53,47 @@ def src_himalayas(q, o):
     return out
 
 
+JOBICY_GAP = 0.6                               # seconds between requests: Jobicy turns away bursts (429)
+_jobicy = {"last": 0.0}
+
+
+def _jobicy_get(url, o):
+    """One Jobicy request, one at a time and spaced out; asked again once if Jobicy says "too many"."""
+    for attempt in (1, 2):
+        with api.jobs.take_turn("Jobicy", o):
+            api.jobs.pause(JOBICY_GAP - (time.time() - _jobicy["last"]), o)
+            try:
+                return api.http.get_json(url)
+            except urllib.error.HTTPError as e:
+                if e.code != 429 or attempt == 2:
+                    raise
+                wait = e.headers.get("Retry-After", "") if e.headers else ""
+                api.jobs.pause(min(float(wait), 10) if wait.isdigit() else 3, o)
+            finally:
+                _jobicy["last"] = time.time()
+
+
+def jobicy_tag(q):
+    """Jobicy's tag search: a few plain words (a long job title is refused with "400 Bad Request")."""
+    words = re.findall(r"[\w+#.]+", q.lower())
+    return " ".join(w for w in words if w not in STOPWORDS)[:50].strip()
+
+
 def src_jobicy(q, o):
     geo = JOBICY_GEO.get(o["country"], "") if o["local"] else ""
-    base = "https://jobicy.com/api/v2/remote-jobs?count=50" + (f"&tag={urllib.parse.quote(q)}" if q else "")
-    try:
-        d = api.http.get_json(base + (f"&geo={geo}" if geo else ""))
-    except Exception:
-        d = {}
-    if geo and not d.get("jobs"):
-        d = api.http.get_json(base)            # unknown region name: fetch all and filter afterwards
+    tag = jobicy_tag(q)
+    base = "https://jobicy.com/api/v2/remote-jobs?count=50" + (f"&tag={urllib.parse.quote(tag)}" if tag else "")
+    d = {}
+    if geo:
+        try:
+            d = _jobicy_get(base + f"&geo={geo}", o)
+        except urllib.error.HTTPError as e:
+            if e.code not in (400, 404):       # an unknown region name: fetch all and filter afterwards
+                raise
+    if not isinstance(d, dict) or not d.get("jobs"):
+        d = _jobicy_get(base, o)
+    if not isinstance(d, dict):
+        return []
     return [api.jobs.make("Jobicy", j.get("jobTitle"), j.get("companyName"), j.get("url"),
                           "Remote · " + (j.get("jobGeo") or ""), api.text.to_date(j.get("pubDate")),
                           api.text.money(j.get("annualSalaryMin") or j.get("salaryMin"),

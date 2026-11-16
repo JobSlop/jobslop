@@ -9,6 +9,7 @@ import json
 import re
 import time
 import urllib.error
+import urllib.parse
 from datetime import datetime, timedelta
 from unittest import mock
 
@@ -207,6 +208,44 @@ class RemoteBoardTests(BoardTestCase):
         assert len(asked) == 2, "an empty region answer is retried without the region"
         assert (jobs[0]["location"], jobs[0]["salary"]) == ("Remote · Europe", "€40k–€50k")
 
+    def test_jobicy_copes_with_a_busy_cv_search(self):
+        """A CV match asks Jobicy once per job title, all at once: it says "too many" (429) and refuses long
+        titles (400). Requests now go one at a time, a 429 is asked again, and the title is trimmed."""
+        def err(code):
+            return urllib.error.HTTPError("https://jobicy.com", code, "x", {}, None)
+        answers = iter([err(429), {"jobs": [{"jobTitle": "Support", "url": "https://jobicy/1"}]}])
+
+        def fake(url, timeout=20, headers=None):
+            asked.append(url)
+            a = next(answers)
+            if isinstance(a, Exception):
+                raise a
+            return a
+        asked = []
+        with mock.patch.object(net, "get_json", side_effect=fake), mock.patch.object(remote_boards, "JOBICY_GAP", 0),                 mock.patch.object(board_base, "pause", lambda s, o: None):
+            jobs = remote_boards.src_jobicy("Senior Customer Service Representative " * 6, base_opts())
+        assert len(jobs) == 1 and len(asked) == 2
+        tag = re.search(r"tag=([^&]+)", asked[0])[1]
+        assert len(urllib.parse.unquote(tag)) <= 50
+        assert remote_boards.jobicy_tag("Head of Sales (Remote)") == "head sales"
+        assert remote_boards.jobicy_tag("C# .NET dev") == "c# .net dev"
+
+    def test_jobicy_is_asked_one_at_a_time(self):
+        import threading
+        busy, most = [0], [0]
+
+        def fake(url, timeout=20, headers=None):
+            busy[0] += 1
+            most[0] = max(most[0], busy[0])
+            time.sleep(.05)
+            busy[0] -= 1
+            return {"jobs": [{"jobTitle": "Dev", "url": "https://jobicy/1"}]}
+        with mock.patch.object(net, "get_json", side_effect=fake), mock.patch.object(remote_boards, "JOBICY_GAP", 0):
+            ts = [threading.Thread(target=remote_boards.src_jobicy, args=(f"dev {i}", base_opts())) for i in range(6)]
+            [t.start() for t in ts]
+            [t.join() for t in ts]
+        assert most[0] == 1
+
     def test_remotive(self):
         jobs, _ = self.json_board(remote_boards.src_remotive, {"remotive.com": {"jobs": [
             {"title": "QA", "company_name": "Test Co", "url": "https://rem/1", "candidate_required_location": "UK",
@@ -279,6 +318,11 @@ class CountryBoardTests(BoardTestCase):
         jobs = self.html_board(us_boards.src_jobs2careers, {"jobs2careers.com": page}, base_opts(country="US", where="Austin"))
         assert len(jobs) == 1, "sponsored adverts are skipped"
         assert (jobs[0]["salary"], jobs[0]["type"], jobs[0]["lat"]) == ("$30/hr", "Full-time", 30.27)
+
+    def test_ziprecruiter_uk_says_when_it_is_turned_away(self):
+        refused = urllib.error.HTTPError("https://www.ziprecruiter.co.uk", 403, "Forbidden", {}, None)
+        with pytest.raises(RuntimeError, match="turning away"):
+            self.html_board(uk_boards.src_ziprecruiter_uk, {"ziprecruiter.co.uk": refused}, q="")
 
     def test_ziprecruiter_uk(self):
         with pytest.raises(board_base.NotHere):
@@ -380,6 +424,26 @@ class BigBoardTests(BoardTestCase):
         assert (jobs[0]["salary"], jobs[0]["type"]) == ("£30k–£40k", "Full time")
         kw = scrape.call_args.kwargs
         assert (kw["location"], kw["job_type"]) == ("Leeds, United Kingdom", "fulltime")
+
+    def test_a_ziprecruiter_refusal_is_not_shown_as_no_jobs(self):
+        """JobSpy logs ZipRecruiter's problems as "jobspy.ziprecruiter" (no underscore) and answers with no jobs:
+        that used to look like an empty search. A redirect (307) is how ZipRecruiter turns searches away."""
+        try:
+            import logging
+
+            import jobspy  # noqa: F401
+            import pandas as pd
+        except ImportError:
+            pytest.skip("JobSpy isn't installed in this Python")
+
+        def refused(**kw):
+            logging.getLogger("jobspy.ziprecruiter").error("response status code 307")
+            return pd.DataFrame()
+        jobspy_boards.js_state.clear()
+        with mock.patch("jobspy.scrape_jobs", side_effect=refused), mock.patch.object(jobspy_boards, "JS_GAP", 0):
+            with pytest.raises(RuntimeError, match="ZipRecruiter is turning away"):
+                jobspy_boards.jobspy_run("zip_recruiter", "", base_opts(country="US"), source="ZipRecruiter")
+        jobspy_boards.js_state.clear()
 
     def test_us_ziprecruiter_through_jobspy(self):
         """The US plugin's ZipRecruiter goes through JobSpy (api.jobs.jobspy) and shows as ZipRecruiter."""

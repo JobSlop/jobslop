@@ -7,6 +7,7 @@ import threading
 from types import SimpleNamespace
 
 from jobslop import net
+from jobslop.boards import base as _base
 from jobslop.boards.base import NeedsKey, NotHere, as_list, job, km_radius
 from jobslop.geo import cities, countries
 from jobslop.text import money, rel_date, short_date, strip_html, to_date
@@ -69,11 +70,30 @@ def jobspy(site: str, query: str, options: dict, source: str) -> list:
     return js.jobspy_run(site, query, options, source=source)
 
 
+_turn_locks: dict[str, threading.Lock] = {}
+_turn_guard = threading.Lock()
+
+
+def take_turn(name: str, options: dict):
+    """`with api.jobs.take_turn("My Board", options):` - ask a site one request at a time (for sites that
+    turn away several at once). Stopping the search wakes up the requests still waiting."""
+    with _turn_guard:
+        lock = _turn_locks.setdefault(name, threading.Lock())
+    return _base.take_turn(lock, options)
+
+
+def pause(seconds: float, options: dict) -> None:
+    """Wait between requests to a site; returns straight away (by raising) when the search is stopped."""
+    _base.pause(seconds, options)
+
+
 jobs = SimpleNamespace(
     make=job,                       # make(source, title, company, url, location, date, salary, jtype, tags, desc, remote)
     as_list=as_list,
     km_radius=km_radius,            # search radius in km from the search options
     jobspy=jobspy,                  # jobspy(site, query, options, source): Indeed/ZipRecruiter/... via JobSpy
+    take_turn=take_turn,            # with take_turn(name, options): one request at a time to a site
+    pause=pause,                    # pause(seconds, options): wait, unless the search is stopped
     NotHere=NotHere,                # raise when the board doesn't cover the chosen country
     NeedsKey=NeedsKey,              # raise when a setting (API key) is missing
 )
