@@ -115,6 +115,17 @@ def main():
             if subprocess.run(["cmd", "/c", str(ROOT / "build.bat"), kind, "nopause"], cwd=ROOT).returncode:
                 sys.exit("The build failed - nothing was released")
 
+    # the ready-made builds go up first: copies of the app see a new version as soon as the source release
+    # is out, and if its builds aren't there yet they can only send people to GitHub
+    if windows and builds:
+        files = [str(ROOT / "dist" / f) for f in ("jobslop.exe", "jobslop.exe.sha256", "jobslop-personal.exe",
+                                                   "jobslop-personal.exe.sha256")]
+        print(f"Uploading the ready-made builds to github.com/{builds}...")
+        r = subprocess.run([gh, "release", "create", tag, *files, "--repo", builds, "--title", f"jobslop {version} builds",
+                            "--notes", f"Ready-made builds of jobslop {version}, used by the app to update itself."])
+        if r.returncode:
+            sys.exit(f"The builds couldn't be uploaded to {builds} - nothing was released")
+
     print(f"Publishing the source of {tag} to github.com/{repo}...")
     git("tag", "-a", tag, "-m", f"jobslop {version}")
     git("push", "origin", "HEAD")
@@ -126,14 +137,6 @@ def main():
     if r.returncode:
         sys.exit("GitHub didn't accept the release - see the message above")
     print(f"Done: https://github.com/{repo}/releases/tag/{tag}")
-    if windows and builds:
-        files = [str(ROOT / "dist" / f) for f in ("jobslop.exe", "jobslop.exe.sha256", "jobslop-personal.exe",
-                                                   "jobslop-personal.exe.sha256")]
-        print(f"Uploading the ready-made builds to github.com/{builds}...")
-        r = subprocess.run([gh, "release", "create", tag, *files, "--repo", builds, "--title", f"jobslop {version} builds",
-                            "--notes", f"Ready-made builds of jobslop {version}, used by the app to update itself."])
-        if r.returncode:
-            sys.exit(f"The builds couldn't be uploaded to {builds} - the source release is out; upload them by hand")
     print("Now upload dist/jobslop.exe to your Gumroad product.")
 
 

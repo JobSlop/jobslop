@@ -51,6 +51,8 @@ function showNotes(offer){$("#wntitle").textContent=`What's new in jobslop ${upd
 $("#wnupdate").onclick=()=>{closeModals();startUpdate()};
 async function startUpdate(){
   if(!upd)return;
+  if(!upd.can_install&&(upd.how==="personal"||upd.how==="gumroad"&&upd.licence==="ok")){
+    await loadUpdate(true);if(!upd)return}           // asked again: its ready-made build may have been uploaded since
   if(!upd.can_install){
     if(upd.how==="gumroad"&&upd.licence!=="ok"){$("#updpop").classList.remove("open");openSettings("updates");setTimeout(()=>$("#lickey").focus(),150);return}
     openUrl(upd.get_url||upd.page);return}
