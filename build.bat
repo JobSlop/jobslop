@@ -16,9 +16,14 @@ for %%a in (%*) do (
   if /i "%%a"=="gumroad" set KIND=gumroad
   if /i "%%a"=="personal" set KIND=personal
 )
-set OUT=jobslop.exe
-if "%KIND%"=="personal" set OUT=jobslop-personal.exe
+rem each kind is built straight to its own file, so building one never overwrites the other
+set NAME=jobslop
+if "%KIND%"=="personal" set NAME=jobslop-personal
+set OUT=%NAME%.exe
 echo Building jobslop (%KIND% build)...
+rem a jobslop that's open locks its .exe: it can't be replaced, but it can be renamed out of the way
+del /f /q dist\*.old >nul 2>&1
+call :free dist\%OUT%
 set VENV=%TEMP%\jobfinder-venv
 if not exist "%VENV%\Scripts\python.exe" python -m venv "%VENV%" || goto failed
 "%VENV%\Scripts\python.exe" -m pip install --quiet --upgrade pyinstaller pywebview python-jobspy pypdf pdfminer.six phonenumbers pypdfium2 || goto failed
@@ -35,14 +40,13 @@ if "%GUMROAD_ID%"=="" (echo Put the Gumroad product ID in local\gumroad_product_
 rem the test tools live in the same environment (run_tests.bat) and must never end up inside the app
 rem standard modules third-party plugins may use that jobslop itself doesn't (so they're in the .exe)
 set PLUGIN_STDLIB=--hidden-import xml.etree.ElementTree --hidden-import xml.dom.minidom --hidden-import statistics --hidden-import difflib --hidden-import textwrap --hidden-import uuid --hidden-import hmac --hidden-import calendar --hidden-import html.parser --hidden-import email.utils --hidden-import decimal --hidden-import fractions --hidden-import string --hidden-import random --hidden-import itertools --hidden-import functools --hidden-import typing --hidden-import dataclasses --hidden-import sqlite3
-"%VENV%\Scripts\python.exe" -m PyInstaller --noconfirm --onefile %PLUGIN_STDLIB% --hidden-import jobslop.build_info --windowed --name jobslop --icon "%~dp0jf.ico" ^
+"%VENV%\Scripts\python.exe" -m PyInstaller --noconfirm --onefile %PLUGIN_STDLIB% --hidden-import jobslop.build_info --windowed --name %NAME% --icon "%~dp0jf.ico" ^
   --collect-all jobspy --collect-all curl_cffi --collect-data certifi --collect-data pdfminer --collect-submodules phonenumbers.data --collect-submodules phonenumbers.shortdata --collect-all pypdfium2 --collect-all pypdfium2_raw ^
   --exclude-module pytest --exclude-module _pytest --exclude-module pluggy ^
   --add-data "%~dp0chrome-extension;chrome-extension" --add-data "%~dp0ui;ui" ^
   --add-data "%~dp0static;static" --add-data "%~dp0cities.tsv.gz;." --add-data "%~dp0jf.ico;." --add-data "%~dp0plugins;plugins" ^
   --workpath "%TEMP%\jobfinder-build" --specpath "%TEMP%\jobfinder-build" jobfinder.py || goto failed
 if exist jobslop\build_info.py del jobslop\build_info.py
-if "%KIND%"=="personal" move /y dist\jobslop.exe dist\%OUT% >nul || goto failed
 rem checksum the app checks an update download against (uploaded next to the .exe by release.py)
 "%VENV%\Scripts\python.exe" -c "import hashlib; h=hashlib.sha256(open('dist/%OUT%','rb').read()).hexdigest(); open('dist/%OUT%.sha256','w').write(h+'  %OUT%\n')" || goto failed
 
@@ -69,3 +73,8 @@ echo BUILD FAILED - see the messages above. If it says "access denied", close jo
 :end
 if "%NOPAUSE%"=="0" pause
 exit /b %FAILED%
+
+:free
+if exist "%~1" del /f /q "%~1" >nul 2>&1
+if exist "%~1" move /y "%~1" "%~1.%RANDOM%.old" >nul
+exit /b 0

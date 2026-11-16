@@ -74,9 +74,9 @@ def verify_licence(key):
     """Ask Gumroad whether a licence key is a real, unrefunded purchase. Returns (ok, message)."""
     key = (key or "").strip()
     if not key:
-        return False, "Enter your licence key (it's in your Gumroad receipt)"
+        return False, "Enter your licence key (it's in your purchase receipt)"
     if not config.GUMROAD_PRODUCT_ID:
-        return False, "This build doesn't know its Gumroad product yet - updates can't be checked"
+        return False, "This build can't check licences yet - updates can't be checked"
     data = urllib.parse.urlencode({"product_id": config.GUMROAD_PRODUCT_ID, "license_key": key,
                                    "increment_uses_count": "false"}).encode()
     req = urllib.request.Request(GUMROAD_VERIFY, data=data, headers={"User-Agent": f"jobslop/{config.APP_VERSION}"})
@@ -85,13 +85,13 @@ def verify_licence(key):
             ans = json.loads(r.read() or b"{}")
     except urllib.error.HTTPError as e:
         if e.code == 404:
-            return False, "Gumroad doesn't know that licence key"
-        return False, f"Couldn't reach Gumroad ({e.code})"
+            return False, "That licence key wasn't recognised"
+        return False, f"Couldn't check the licence right now ({e.code})"
     except Exception as e:
-        return False, f"Couldn't reach Gumroad ({str(e)[:60]})"
+        return False, f"Couldn't check the licence right now ({str(e)[:60]})"
     p = ans.get("purchase") or {}
     if not ans.get("success"):
-        return False, "Gumroad doesn't know that licence key"
+        return False, "That licence key wasn't recognised"
     if p.get("refunded") or p.get("chargebacked") or p.get("disputed"):
         return False, "That purchase was refunded, so in-app updates are off"
     return True, "Licence checked ✓"

@@ -12,7 +12,7 @@ async function loadUpdate(force){
   $("#updoff").checked=!!upd.off;$("#updcheck").hidden=!upd.enabled||!!upd.off;$("#updoff").closest("label").hidden=!upd.enabled;
   // Gumroad builds: the licence key that lets jobslop update itself
   $("#licbox").hidden=upd.how!=="gumroad";
-  $("#licmsg").textContent=upd.licence==="ok"?"Licence checked ✓ — jobslop can update itself.":upd.licence_message||"Add the licence key from your Gumroad receipt so jobslop can update itself.";
+  $("#licmsg").textContent=upd.licence==="ok"?"Licence checked ✓ — jobslop can update itself.":upd.licence_message||"Add the licence key from your purchase receipt so jobslop can update itself.";
   drawUpdBar();
   if(upd.updated_from&&pref("told_updated")!==appVersion){pref("told_updated",appVersion);
     toast(`Updated to jobslop ${appVersion} ✓`,upd.notes&&upd.version===appVersion?{label:"What's new",fn:()=>showNotes(false)}:undefined)}
@@ -31,8 +31,8 @@ function drawUpdBar(){
   ic.setAttribute("aria-label",ic.dataset.tip);if(tipFor===ic)showTip(ic);
   // a square card: icon, version, one line of help, then the main button and two small ones side by side
   const needKey=upd.how==="gumroad"&&(upd.licence==="needed"||upd.licence==="invalid");
-  const note=upd.can_install?"Your jobs, profile and settings are kept.":needKey?"Add your Gumroad licence key to update inside jobslop, or download it yourself.":upd.how==="source"?"Get the new code from GitHub and run or build it again."
-    :"Download it where you got jobslop (e.g. your Gumroad library) — your jobs, profile and settings are kept.";
+  const note=upd.can_install?"Your jobs, profile and settings are kept.":needKey?"Add your licence key to update inside jobslop, or download it yourself.":upd.how==="source"?"Get the new code from GitHub and run or build it again."
+    :"Download it where you got jobslop — your jobs, profile and settings are kept.";
   pop.innerHTML=`<div class="uhead"><div class="ubadge ${updPhase}">${updPhase==="ready"?"↻":"⬇"}</div>
       <div class="kicker">${updPhase==="ready"?"Ready to install":"Update available"}</div>
       <h4>jobslop ${esc(upd.version)}</h4><div class="uwas">You have ${esc(upd.current)}</div></div>

@@ -12,7 +12,7 @@ extension fill in application forms for you. Everything stays on your own comput
 
 ## Get jobslop
 
-**Ready-made app:** buy it on Gumroad (link coming soon). That supports development, and it's the easy way: download, open, done. New versions are announced in the app.
+**Ready-made app:** buy it from the download page (link coming soon). That supports development, and it's the easy way: download, open, done. New versions are announced in the app.
 
 **Build it yourself, free:** jobslop is open source under the [GPL-3.0](LICENSE). You need Python 3.11 or newer.
 

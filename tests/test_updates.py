@@ -324,10 +324,10 @@ def test_a_licence_is_checked_with_gumroad(repo):
 
 
 @pytest.mark.parametrize("answer, status, message", [
-    ({"success": False}, 200, "doesn't know"),
-    (None, 404, "doesn't know"),
+    ({"success": False}, 200, "wasn't recognised"),
+    (None, 404, "wasn't recognised"),
     ({"success": True, "purchase": {"refunded": True}}, 200, "refunded"),
-    (None, 500, "Couldn't reach Gumroad"),
+    (None, 500, "Couldn't check the licence"),
 ])
 def test_bad_or_refunded_licences(repo, answer, status, message):
     opener, _ = gumroad(answer, status)
